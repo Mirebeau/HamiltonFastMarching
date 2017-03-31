@@ -150,10 +150,7 @@ HamiltonFastMarching<T>::ConditionalUpdate(IndexCRef acceptedIndex,
     if(activeNeighs[updated.linear].none() && values[updated.linear]!=Traits::Infinity()) return;
     
     if(values[updated.linear]<=acceptedValue) return;
-
-    
     Update(updated, offset, acceptedValue); // also pushes in queue
-
 }
 
 

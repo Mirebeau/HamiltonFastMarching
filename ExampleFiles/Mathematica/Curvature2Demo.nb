@@ -10,10 +10,10 @@
 NotebookFileLineBreakTest
 NotebookFileLineBreakTest
 NotebookDataPosition[       157,          7]
-NotebookDataLength[     22440,        573]
-NotebookOptionsPosition[     21723,        544]
-NotebookOutlinePosition[     22081,        560]
-CellTagsIndexPosition[     22038,        557]
+NotebookDataLength[     22317,        570]
+NotebookOptionsPosition[     21600,        541]
+NotebookOutlinePosition[     21958,        557]
+CellTagsIndexPosition[     21915,        554]
 WindowFrame->Normal*)
 
 (* Beginning of Notebook Content *)
@@ -247,10 +247,6 @@ Cell[BoxData[
       RowBox[{"geo", "=", 
        RowBox[{"\"\<geodesics\>\"", "/.", "out"}]}], ";", 
       "\[IndentingNewLine]", "\[IndentingNewLine]", 
-      RowBox[{"AppendTo", "[", 
-       RowBox[{"geo", ",", 
-        RowBox[{"\"\<geodesicPoints_Unoriented\>\"", "/.", "out"}]}], "]"}], 
-      ";", "\[IndentingNewLine]", 
       RowBox[{"(*", 
        RowBox[{
        "Import", " ", "and", " ", "display", " ", "the", " ", "stencil"}], 
@@ -465,7 +461,8 @@ Cell[BoxData[
    3.699463843390521*^9, 3.69946439610917*^9}, {3.699464898733842*^9, 
    3.699464919534954*^9}, {3.699464952459826*^9, 3.699464952685605*^9}, {
    3.699815192167941*^9, 3.6998152118488607`*^9}, 3.699816368717128*^9, {
-   3.699822978079652*^9, 3.6998230060029716`*^9}}],
+   3.699822978079652*^9, 3.6998230060029716`*^9}, {3.699962504141141*^9, 
+   3.699962516079266*^9}}],
 
 Cell["\<\
 Available models:
@@ -561,18 +558,18 @@ CellTagsIndex->{}
 Notebook[{
 Cell[CellGroupData[{
 Cell[579, 22, 125, 3, 92, "Title"],
-Cell[707, 27, 18276, 440, 1202, "Input"],
-Cell[18986, 469, 458, 10, 106, "Text"],
-Cell[19447, 481, 846, 15, 125, "Text"],
+Cell[707, 27, 18153, 437, 1185, "Input"],
+Cell[18863, 466, 458, 10, 106, "Text"],
+Cell[19324, 478, 846, 15, 125, "Text"],
 Cell[CellGroupData[{
-Cell[20318, 500, 162, 2, 44, "Subsection"],
-Cell[20483, 504, 158, 3, 30, "Text"],
-Cell[20644, 509, 327, 8, 125, "Text"]
+Cell[20195, 497, 162, 2, 44, "Subsection"],
+Cell[20360, 501, 158, 3, 30, "Text"],
+Cell[20521, 506, 327, 8, 125, "Text"]
 }, Open  ]],
 Cell[CellGroupData[{
-Cell[21008, 522, 182, 4, 44, "Subsection"],
-Cell[21193, 528, 188, 2, 30, "Text"],
-Cell[21384, 532, 311, 8, 125, "Text"]
+Cell[20885, 519, 182, 4, 44, "Subsection"],
+Cell[21070, 525, 188, 2, 30, "Text"],
+Cell[21261, 529, 311, 8, 125, "Text"]
 }, Open  ]]
 }, Open  ]]
 }
