@@ -5,7 +5,7 @@ project(FileHFM)
 
 #set a few machine dependent paths
 #add_subdirectory("../LocalSettings" "${CMAKE_CURRENT_BINARY_DIR}/LocalSettings")
-set(JMM_CPPLibs_dir "${CMAKE_CURRENT_SOURCE_DIR}/../../JMM_CPPLibs" CACHE FILEPATH "JMM_CPPLibs directory")
+set(JMM_CPPLibs_dir "${CMAKE_CURRENT_SOURCE_DIR}/../JMM_CPPLibs-master" CACHE FILEPATH "JMM_CPPLibs directory")
 
 #paths required for compilation of Lifted Fast Marching
 set(LinearAlgebra_dir 		"${JMM_CPPLibs_dir}/LinearAlgebra")

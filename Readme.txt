@@ -20,11 +20,11 @@ Program description:
 This code implements a Fast-Marching solver with adaptive stencils. It computes distance maps and shortest paths with respect to a variety of metrics, on a domain discretized on a cartesian grid. Typical uses include motion planning and image segmentation. The code features:
 - riemannian metrics, in dimension 2 and 3, and curvature penalizing metrics such as the Reeds-Shepp, Euler Elastica or Dubins models.
 - second order accuracy (optional), various stopping criteria, propagation of states, forward and backward differentiation.
-- interfaces to Mathematica(R), Matlab(R), Python(R) (see example files)
+- interfaces to  Mathematica(R) and Python(R) using files, Matlab(R) using mex, see ExampleFiles directory.
 
 Installation instructions:
--You also need to download the (header only) github repository mirebeau/JMMCPP_Libs, and enter the path to it when CMake asks.
--The code is written in C++11. Use CMAKE to build, except for the Matlab(R) interface which is built from matlab using make.
+-You also need to download the github repository github.com/Mirebeau/JMM_CPPLibs (header only).
+-The code is written in C++11. Use CMAKE to build, or Matlab(R) mex. You may need need to enter the path to to JMM_CPPLibs.
 
 Fair use:
 If you use this program for an academic or commercial project, then please cite at least one of the following papers.

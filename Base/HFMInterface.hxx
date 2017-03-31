@@ -40,7 +40,7 @@ HFMInterface<T>::SpecializationsDefault<true,Dummy> {
         else if(nDims==DimDep) {    return ResultType(new DataSource_Dep<E>(io.template GetArray<ScalarType, DimDep>(name).template Cast<E>()));}
         else {ExceptionMacro("Field " << name << " has incorrect depth.");}
     }
-    typedef std::array<ScalarType,std::max(DimIndep,1)> UnorientedPointType;
+    typedef std::array<ScalarType,DimIndep==0 ? 1 : DimIndep> UnorientedPointType;
     static PointType PadUnoriented(const UnorientedPointType & p){
         PointType q=PointType::Constant(0);
         auto depIt = Traits::stencilDependencies.begin();
