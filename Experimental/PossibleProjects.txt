@@ -1,0 +1,11 @@
+Possible projects.
+
+Models:
+- Reeds shepp 2D with adaptive discretization of orientations, to match small integer vectors. 
+
+
+Algorithm:
+- Simultaneaous computation of euclidean path length.
+- Time dependent velocity. (Computation with speed at time of first accepted neighbor, recompute to refine).
+- Time dependent obstacles. (Multi-valued value map.)
+- Stitch together several grids. (Requires : covering region, adaptation to geodesic backtracing)
