@@ -48,7 +48,7 @@ protected:
     virtual void Run_SetupStencil(); // Also creates HFM
     virtual void Run_SetupSolver();
     virtual void Run_SetupExtraAlgorithms();
-    virtual void Run_RunSolver();
+    virtual bool Run_RunSolver();
     virtual void Run_ExtractGeodesics();
     virtual void Run_ExportData();
 };

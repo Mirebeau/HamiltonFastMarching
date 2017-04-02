@@ -10,10 +10,10 @@
 NotebookFileLineBreakTest
 NotebookFileLineBreakTest
 NotebookDataPosition[       157,          7]
-NotebookDataLength[     25207,        628]
-NotebookOptionsPosition[     24764,        608]
-NotebookOutlinePosition[     25120,        624]
-CellTagsIndexPosition[     25077,        621]
+NotebookDataLength[     25353,        632]
+NotebookOptionsPosition[     24908,        612]
+NotebookOutlinePosition[     25265,        628]
+CellTagsIndexPosition[     25222,        625]
 WindowFrame->Normal*)
 
 (* Beginning of Notebook Content *)
@@ -59,10 +59,11 @@ evaluate:
 myOptions = MergeRules[{\"obstacles\" -> manObstacles, \"nRaster\" -> 100}, \
 myOptions];
 myParams = {\"tips\" -> manTips, \"seeds\" -> manSeeds, \"model\" -> \
-\"Elastica2<5>\", \"xi\" -> 0.2}};
+\"Elastica2<5>\", \"xi\" -> 0.2};
 ShowShortestPaths[myOptions, myParams]\
 \>", "Text",
- CellChangeTimes->{{3.699967269386609*^9, 3.699967300403363*^9}}],
+ CellChangeTimes->{{3.699967269386609*^9, 3.699967300403363*^9}, 
+   3.699983737811639*^9}],
 
 Cell[BoxData[{
  RowBox[{
@@ -341,9 +342,11 @@ Cell[BoxData[{
         RowBox[{"\"\<Domain size:\>\"", ",", 
          RowBox[{"Dimensions", "[", "walls", "]"}], ",", 
          "\"\<, FMCPUTime:\>\"", ",", "\"\< \>\"", ",", 
-         RowBox[{"\"\<FMCPUTime\>\"", "/.", "out"}]}], "]"}], ";"}]}], 
-     "\[IndentingNewLine]", "]"}]}], ";"}], "\[IndentingNewLine]", 
-  "\[IndentingNewLine]", 
+         RowBox[{"\"\<FMCPUTime\>\"", "/.", "out"}]}], "]"}], ";", 
+       "\[IndentingNewLine]", 
+       RowBox[{"{", 
+        RowBox[{"prms", ",", "out"}], "}"}]}]}], "]"}]}], ";"}], 
+  "\[IndentingNewLine]", "\[IndentingNewLine]", 
   RowBox[{"(*", 
    RowBox[{
     RowBox[{
@@ -603,11 +606,12 @@ Cell[BoxData[{
    3.699965680152277*^9}, 3.699965717945023*^9, {3.69996620771616*^9, 
    3.6999662687818813`*^9}, {3.69996630900515*^9, 3.699966318122311*^9}, {
    3.6999663765383387`*^9, 3.699966436307438*^9}, 3.69996651155767*^9, {
-   3.69996679599114*^9, 3.699966847764018*^9}}]
+   3.69996679599114*^9, 3.699966847764018*^9}, {3.699983000189371*^9, 
+   3.699983002475236*^9}}]
 }, Open  ]]
 },
-WindowSize->{1307, 855},
-WindowMargins->{{Automatic, 9}, {Automatic, 0}},
+WindowSize->{795, 855},
+WindowMargins->{{-17, Automatic}, {Automatic, 0}},
 FrontEndVersion->"9.0 for Mac OS X x86 (32-bit, 64-bit Kernel) (November 20, \
 2012)",
 StyleDefinitions->"Default.nb"
@@ -624,11 +628,11 @@ CellTagsIndex->{}
 (*NotebookFileOutline
 Notebook[{
 Cell[CellGroupData[{
-Cell[579, 22, 247, 5, 92, "Title"],
+Cell[579, 22, 247, 5, 148, "Title"],
 Cell[829, 29, 342, 6, 51, "Subtitle"],
-Cell[1174, 37, 645, 14, 125, "Text"],
-Cell[1822, 53, 495, 11, 106, "Text"],
-Cell[2320, 66, 22428, 539, 1542, "Input"]
+Cell[1174, 37, 645, 14, 144, "Text"],
+Cell[1822, 53, 520, 12, 125, "Text"],
+Cell[2345, 67, 22547, 542, 1627, "Input"]
 }, Open  ]]
 }
 ]

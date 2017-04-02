@@ -247,7 +247,7 @@ Run() {
     Run_SetupStencil();
     Run_SetupSolver();
     Run_SetupExtraAlgorithms();
-    Run_RunSolver();
+    if(Run_RunSolver()) return;
     Run_ExtractGeodesics();
     Run_ExportData();
 }
@@ -273,9 +273,39 @@ Run_SetupStencil() {
 
 template<typename T> void HFMInterface<T>::
 Run_SetupSolver() {
+    // ------- Some exports that are independent of the fast marching results -------
     io.Set<ScalarType>("MaxStencilWidth",pFM->MaxStencilWidth());
     pFM->sndOrder = (bool)io.template Get<ScalarType>("sndOrder",0.);
 
+    if(io.HasField("getStencils")) {
+        const auto & pts = io.GetVector<PointType>("getStencils");
+        std::ostringstream oss;
+        oss << "{";
+        for(const PointType & p : pts){
+            IndexType index = pFM->dom.IndexFromPoint(stencil.Param().ADim(p));
+            if(pFM->dom.Periodize(index)[Dimension]){
+                WarnMsg() << "GetStencil error : point " << p << "is out of range.\n";
+                continue;}
+            typename HFM::StencilType indStencil;
+            stencil.SetStencil(index,indStencil);
+            oss << "{" << index << "," << indStencil << "},";
+        }
+        oss << "}";
+        io.SetString("stencils", oss.str());
+    }
+    
+    if(io.HasField("pointToIndex")){
+        auto pts = io.GetVector<PointType>("pointToIndex");
+        for(auto & p : pts) p=PointType::CastCoordinates(pFM->dom.IndexFromPoint(stencil.Param().ADim(p)));
+        io.SetVector("indexFromPoint", pts);
+    }
+    if(io.HasField("indexToPoint")){
+        auto pts = io.GetVector<PointType>("indexToPoint");
+        for(auto & p : pts) p=stencil.Param().ReDim(pFM->dom.PointFromIndex(IndexType::CastCoordinates(p)));
+        io.SetVector("pointFromIndex", pts);
+    }
+
+    
     // Get the seeds
     {
         std::vector<PointType> seedPoints;
@@ -338,7 +368,7 @@ SetupSingleAlgorithm(){
     return result;
 }
 
-template<typename T> void HFMInterface<T>::
+template<typename T> bool HFMInterface<T>::
 Run_RunSolver() {
     if(!pFM->seeds.empty()){
         const clock_t top = clock();
@@ -348,10 +378,13 @@ Run_RunSolver() {
         io.Set<ScalarType>("FMCPUTime",FMCPUTime);
         if(io.verbosity>=1) Msg() << "Fast marching solver completed in " << FMCPUTime << " s.\n";
     } else {
-        if(!io.HasField("values") || !io.HasField("activeNeighs"))
-            ExceptionMacro("Error : No seeds to run fast marching solver,"
-            << " and missing values or activeNeighs to compute geodesics.\n")
+        if(!io.HasField("values") || !io.HasField("activeNeighs")){
+            WarnMsg() << "No seeds to run fast marching solver,"
+            << " and missing values or activeNeighs to compute geodesics.\n";
+            return true;
+        }
     }
+    return false;
 }
 
 template<typename T> void HFMInterface<T>::
@@ -431,32 +464,6 @@ Run_ExportData() {
         io.SetArray<VectorType>("geodesicFlow", flow);
     }
     
-    if(io.HasField("getStencils")) {
-        const auto & pts = io.GetVector<PointType>("getStencils");
-        std::ostringstream oss;
-        oss << "{";
-        for(const PointType & p : pts){
-            IndexType index = pFM->dom.IndexFromPoint(stencil.Param().ADim(p));
-            if(pFM->dom.Periodize(index)[Dimension]){
-                WarnMsg() << "GetStencil error : point " << p << "is out of range.\n";
-                continue;}
-            typename HFM::StencilType indStencil;
-            stencil.SetStencil(index,indStencil);
-            oss << "{" << index << "," << indStencil << "},";
-        }
-        oss << "}";
-        io.SetString("stencils", oss.str());
-    }
-    if(io.HasField("pointToIndex")){
-        auto pts = io.GetVector<PointType>("pointToIndex");
-        for(auto & p : pts) p=PointType::CastCoordinates(pFM->dom.IndexFromPoint(stencil.Param().ADim(p)));
-        io.SetVector("indexFromPoint", pts);
-    }
-    if(io.HasField("indexToPoint")){
-        auto pts = io.GetVector<PointType>("indexFromPoint");
-        for(auto & p : pts) p=stencil.Param().ReDim(pFM->dom.PointFromIndex(IndexType::CastCoordinates(p)));
-        io.SetVector("pointFromIndex", pts);
-    }
     for(const auto & pAlg : extras) pAlg->Finally(this);
 }
 

@@ -84,11 +84,11 @@ void StencilRiemannDiff2::Setup(HFMI*that){
     //        stencil.pMultSource = that->template GetField<MultiplierType>("speed");
     minWeightRatio = io.template Get<ScalarType>("minWeightRatio",minWeightRatio);
     
-    if(io.HasField("dualForwardVariation")){
-        const auto & dualVariation = io.template GetArray<SymmetricMatrixType,Dimension+1>("dualForwardVariation");
+    if(io.HasField("dualMetricVariation")){
+        const auto & dualVariation = io.template GetArray<SymmetricMatrixType,Dimension+1>("dualMetricVariation");
         for(int i=0; i<Dimension; ++i)
             if(dualVariation.dims[i]!=dims[i])
-                ExceptionMacro("dualForwardVariation has inconsistent dims");
+                ExceptionMacro("dualMetricVariation has inconsistent dims");
         typedef Traits::template Array<MultiplierType, Dimension+1> DeepArrayType;
         DeepArrayType variation;
         variation.dims = dualVariation.dims; variation.resize(dualVariation.size());
@@ -117,7 +117,7 @@ void StencilRiemannDiff2::Setup(HFMI*that){
             } // for j
         } // for linearIndex
         
-        io.SetArray("forwardVariation",variation);
+        io.SetArray("speedVariation",variation);
     } // if dualForwardVariations
 }
 /*

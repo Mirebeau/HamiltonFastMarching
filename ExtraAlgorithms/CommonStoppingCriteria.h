@@ -83,15 +83,6 @@ CommonStoppingCriteria<T>::Setup(HFMI*that){
     if(io.HasField("nMaxAccepted"))
         nMaxAccepted = io.template Get<ScalarType>("nMaxAccepted");
     
-    if(io.HasField("stopWhenLastAccepted")){
-        const auto & targets = io.template GetVector<PointType>("stopWhenLastAccepted");
-        for(const auto & p : targets) {
-            IndexType index = dom.IndexFromPoint(param.ADim(p));
-            if(dom.Periodize(index)[Dimension]) Msg() << "Warning : target " << p << " is out of range.";
-            else stopWhenAllAccepted.insert(index);
-        }
-    }
-    
     if(io.HasField("stopWhenAnyAccepted")){
         const auto & targets = io.template GetVector<PointType>("stopWhenAnyAccepted");
         for(const auto & p : targets) {
