@@ -10,10 +10,10 @@
 NotebookFileLineBreakTest
 NotebookFileLineBreakTest
 NotebookDataPosition[       157,          7]
-NotebookDataLength[     22345,        586]
-NotebookOptionsPosition[     21943,        567]
-NotebookOutlinePosition[     22299,        583]
-CellTagsIndexPosition[     22256,        580]
+NotebookDataLength[     23554,        613]
+NotebookOptionsPosition[     23148,        594]
+NotebookOutlinePosition[     23508,        610]
+CellTagsIndexPosition[     23465,        607]
 WindowFrame->Normal*)
 
 (* Beginning of Notebook Content *)
@@ -208,63 +208,86 @@ Cell[BoxData[{
          RowBox[{"{", "}"}]}]}], "\[IndentingNewLine]", "}"}], ",", 
       "\[IndentingNewLine]", 
       RowBox[{
-       RowBox[{"If", "[", 
+       RowBox[{"With", "[", 
         RowBox[{
-         RowBox[{"!", 
-          RowBox[{"And", "@@", 
-           RowBox[{"(", 
-            RowBox[{
+         RowBox[{"{", 
+          RowBox[{"bad", "=", 
+           RowBox[{"Select", "[", 
+            RowBox[{"l", ",", 
              RowBox[{
               RowBox[{
-               RowBox[{"Length", "@", "#"}], "\[Equal]", "2"}], "&"}], "/@", 
-             "l"}], ")"}]}]}], ",", "\[IndentingNewLine]", 
-         RowBox[{
+               RowBox[{"Length", "@", "#"}], "!=", "2"}], "&"}]}], "]"}]}], 
+          "}"}], ",", "\[IndentingNewLine]", 
+         RowBox[{"If", "[", 
           RowBox[{
-          "Print", "[", 
-           "\"\<SaveToFile Error : Elements of l are not pairs\>\"", "]"}], 
-          ";", "\[IndentingNewLine]", " ", 
-          RowBox[{"Return", "[", "True", "]"}], ";"}]}], "]"}], ";", 
-       "\[IndentingNewLine]", "\[IndentingNewLine]", 
-       RowBox[{"If", "[", 
-        RowBox[{
-         RowBox[{"!", 
-          RowBox[{"And", "@@", 
-           RowBox[{"(", 
-            RowBox[{
+           RowBox[{"bad", "\[NotEqual]", 
+            RowBox[{"{", "}"}]}], ",", 
+           RowBox[{
+            RowBox[{"Print", "[", 
              RowBox[{
-              RowBox[{"StringQ", "@", 
-               RowBox[{"First", "@", "#"}]}], "&"}], "/@", "l"}], ")"}]}]}], 
-         ",", "\[IndentingNewLine]", 
-         RowBox[{
+             "\"\<SaveToFile Error : Elements of l are not pairs\\n\>\"", ",", 
+              RowBox[{"Short", "[", 
+               RowBox[{"bad", ",", "2"}], "]"}]}], "]"}], ";", 
+            "\[IndentingNewLine]", " ", 
+            RowBox[{"Return", "[", "True", "]"}], ";"}]}], "]"}]}], "]"}], 
+       ";", "\[IndentingNewLine]", "\[IndentingNewLine]", 
+       RowBox[{"With", "[", 
+        RowBox[{
+         RowBox[{"{", 
+          RowBox[{"bad", "=", 
+           RowBox[{"Select", "[", 
+            RowBox[{"l", ",", 
+             RowBox[{
+              RowBox[{"!", 
+               RowBox[{"StringQ", "@", 
+                RowBox[{"First", "@", "#"}]}]}], "&"}]}], "]"}]}], "}"}], ",",
+          "\[IndentingNewLine]", 
+         RowBox[{"If", "[", 
           RowBox[{
-          "Print", "[", "\"\<SaveToFile Error : Keys are not strings\>\"", 
-           "]"}], ";", "\[IndentingNewLine]", " ", 
-          RowBox[{"Return", "[", "True", "]"}], ";"}]}], "]"}], ";", 
-       "\[IndentingNewLine]", "\[IndentingNewLine]", 
-       RowBox[{"If", "[", 
-        RowBox[{
-         RowBox[{"!", 
-          RowBox[{"And", "@@", 
-           RowBox[{"(", 
-            RowBox[{
+           RowBox[{"bad", "\[NotEqual]", 
+            RowBox[{"{", "}"}]}], ",", 
+           RowBox[{
+            RowBox[{"Print", "[", 
              RowBox[{
-              RowBox[{"(", 
+             "\"\<SaveToFile Error : Keys are not strings\\n\>\"", ",", 
+              RowBox[{"Short", "[", 
+               RowBox[{"bad", ",", "2"}], "]"}]}], "]"}], ";", 
+            "\[IndentingNewLine]", " ", 
+            RowBox[{"Return", "[", "True", "]"}], ";"}]}], "]"}]}], "]"}], 
+       ";", "\[IndentingNewLine]", "\[IndentingNewLine]", 
+       RowBox[{"With", "[", 
+        RowBox[{
+         RowBox[{"{", 
+          RowBox[{"bad", "=", 
+           RowBox[{"Select", "[", 
+            RowBox[{"l", ",", 
+             RowBox[{
+              RowBox[{
                RowBox[{
-                RowBox[{"StringQ", "@", "#"}], "||", 
-                RowBox[{"NumericQ", "@", "#"}], "||", 
-                RowBox[{"ArrayQ", "[", 
-                 RowBox[{"#", ",", "_", ",", "NumericQ"}], "]"}], "||", 
-                RowBox[{"#", "===", "Null"}]}], ")"}], "&"}], "/@", 
-             RowBox[{"(", 
-              RowBox[{"Last", "/@", "l"}], ")"}]}], ")"}]}]}], ",", 
-         "\[IndentingNewLine]", 
-         RowBox[{
+                RowBox[{"!", 
+                 RowBox[{"(", 
+                  RowBox[{
+                   RowBox[{"StringQ", "@", "#"}], "||", 
+                   RowBox[{"NumericQ", "@", "#"}], "||", 
+                   RowBox[{"ArrayQ", "[", 
+                    RowBox[{"#", ",", "_", ",", "NumericQ"}], "]"}], "||", 
+                   RowBox[{"#", "===", "Null"}]}], ")"}]}], "&"}], "@", 
+               RowBox[{"Last", "[", "#", "]"}]}], "&"}]}], "]"}]}], "}"}], 
+         ",", "\[IndentingNewLine]", 
+         RowBox[{"If", "[", 
           RowBox[{
-          "Print", "[", 
-           "\"\<SaveToFile Error : data format should be string|Numeric|Array\
-\>\"", "]"}], ";", "\[IndentingNewLine]", " ", 
-          RowBox[{"Return", "[", "True", "]"}], ";"}]}], "]"}], ";", 
-       "\[IndentingNewLine]", "\[IndentingNewLine]", 
+           RowBox[{"bad", "\[NotEqual]", 
+            RowBox[{"{", "}"}]}], ",", 
+           RowBox[{
+            RowBox[{"Print", "[", 
+             RowBox[{
+             "\"\<SaveToFile Error : data format should be \
+string|Numeric|Array\\n\>\"", ",", 
+              RowBox[{"Short", "[", 
+               RowBox[{"bad", ",", "2"}], "]"}]}], "]"}], ";", 
+            "\[IndentingNewLine]", " ", 
+            RowBox[{"Return", "[", "True", "]"}], ";"}]}], "]"}]}], "]"}], 
+       ";", "\[IndentingNewLine]", "\[IndentingNewLine]", 
        RowBox[{"lStr", "=", 
         RowBox[{"Select", "[", 
          RowBox[{"l", ",", 
@@ -562,11 +585,15 @@ Cell[BoxData[{
    3.699380189663466*^9}, {3.699380289139727*^9, 3.699380310301757*^9}, {
    3.699380469782707*^9, 3.699380572745825*^9}, 3.699380604092313*^9, {
    3.69938068985175*^9, 3.699380771922076*^9}, {3.699380818902176*^9, 
-   3.699380839220717*^9}, {3.6993869743422413`*^9, 3.6993869795148697`*^9}}]
+   3.699380839220717*^9}, {3.6993869743422413`*^9, 3.6993869795148697`*^9}, {
+   3.7002035804277782`*^9, 3.700203744865365*^9}, {3.700203775619684*^9, 
+   3.7002037773743668`*^9}, {3.700203827416172*^9, 3.700203861373456*^9}, {
+   3.7002038979905367`*^9, 3.7002039686560163`*^9}, {3.700204065457471*^9, 
+   3.700204129348976*^9}}]
 }, Open  ]]
 },
-WindowSize->{845, 855},
-WindowMargins->{{Automatic, -4}, {Automatic, 0}},
+WindowSize->{906, 1033},
+WindowMargins->{{Automatic, -1840}, {Automatic, 2}},
 FrontEndVersion->"9.0 for Mac OS X x86 (32-bit, 64-bit Kernel) (November 20, \
 2012)",
 StyleDefinitions->"Default.nb"
@@ -586,7 +613,7 @@ Cell[CellGroupData[{
 Cell[579, 22, 185, 4, 148, "Title"],
 Cell[767, 28, 425, 8, 49, "Text"],
 Cell[1195, 38, 446, 13, 46, "Input"],
-Cell[1644, 53, 20283, 511, 1695, "Input"]
+Cell[1644, 53, 21488, 538, 1712, "Input"]
 }, Open  ]]
 }
 ]

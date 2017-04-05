@@ -296,12 +296,12 @@ Run_SetupSolver() {
     
     if(io.HasField("pointToIndex")){
         auto pts = io.GetVector<PointType>("pointToIndex");
-        for(auto & p : pts) p=PointType::CastCoordinates(pFM->dom.IndexFromPoint(stencil.Param().ADim(p)));
+        for(PointType & p : pts) p=PointType::CastCoordinates(pFM->dom.IndexFromPoint(stencil.Param().ADim(p)));
         io.SetVector("indexFromPoint", pts);
     }
     if(io.HasField("indexToPoint")){
         auto pts = io.GetVector<PointType>("indexToPoint");
-        for(auto & p : pts) p=stencil.Param().ReDim(pFM->dom.PointFromIndex(IndexType::CastCoordinates(p)));
+        for(PointType & p : pts) p=stencil.Param().ReDim(pFM->dom.PointFromIndex(IndexType::CastCoordinates(p)));
         io.SetVector("pointFromIndex", pts);
     }
 

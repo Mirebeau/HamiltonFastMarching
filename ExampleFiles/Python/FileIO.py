@@ -24,7 +24,7 @@ def RulesToRaw(params,prefix='input'):
             f.write('\n')
             data.append(val.flatten())
         else:
-            print('Invalid type for key' + key);
+            raise ValueError('Invalid type for key ' + key);
     f.close()
     np.concatenate(data).astype('d').tofile(prefix+'_Data.dat')
     
