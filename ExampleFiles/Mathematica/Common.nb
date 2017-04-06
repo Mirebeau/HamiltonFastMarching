@@ -10,10 +10,10 @@
 NotebookFileLineBreakTest
 NotebookFileLineBreakTest
 NotebookDataPosition[       157,          7]
-NotebookDataLength[     23554,        613]
-NotebookOptionsPosition[     23148,        594]
-NotebookOutlinePosition[     23508,        610]
-CellTagsIndexPosition[     23465,        607]
+NotebookDataLength[     23865,        620]
+NotebookOptionsPosition[     23464,        601]
+NotebookOutlinePosition[     23819,        617]
+CellTagsIndexPosition[     23776,        614]
 WindowFrame->Normal*)
 
 (* Beginning of Notebook Content *)
@@ -462,7 +462,13 @@ string|Numeric|Array\\n\>\"", ",",
      RowBox[{
       RowBox[{"l", "=", 
        RowBox[{"{", "}"}]}], ",", 
-      RowBox[{"pos", "=", "0"}]}], "}"}], ",", "\[IndentingNewLine]", 
+      RowBox[{"pos", "=", "0"}], ",", 
+      RowBox[{"newlineCharacter", "=", 
+       RowBox[{"If", "[", 
+        RowBox[{
+         RowBox[{"$OperatingSystem", "\[Equal]", "\"\<Windows\>\""}], ",", 
+         "\"\<\\r\\n\>\"", ",", "\"\<\\n\>\""}], "]"}]}]}], "}"}], ",", 
+    "\[IndentingNewLine]", 
     RowBox[{
      RowBox[{"Do", "[", "\[IndentingNewLine]", 
       RowBox[{
@@ -472,8 +478,8 @@ string|Numeric|Array\\n\>\"", ",",
           RowBox[{
            RowBox[{"format", " ", "=", " ", 
             RowBox[{"StringSplit", "[", 
-             RowBox[{"s", ",", "\"\<\\n\>\""}], "]"}]}], ",", "dim", ",", 
-           "dims", ",", 
+             RowBox[{"s", ",", "newlineCharacter"}], "]"}]}], ",", "dim", ",",
+            "dims", ",", 
            RowBox[{"oldPos", "=", "pos"}], ",", 
            RowBox[{"oldLen", "=", 
             RowBox[{"Length", "@", "l"}]}]}], "}"}], ",", 
@@ -562,7 +568,7 @@ string|Numeric|Array\\n\>\"", ",",
              RowBox[{
               RowBox[{"Length", "@", "l"}], "\[Equal]", "oldLen"}], " ", "&&",
               " ", 
-             RowBox[{"s", "\[NotEqual]", "\"\<\\n\>\""}]}], ",", 
+             RowBox[{"s", "\[NotEqual]", "newlineCharacter"}]}], ",", 
             RowBox[{"Print", "[", 
              RowBox[{
              "\"\<RawToRules error : could not import \>\"", "<>", "s"}], 
@@ -571,9 +577,10 @@ string|Numeric|Array\\n\>\"", ",",
        RowBox[{"{", 
         RowBox[{"s", ",", 
          RowBox[{"StringSplit", "[", 
-          RowBox[{"str", ",", "\"\<\\n\\n\>\""}], "]"}]}], "}"}]}], "]"}], 
-     ";", "\[IndentingNewLine]", "l"}]}], "\[IndentingNewLine]", 
-   "]"}]}]}], "Input",
+          RowBox[{"str", ",", 
+           RowBox[{"newlineCharacter", "<>", "newlineCharacter"}]}], "]"}]}], 
+        "}"}]}], "]"}], ";", "\[IndentingNewLine]", "l"}]}], 
+   "\[IndentingNewLine]", "]"}]}]}], "Input",
  CellChangeTimes->{{3.696873107708523*^9, 3.696873280372493*^9}, {
    3.6968735175848227`*^9, 3.696873544038447*^9}, {3.696873883092235*^9, 
    3.6968738866873617`*^9}, {3.696932632863077*^9, 3.696932683915284*^9}, {
@@ -589,11 +596,11 @@ string|Numeric|Array\\n\>\"", ",",
    3.7002035804277782`*^9, 3.700203744865365*^9}, {3.700203775619684*^9, 
    3.7002037773743668`*^9}, {3.700203827416172*^9, 3.700203861373456*^9}, {
    3.7002038979905367`*^9, 3.7002039686560163`*^9}, {3.700204065457471*^9, 
-   3.700204129348976*^9}}]
+   3.700204129348976*^9}, 3.7004562988277903`*^9}]
 }, Open  ]]
 },
-WindowSize->{906, 1033},
-WindowMargins->{{Automatic, -1840}, {Automatic, 2}},
+WindowSize->{906, 855},
+WindowMargins->{{Automatic, 0}, {Automatic, 0}},
 FrontEndVersion->"9.0 for Mac OS X x86 (32-bit, 64-bit Kernel) (November 20, \
 2012)",
 StyleDefinitions->"Default.nb"
@@ -613,7 +620,7 @@ Cell[CellGroupData[{
 Cell[579, 22, 185, 4, 148, "Title"],
 Cell[767, 28, 425, 8, 49, "Text"],
 Cell[1195, 38, 446, 13, 46, "Input"],
-Cell[1644, 53, 21488, 538, 1712, "Input"]
+Cell[1644, 53, 21804, 545, 1729, "Input"]
 }, Open  ]]
 }
 ]

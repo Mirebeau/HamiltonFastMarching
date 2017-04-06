@@ -6,7 +6,7 @@
 #define FirstVariation_h
 
 // Forward and backward differentiation of the value with respect to variations of the speed function and of the seeds values.
-
+// TODO : make this exact as well in the case of second order differences/time varying speed field.
 
 template<typename T> struct FirstVariation :
 HamiltonFastMarching<T>::ExtraAlgorithmInterface {
