@@ -68,6 +68,16 @@ protected:
     typename Traits::template Array<ScalarType,Dimension> arr;
 };
 
+// A second class is used to reparametrize the domain
+template<typename TPoint> struct ParamInterface {
+    typedef TPoint PointType;
+    virtual PointType ADim(const PointType & p) const=0;
+    virtual PointType ReDim(const PointType & p) const=0;
+    virtual ~ParamInterface(){};
+};
+
+
+
 #include "PeriodicGrid.hxx"
 
 #endif /* PeriodicGrid_h */

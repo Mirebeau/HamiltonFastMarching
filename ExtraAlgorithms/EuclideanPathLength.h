@@ -83,6 +83,7 @@ PostProcessWithRecompute(IndexCRef index, const RecomputeType &, const DiscreteF
         const ScalarType length = flowSum.Norm() + lengthSum;
         euclideanLengths(index) = length;
         if(length>stopAtEuclideanLength) {
+            stoppingIndex = index;
             return Decision::kTerminate;}
     } else {euclideanLengths(index) = 0;}
     return 0;

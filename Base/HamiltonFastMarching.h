@@ -87,7 +87,7 @@ struct HamiltonFastMarching {
 
     // StencilDataType must be subclassed.
     struct StencilType;
-    struct ParamInterface;
+    typedef ParamInterface<PointType> ParamInterface;
     typedef typename DifferenceType::MultiplierType MultiplierType;
     static const bool hasMultiplier = DifferenceType::multSize>0;
     template<bool b=hasMultiplier, typename Dummy=void> struct _StencilDataType;
@@ -142,13 +142,6 @@ template<typename T> struct HamiltonFastMarching<T>::ExtraAlgorithmPtrs {
     std::vector<ExtraAlgorithmInterface*> visible;
     std::vector<ExtraAlgorithmInterface*> beforeRecompute;
 };
-
-template<typename T> struct HamiltonFastMarching<T>::ParamInterface {
-    virtual PointType ADim(const PointType & p) const=0;
-    virtual PointType ReDim(const PointType & p) const=0;
-    virtual ~ParamInterface(){};
-};
-
 
 template<typename T> struct HamiltonFastMarching<T>::GeodesicSolverInterface {
     const HFM & fm;

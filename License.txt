@@ -20,6 +20,9 @@
 If you use this program, then please cite at least one of the following papers.
 - Remco Duits, Stephan P.L. Meesters, Jean-Marie Mirebeau, Jorg M. Portegies, Optimal Paths for Variants of the 2D and 3D Reeds-Shepp Car with Applications in Image Analysis, Preprint available on arXiv, 2017
 
+- Jean-Marie Mirebeau, Anisotropic fast-marching on cartesian grids using Voronoi's first reduction of quadratic forms, Preprint available on HAL, 2017
+
+
 
 
                     GNU GENERAL PUBLIC LICENSE

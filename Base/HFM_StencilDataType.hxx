@@ -27,27 +27,23 @@ HamiltonFastMarching<Traits>::_StencilDataType<true,Dummy>::ParamType : HFM::Par
     ScalarType gridScale=1, dependScale=1;
     virtual PointType ADim(const PointType & p) const override;
     virtual PointType ReDim(const PointType & p) const override;
-    void Setup(HFMI * that, ScalarType _dependScale) {
+    void Setup(IO & io, ScalarType _dependScale){
         // Setting the scale and origin. This is really specialized for R^n x S^d structures.
-        gridScale = that->io.template Get<ScalarType>("gridScale");
+        gridScale = io.template Get<ScalarType>("gridScale");
         dependScale = _dependScale;
         origin.back() = -dependScale/2.;
         
-        if(that->io.HasField("origin")){ // Only importing the physical dimensions of origin
+        if(io.HasField("origin")){ // Only importing the physical dimensions of origin
             const DiscreteType DimIndep = Dimension-Traits::nStencilDependencies;
-            const auto indepOrigin = that->io.template Get<std::array<ScalarType,DimIndep> >("origin");
+            const auto indepOrigin = io.template Get<std::array<ScalarType,DimIndep> >("origin");
             auto indIt = indepOrigin.begin(); const auto dep=Traits::stencilDependencies; auto depIt = dep.begin();
             for(int i=0; i<Dimension;++i){
                 if(depIt!=dep.end() && i==*depIt){++depIt;}
                 else {origin[i]=*indIt; ++indIt;}
             }
-/*            static const int PhysicalDim = Dimension - Traits::nStencilDependencies;
-            typedef std::array<ScalarType,PhysicalDim> OriginType;
-            const OriginType _origin = that->io.template Get<OriginType>("origin");
-            for(int i=0; i<PhysicalDim; ++i)
-                origin[i]=_origin[i];*/
         }
     }
+    void Setup(HFMI * that, ScalarType _dependScale) {Setup(that->io,_dependScale);}
 };
 
 template<typename Traits> template<typename Dummy> struct

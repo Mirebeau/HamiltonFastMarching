@@ -15,7 +15,7 @@
 #include "Specializations/Curvature2.h"
 #include "Specializations/Curvature3.h"
 
-#include "Experimental/Jorg.h"
+#include "Experimental/RiemannLifted.h"
 #include "Experimental/ReedsSheppAdaptive2.h"
 #include "Experimental/Quaternionic.h"
 
@@ -60,10 +60,18 @@ void Run(IO & io){
 #endif
 
 // ----------- Experimental -----------
-#ifdef Experimental0
+    
+#ifdef ExperimentalRiemannian
     // Differentiation with riemannian metrics
     HFMSpecializationMacro(RiemannDiff2)
     
+    // Lifted riemannian metrics
+    HFMSpecializationMacro(RiemannLifted2<Boundary::Closed>)
+    HFMSpecializationMacro(RiemannLifted2<Boundary::Periodic>)
+    HFMSpecializationMacro(RiemannLifted3)
+#endif
+    
+#ifdef Experimental0
     // Quaternions
     HFMSpecializationMacro(ReedsSheppSO3)
     HFMSpecializationMacro(ReedsSheppForwardSO3)
