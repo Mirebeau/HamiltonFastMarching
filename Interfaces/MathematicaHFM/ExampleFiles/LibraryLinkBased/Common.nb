@@ -10,10 +10,10 @@
 NotebookFileLineBreakTest
 NotebookFileLineBreakTest
 NotebookDataPosition[       158,          7]
-NotebookDataLength[     11302,        283]
-NotebookOptionsPosition[     10967,        267]
-NotebookOutlinePosition[     11328,        283]
-CellTagsIndexPosition[     11285,        280]
+NotebookDataLength[     12778,        314]
+NotebookOptionsPosition[     12445,        298]
+NotebookOutlinePosition[     12803,        314]
+CellTagsIndexPosition[     12760,        311]
 WindowFrame->Normal*)
 
 (* Beginning of Notebook Content *)
@@ -181,7 +181,27 @@ Cell[BoxData[
           "\t\t\t", ",", 
           RowBox[{"{", 
            RowBox[{"d", ",", "1", ",", "6", ",", "1"}], "}"}]}], "]"}]}], ";",
-        "\n", "\t\t\t", "\n", "\t", 
+        "\n", "\t", "\[IndentingNewLine]", 
+       RowBox[{"(*", 
+        RowBox[{
+         RowBox[{"**", "Key"}], " ", "inspection", " ", "functions"}], 
+        "***)"}], "\[IndentingNewLine]", 
+       RowBox[{"hfmHasField", " ", "=", " ", 
+        RowBox[{"LibraryFunctionLoad", "[", 
+         RowBox[{
+         "hfmwllLibraryFile", ",", " ", "\"\<HasField\>\"", ",", " ", 
+          RowBox[{"{", "String", 
+           RowBox[{"(*", "key", "*)"}], "}"}], ",", " ", 
+          RowBox[{"True", "|", "False"}]}], "]"}]}], ";", 
+       "\[IndentingNewLine]", 
+       RowBox[{"hfmEraseField", " ", "=", " ", 
+        RowBox[{"LibraryFunctionLoad", "[", 
+         RowBox[{
+         "hfmwllLibraryFile", ",", " ", "\"\<EraseField\>\"", ",", " ", 
+          RowBox[{"{", "String", 
+           RowBox[{"(*", "key", "*)"}], "}"}], ",", " ", 
+          RowBox[{"True", "|", "False"}]}], "]"}]}], ";", 
+       "\[IndentingNewLine]", "\n", "\t", 
        RowBox[{"(*", 
         RowBox[{
          RowBox[{
@@ -259,14 +279,25 @@ Cell[BoxData[
          RowBox[{"LibraryFunctionUnload", "[", 
           RowBox[{"hfmSetArray", "[", "d", "]"}], "]"}], ",", 
          RowBox[{"{", 
-          RowBox[{"d", ",", "1", ",", "6", ",", "1"}], "}"}]}], "]"}], 
-       ";"}]}], "\n", "]"}]}]}]}]], "Input",
+          RowBox[{"d", ",", "1", ",", "6", ",", "1"}], "}"}]}], "]"}], ";", 
+       "\[IndentingNewLine]", 
+       RowBox[{"(*", 
+        RowBox[{"Key", " ", "inspection", " ", "functions"}], "*)"}], 
+       "\[IndentingNewLine]", 
+       RowBox[{"LibraryFunctionUnload", "[", "hfmHasField", "]"}], ";", 
+       "\[IndentingNewLine]", 
+       RowBox[{"LibraryFunctionUnload", "[", "hfmEraseField", "]"}], ";"}]}], 
+     "\n", "]"}]}]}]}]], "Input",
  CellChangeTimes->{{3.701578652855085*^9, 3.701578670930937*^9}, {
   3.701578880367453*^9, 3.70157891023638*^9}, {3.701595604051529*^9, 
-  3.701595669047227*^9}, {3.701595735314288*^9, 3.701595754671096*^9}}]
+  3.701595669047227*^9}, {3.701595735314288*^9, 3.701595754671096*^9}, {
+  3.701622708503208*^9, 3.7016227387818336`*^9}, {3.701622813806904*^9, 
+  3.701622859957615*^9}, {3.7016230152859287`*^9, 3.701623021100854*^9}, {
+  3.701623051810658*^9, 3.70162309047337*^9}, {3.7016231602156677`*^9, 
+  3.70162323015869*^9}}]
 },
-WindowSize->{973, 850},
-WindowMargins->{{-1440, Automatic}, {Automatic, 0}},
+WindowSize->{1060, 888},
+WindowMargins->{{0, Automatic}, {Automatic, 0}},
 FrontEndVersion->"11.0 for Mac OS X x86 (32-bit, 64-bit Kernel) (September \
 21, 2016)",
 StyleDefinitions->"Default.nb"
@@ -284,7 +315,7 @@ CellTagsIndex->{}
 Notebook[{
 Cell[558, 20, 299, 8, 32, "Input"],
 Cell[860, 30, 582, 14, 54, "Input"],
-Cell[1445, 46, 9518, 219, 1230, "Input"]
+Cell[1445, 46, 10996, 250, 1348, "Input"]
 }
 ]
 *)

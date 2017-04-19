@@ -36,7 +36,8 @@ extern "C"
     
     EXTERN_C DLLEXPORT int RunModel(WolframLibraryData libData,
                                     mint Argc, MArgument *Args, MArgument Res) {
-        MathematicaTryCatch(io.SetWolframLibraryData(libData);
+        MathematicaTryCatch(0,
+                            io.SetWolframLibraryData(libData);
                             Run(io);
                             )
     }
