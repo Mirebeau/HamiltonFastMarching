@@ -1,0 +1,207 @@
+(* Content-type: application/vnd.wolfram.mathematica *)
+
+(*** Wolfram Notebook File ***)
+(* http://www.wolfram.com/nb *)
+
+(* CreatedBy='Mathematica 11.0' *)
+
+(*CacheID: 234*)
+(* Internal cache information:
+NotebookFileLineBreakTest
+NotebookFileLineBreakTest
+NotebookDataPosition[       158,          7]
+NotebookDataLength[      7561,        199]
+NotebookOptionsPosition[      7008,        174]
+NotebookOutlinePosition[      7368,        190]
+CellTagsIndexPosition[      7325,        187]
+WindowFrame->Normal*)
+
+(* Beginning of Notebook Content *)
+Notebook[{
+
+Cell[CellGroupData[{
+Cell[BoxData[
+ RowBox[{"Module", "[", 
+  RowBox[{
+   RowBox[{"{", 
+    RowBox[{
+     RowBox[{"params", "=", 
+      RowBox[{"Association", "[", 
+       RowBox[{"{", "}"}], "]"}]}], ",", 
+     RowBox[{"n", "=", "11"}], ",", "values", ",", "test", ",", "used", ",", 
+     "defaulted"}], "}"}], ",", "\[IndentingNewLine]", 
+   RowBox[{
+    RowBox[{
+     RowBox[{"params", "[", "\"\<model\>\"", "]"}], "=", 
+     "\"\<IsotropicBox2<Boundary::Closed>\>\""}], ";", "\[IndentingNewLine]", 
+    
+    RowBox[{
+     RowBox[{"params", "[", "\"\<speed\>\"", "]"}], "=", 
+     RowBox[{"Array", "[", 
+      RowBox[{
+       RowBox[{"1.", "&"}], ",", 
+       RowBox[{"{", 
+        RowBox[{"n", ",", "n"}], "}"}]}], "]"}]}], ";", "\[IndentingNewLine]", 
+    RowBox[{
+     RowBox[{"params", "[", "\"\<dims\>\"", "]"}], "=", 
+     RowBox[{"{", 
+      RowBox[{"n", ",", "n"}], "}"}]}], ";", "\[IndentingNewLine]", 
+    RowBox[{
+     RowBox[{"params", "[", "\"\<gridScale\>\"", "]"}], "=", 
+     RowBox[{"1.", "/", "n"}]}], ";", "\[IndentingNewLine]", 
+    RowBox[{
+     RowBox[{"params", "[", "\"\<seeds\>\"", "]"}], "=", 
+     RowBox[{"{", 
+      RowBox[{"{", 
+       RowBox[{"0.5", ",", "0.5"}], "}"}], "}"}]}], ";", 
+    "\[IndentingNewLine]", 
+    RowBox[{
+     RowBox[{"params", "[", "\"\<exportValues\>\"", "]"}], "=", "1."}], ";", 
+    "\[IndentingNewLine]", "\[IndentingNewLine]", 
+    RowBox[{"LoadHFMWLL", "[", "hfmLibraryPath", "]"}], ";", 
+    "\[IndentingNewLine]", 
+    RowBox[{
+     RowBox[{
+      RowBox[{"hfmSetVariable", "[", 
+       RowBox[{"#1", ",", "#2"}], "]"}], "&"}], "@@@", 
+     RowBox[{"Normal", "[", "params", "]"}]}], ";", "\[IndentingNewLine]", 
+    RowBox[{"hfmSetVariable", "[", 
+     RowBox[{"\"\<speed\>\"", ",", 
+      RowBox[{"Array", "[", 
+       RowBox[{
+        RowBox[{
+         RowBox[{"If", "[", 
+          RowBox[{
+           RowBox[{"#1", ">", "#2"}], ",", "1.", ",", "2."}], "]"}], "&"}], 
+        ",", 
+        RowBox[{"{", 
+         RowBox[{"n", ",", "n"}], "}"}]}], "]"}]}], "]"}], ";", 
+    "\[IndentingNewLine]", 
+    RowBox[{"hfmRunModel", "[", "]"}], ";", "\[IndentingNewLine]", 
+    RowBox[{"values", "=", 
+     RowBox[{
+      RowBox[{"hfmGetArray", "[", "2", "]"}], "[", "\"\<values\>\"", "]"}]}], 
+    ";", "\[IndentingNewLine]", 
+    RowBox[{"UnloadHFMWLL", "[", "]"}], ";", "\[IndentingNewLine]", 
+    RowBox[{"ArrayPlot", "[", "values", "]"}]}]}], "\[IndentingNewLine]", 
+  "]"}]], "Input",
+ CellChangeTimes->{{3.701578965583357*^9, 3.70157924831631*^9}, {
+  3.701579313086618*^9, 3.7015793712028923`*^9}, {3.7015794043174553`*^9, 
+  3.7015794313470592`*^9}, {3.701579471480961*^9, 3.701579482366541*^9}, {
+  3.7015889896107187`*^9, 3.701589009143471*^9}, {3.701589241445804*^9, 
+  3.70158924548568*^9}, {3.701589276959301*^9, 3.701589277357257*^9}, {
+  3.701592154124604*^9, 3.7015921584368973`*^9}, {3.701592387516651*^9, 
+  3.7015924560612707`*^9}, {3.70159251653759*^9, 3.701592535489807*^9}, {
+  3.701593106475321*^9, 3.701593114427774*^9}, {3.7015941721209383`*^9, 
+  3.701594191247884*^9}, {3.701595073508094*^9, 3.701595118001648*^9}, {
+  3.7015952335612926`*^9, 3.701595253974751*^9}}],
+
+Cell["\<\
+MathematicaIO warning: redefining field speed, but memory is not freed until \
+library is unloaded.
+Field verbosity defaults to 1
+Field origin defaults to {0,0}
+Field sndOrder defaults to 0
+Fast marching solver completed in 0.000298 s.
+Field exportActiveNeighs defaults to 0
+Field exportGeodesicFlow defaults to 0
+Unused fields : FMCPUTime MaxStencilWidth StencilCPUTime nAccepted \
+\>", "Print",
+ CellChangeTimes->{
+  3.701588158419917*^9, 3.7015882345555*^9, 3.701588270250873*^9, 
+   3.701588301025816*^9, 3.70158855778284*^9, {3.7015889851854553`*^9, 
+   3.701589009692827*^9}, 3.701589245956794*^9, 3.70158927835777*^9, 
+   3.701589515201499*^9, 3.701591251738371*^9, 3.7015914119973593`*^9, 
+   3.7015921547788486`*^9, {3.7015924407179728`*^9, 3.7015924566042767`*^9}, {
+   3.701592528432475*^9, 3.7015925599612713`*^9}, {3.701593087997899*^9, 
+   3.701593115035145*^9}, 3.701594160525519*^9, 3.701594192261409*^9, {
+   3.701595082217094*^9, 3.701595088527296*^9}, 3.701595118795418*^9, {
+   3.701595214193152*^9, 3.7015952164023933`*^9}, {3.701595254865446*^9, 
+   3.701595309653884*^9}, 3.7015963470254087`*^9, {3.701597158417613*^9, 
+   3.7015971709518003`*^9}}],
+
+Cell[BoxData[
+ GraphicsBox[RasterBox[CompressedData["
+1:eJw9k21IE3Ecx1eCIi01NVCoVHSLEpYhxgTpaw8oikS4tJVJNYq0+VgLJkFN
+E1TEHjTnE8IgQ+1hLQqFEFcpolO3mW2e3h5vpmIvlCCrCZkv+t3BcXD878P3
+6eIU5bnXdwoEgl3/b7qkkY3ZVpUBYc8rTY9rjVDPagsfXR1D+j39h1bTJIZL
+OTlbY4HQ19H7dNOC+aIvu0fcVpw8kLB55fsMTpsaBmzCWVSndF26kPYVxDMs
+lyVfjP6Eqcr38s+yCayo69JV561I0sln2opmoc2Tmvqe2HDjWeuyYNiGfa2y
+I/52O1y/JZPlujkErcs0wUYGNxlxY4RojtdHPIlyen0jcQZpSRUBiVk2hIem
++h5aGLyKMsaqFCwcfXHRGfdZRMjqxT9yHYgaHTKE5Dux3uzWj/Sy0GXa/5ib
+53m/pI94pq3GoYTVeTCjEos8yAVGXNJk7fBA8Lr0qFnngaepP5UJ9EKT3FN+
+LcYDf7ckrnP73KBpWe3vZPn8yC/pI16YPiNn5bYXbWHteTU1Pv557vLa2ZS7
+HLjgqYG9p7zg/Iot6aob5oqc+u5jTr4Pyo/8kj7iaN7F16YplyDknCXujUX+
+fTxyj4tCOOhLhQfHt8+rpE0x9mwX3y/1QfmRX/qeeONJKUXNaz7ks3vMtwY5
+LJ35pa0q9sIRXMK+DPVA/eJbz51CJ78X6pf6oPzIL/GJF364eEJk8OKvbrpy
+sW5bZ+dYgUvrQnVig1gZ4OD3R3uhfqkPyo/8kj6e585akOxwoyuw5dD+jw5o
+FKtlbwoW+D3T/mgv1C/1QfmRX9JHvMieE7EP3i6Ai87sNlYx/P9Be6b90V6o
+X+qD8iO/pI94BYM/W0RKO/4Bm7Hr2w==
+   "], {{0, 0}, {11, 11}}, {
+   0, 0.7005903797959121}],
+  Frame->Automatic,
+  FrameLabel->{None, None},
+  FrameTicks->{{None, None}, {None, None}},
+  GridLinesStyle->Directive[
+    GrayLevel[0.5, 0.4]],
+  Method->{
+   "DefaultBoundaryStyle" -> Automatic, "DefaultPlotStyle" -> 
+    Automatic}]], "Output",
+ CellChangeTimes->{{3.701593108174741*^9, 3.701593115092149*^9}, 
+   3.7015941605654163`*^9, 3.70159419232764*^9, {3.701595082281073*^9, 
+   3.7015950885765543`*^9}, 3.701595118863385*^9, {3.70159521424712*^9, 
+   3.701595216455711*^9}, {3.701595254935966*^9, 3.701595309715219*^9}, 
+   3.70159634718382*^9, {3.701597158494996*^9, 3.701597171009379*^9}}]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"Print", "[", "\"\<Hi\>\"", "]"}], ";", 
+  RowBox[{"Print", "[", "\"\<There\>\"", "]"}], ";"}]], "Input",
+ CellChangeTimes->{{3.701588329720355*^9, 3.701588344191382*^9}}],
+
+Cell[CellGroupData[{
+
+Cell[BoxData["\<\"Hi\"\>"], "Print",
+ CellChangeTimes->{{3.701588335231086*^9, 3.701588344513414*^9}}],
+
+Cell[BoxData["\<\"There\"\>"], "Print",
+ CellChangeTimes->{{3.701588335231086*^9, 3.701588344519627*^9}}]
+}, Open  ]]
+}, Open  ]]
+},
+WindowSize->{729, 855},
+WindowMargins->{{-740, Automatic}, {Automatic, 0}},
+FrontEndVersion->"11.0 for Mac OS X x86 (32-bit, 64-bit Kernel) (September \
+21, 2016)",
+StyleDefinitions->"Default.nb"
+]
+(* End of Notebook Content *)
+
+(* Internal cache information *)
+(*CellTagsOutline
+CellTagsIndex->{}
+*)
+(*CellTagsIndex
+CellTagsIndex->{}
+*)
+(*NotebookFileOutline
+Notebook[{
+Cell[CellGroupData[{
+Cell[580, 22, 3132, 74, 348, "Input"],
+Cell[3715, 98, 1181, 22, 143, "Print"],
+Cell[4899, 122, 1604, 31, 408, "Output"]
+}, Open  ]],
+Cell[CellGroupData[{
+Cell[6540, 158, 205, 4, 32, "Input"],
+Cell[CellGroupData[{
+Cell[6770, 166, 102, 1, 24, "Print"],
+Cell[6875, 169, 105, 1, 24, "Print"]
+}, Open  ]]
+}, Open  ]]
+}
+]
+*)
+

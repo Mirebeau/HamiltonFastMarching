@@ -1,0 +1,291 @@
+(* Content-type: application/vnd.wolfram.mathematica *)
+
+(*** Wolfram Notebook File ***)
+(* http://www.wolfram.com/nb *)
+
+(* CreatedBy='Mathematica 11.0' *)
+
+(*CacheID: 234*)
+(* Internal cache information:
+NotebookFileLineBreakTest
+NotebookFileLineBreakTest
+NotebookDataPosition[       158,          7]
+NotebookDataLength[     11302,        283]
+NotebookOptionsPosition[     10967,        267]
+NotebookOutlinePosition[     11328,        283]
+CellTagsIndexPosition[     11285,        280]
+WindowFrame->Normal*)
+
+(* Beginning of Notebook Content *)
+Notebook[{
+Cell[BoxData[
+ RowBox[{"(*", 
+  RowBox[{
+   RowBox[{"Copyright", " ", "2017", " ", "Erik", " ", "Bekkers"}], ",", " ", 
+   
+   RowBox[{"J", ".", 
+    RowBox[{"-", 
+     RowBox[{"M", ".", " ", "Mirebeau"}]}]}]}], "*)"}]], "Input",
+ CellChangeTimes->{{3.7015957794547167`*^9, 3.7015957949132137`*^9}}],
+
+Cell[BoxData[{
+ RowBox[{
+  RowBox[{
+  "hfmBinDirectory", "=", 
+   "\"\</Users/mirebeau/bin/2017/MathematicaHFM/Debug\>\""}], ";"}], "\n", 
+ RowBox[{
+  RowBox[{
+   RowBox[{"hfmLibraryPath", "=", 
+    RowBox[{"FileNameJoin", "[", 
+     RowBox[{"{", 
+      RowBox[{"hfmBinDirectory", ",", "\"\<libMathematicaHFM_AllBase\>\""}], 
+      "}"}], "]"}]}], ";"}], " "}]}], "Input",
+ CellChangeTimes->{{3.701578517740206*^9, 3.701578561505766*^9}, {
+  3.70157884291381*^9, 3.701578854825486*^9}, {3.70157939152558*^9, 
+  3.7015793936128798`*^9}, {3.701597166934952*^9, 3.701597168395871*^9}}],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"(*", 
+   RowBox[{
+    RowBox[{
+    "**", "**", "**", "**", "**", "**", "**", "**", "**", "**", "**", "**", "**",
+      "**", "**", "**", "**", "**", "**", "**", "**", "Load"}], " ", "HFM", 
+    " ", "wolfram", " ", "library", " ", "link", " ", 
+    RowBox[{"functions", ":"}]}], "*)"}], "\n", 
+  RowBox[{
+   RowBox[{
+    RowBox[{"LoadHFMWLL", "[", "hfmwllLibraryFile_", "]"}], ":=", 
+    RowBox[{"Module", "[", "\n", "\t", 
+     RowBox[{
+      RowBox[{"{", "}"}], ",", "\n", "\t", 
+      RowBox[{"(*", 
+       RowBox[{
+        RowBox[{"**", "Main"}], " ", 
+        RowBox[{"function", ":"}]}], "*)"}], "\n", "\t", 
+      RowBox[{
+       RowBox[{"hfmRunModel", " ", "=", " ", 
+        RowBox[{"LibraryFunctionLoad", "[", 
+         RowBox[{
+         "hfmwllLibraryFile", ",", " ", "\"\<RunModel\>\"", ",", " ", 
+          RowBox[{"{", "}"}], ",", " ", "Real"}], "]"}]}], ";", "\n", 
+       "\t\t\t\t", "\n", "\t", 
+       RowBox[{"(*", 
+        RowBox[{
+         RowBox[{
+          RowBox[{"**", "Get"}], " ", 
+          RowBox[{"functions", ":", " ", "GetScalar"}]}], ",", " ", 
+         "GetString", ",", " ", "GetVector", ",", " ", 
+         RowBox[{"GetArray", "[", "d", "]"}]}], "***)"}], "\n", "\t", 
+       RowBox[{"hfmGetScalar", " ", "=", " ", 
+        RowBox[{"LibraryFunctionLoad", "[", 
+         RowBox[{"hfmwllLibraryFile", ",", " ", "\"\<GetScalar\>\"", ",", " ", 
+          RowBox[{"{", "String", 
+           RowBox[{"(*", "key", "*)"}], "}"}], ",", " ", "Real"}], 
+         RowBox[{"(*", "keyval", "*)"}], "]"}]}], ";", "\n", "\t", 
+       RowBox[{"hfmGetString", " ", "=", " ", 
+        RowBox[{"LibraryFunctionLoad", "[", 
+         RowBox[{"hfmwllLibraryFile", ",", "\"\<GetString\>\"", ",", " ", 
+          RowBox[{"{", "String", 
+           RowBox[{"(*", "key", "*)"}], "}"}], ",", " ", "String"}], 
+         RowBox[{"(*", "keyval", "*)"}], "]"}]}], ";", "\n", "\t", 
+       RowBox[{"hfmGetVector", " ", "=", " ", 
+        RowBox[{"LibraryFunctionLoad", "[", 
+         RowBox[{"hfmwllLibraryFile", ",", "\"\<GetVector\>\"", ",", " ", 
+          RowBox[{"{", "String", 
+           RowBox[{"(*", "key", "*)"}], "}"}], ",", " ", 
+          RowBox[{"{", 
+           RowBox[{"Real", ",", "1"}], "}"}]}], 
+         RowBox[{"(*", "keyval", "*)"}], "]"}]}], ";", "\n", "\t", 
+       RowBox[{"Quiet", "@", 
+        RowBox[{"Do", "[", 
+         RowBox[{"(*", 
+          RowBox[{"Quiet", " ", "overload", " ", "messages"}], "*)"}], 
+         "\t\t\t", 
+         RowBox[{
+          RowBox[{
+           RowBox[{
+            RowBox[{"hfmGetArrayBase", "[", "d", "]"}], " ", "=", " ", 
+            RowBox[{"LibraryFunctionLoad", "[", 
+             RowBox[{
+             "hfmwllLibraryFile", ",", " ", "\"\<GetArray\>\"", ",", " ", 
+              RowBox[{"{", 
+               RowBox[{"String", 
+                RowBox[{"(*", "key", "*)"}], ",", " ", "Integer"}], 
+               RowBox[{"(*", "Dimension", "*)"}], "}"}], ",", " ", 
+              RowBox[{"{", 
+               RowBox[{"Real", ",", "d"}], "}"}]}], 
+             RowBox[{"(*", "keyval", "*)"}], "]"}]}], ";"}], "\n", "\t\t\t", 
+          ",", 
+          RowBox[{"{", 
+           RowBox[{"d", ",", "1", ",", "6", ",", "1"}], "}"}]}], "]"}]}], ";",
+        "\n", "\t", 
+       RowBox[{
+        RowBox[{
+         RowBox[{"hfmGetArray", "[", "d_", "]"}], "[", "key_", "]"}], ":=", 
+        RowBox[{
+         RowBox[{"hfmGetArrayBase", "[", "d", "]"}], "[", 
+         RowBox[{"key", ",", "d"}], "]"}]}], ";", "\n", "\t\t", "\n", "\t", 
+       RowBox[{"(*", 
+        RowBox[{
+         RowBox[{
+          RowBox[{"**", "Set"}], " ", 
+          RowBox[{"functions", ":", " ", "SetScalar"}]}], ",", " ", 
+         "SetString", ",", " ", "SetVector"}], "****)"}], "\n", "\t", 
+       RowBox[{"hfmSetScalar", " ", "=", " ", 
+        RowBox[{"LibraryFunctionLoad", "[", 
+         RowBox[{"hfmwllLibraryFile", ",", " ", "\"\<SetScalar\>\"", ",", " ", 
+          RowBox[{"{", 
+           RowBox[{"String", 
+            RowBox[{"(*", "key", "*)"}], ",", " ", "Real"}], 
+           RowBox[{"(*", "val", "*)"}], "}"}], ",", " ", "\"\<Void\>\""}], 
+         "]"}]}], ";", "\n", "\t", 
+       RowBox[{"hfmSetString", " ", "=", " ", 
+        RowBox[{"LibraryFunctionLoad", "[", 
+         RowBox[{"hfmwllLibraryFile", ",", " ", "\"\<SetString\>\"", ",", " ", 
+          RowBox[{"{", 
+           RowBox[{"String", 
+            RowBox[{"(*", "key", "*)"}], ",", " ", "String"}], 
+           RowBox[{"(*", "val", "*)"}], "}"}], ",", " ", "\"\<Void\>\""}], 
+         "]"}]}], ";", "\n", "\t", 
+       RowBox[{"hfmSetVector", " ", "=", " ", 
+        RowBox[{"LibraryFunctionLoad", "[", 
+         RowBox[{"hfmwllLibraryFile", ",", " ", "\"\<SetVector\>\"", ",", " ", 
+          RowBox[{"{", 
+           RowBox[{"String", 
+            RowBox[{"(*", "key", "*)"}], ",", " ", 
+            RowBox[{"{", 
+             RowBox[{"Real", ",", "1"}], "}"}]}], 
+           RowBox[{"(*", "val", "*)"}], "}"}], ",", " ", "\"\<Void\>\""}], 
+         "]"}]}], ";", "\n", "\t", 
+       RowBox[{"Quiet", "@", 
+        RowBox[{"Do", "[", "\n", 
+         RowBox[{
+          RowBox[{
+           RowBox[{
+            RowBox[{"hfmSetArray", "[", "d", "]"}], " ", "=", " ", 
+            RowBox[{"LibraryFunctionLoad", "[", 
+             RowBox[{
+             "hfmwllLibraryFile", ",", " ", "\"\<SetArray\>\"", ",", " ", 
+              RowBox[{"{", 
+               RowBox[{"String", 
+                RowBox[{"(*", "key", "*)"}], ",", " ", 
+                RowBox[{"{", 
+                 RowBox[{"Real", ",", "d"}], "}"}]}], 
+               RowBox[{"(*", 
+                RowBox[{"val", " ", 
+                 RowBox[{"(", 
+                  RowBox[{"d", "-", 
+                   RowBox[{"dimensional", " ", "array"}]}], ")"}]}], "*)"}], 
+               "}"}], ",", " ", "\"\<Void\>\""}], "]"}]}], ";"}], "\n", 
+          "\t\t\t", ",", 
+          RowBox[{"{", 
+           RowBox[{"d", ",", "1", ",", "6", ",", "1"}], "}"}]}], "]"}]}], ";",
+        "\n", "\t\t\t", "\n", "\t", 
+       RowBox[{"(*", 
+        RowBox[{
+         RowBox[{
+          RowBox[{"**", "**", "**", "**", "**", "Additional"}], " ", 
+          "front"}], "-", 
+         RowBox[{"end", " ", 
+          RowBox[{"functions", ":"}]}]}], "*)"}], "\n", "\t", 
+       RowBox[{
+        RowBox[{"hfmSetVariable", "[", 
+         RowBox[{"key_", ",", "val_"}], "]"}], ":=", 
+        RowBox[{"Switch", "[", " ", 
+         RowBox[{
+          RowBox[{"Head", "[", "val", "]"}], "\n", "\t\t", ",", "String", ",",
+           "\n", "\t\t\t", 
+          RowBox[{"hfmSetString", "[", 
+           RowBox[{"key", ",", "val"}], "]"}], "\n", "\t\t", ",", "Integer", 
+          ",", "\n", "\t\t\t", 
+          RowBox[{"hfmSetScalar", "[", 
+           RowBox[{"key", ",", "val"}], "]"}], "\n", "\t\t", ",", "Real", ",",
+           "\n", "\t\t\t", 
+          RowBox[{"hfmSetScalar", "[", 
+           RowBox[{"key", ",", "val"}], "]"}], "\n", "\t\t", ",", "List", ",",
+           "\n", "\t\t\t", 
+          RowBox[{
+           RowBox[{"hfmSetArray", "[", 
+            RowBox[{"TensorRank", "[", "val", "]"}], "]"}], "[", 
+           RowBox[{"key", ",", "val"}], "]"}]}], "\n", "\t\t", "]"}]}], 
+       ";"}]}], 
+     RowBox[{"(*", 
+      RowBox[{"end", " ", "of", " ", "switch"}], "*)"}], "\n", "]"}]}], "\n", 
+   "\n", 
+   RowBox[{"(*", 
+    RowBox[{
+     RowBox[{
+     "**", "**", "**", "**", "**", "**", "**", "**", "**", "**", "**", "**", "**",
+       "**", "**", "**", "**", "**", "**", "**", "**", "Unload"}], " ", "HFM",
+      " ", "wolfram", " ", "library", " ", 
+     RowBox[{"link", ":"}]}], "*)"}], "\n", 
+   RowBox[{
+    RowBox[{"UnloadHFMWLL", "[", "]"}], ":=", 
+    RowBox[{"Module", "[", "\n", "\t", 
+     RowBox[{
+      RowBox[{"{", "}"}], ",", "\n", "\t", 
+      RowBox[{"(*", 
+       RowBox[{"The", " ", "main", " ", "functions"}], "*)"}], "\n", "\t", 
+      RowBox[{
+       RowBox[{"LibraryFunctionUnload", "[", "hfmRunModel", "]"}], ";", "\n", 
+       "\t", 
+       RowBox[{"(*", 
+        RowBox[{"Get", " ", "functions"}], "*)"}], "\n", "\t", 
+       RowBox[{"LibraryFunctionUnload", "[", "hfmGetScalar", "]"}], ";", "\n",
+        "\t", 
+       RowBox[{"LibraryFunctionUnload", "[", "hfmGetString", "]"}], ";", "\n",
+        "\t", 
+       RowBox[{"LibraryFunctionUnload", "[", "hfmGetVector", "]"}], ";", "\n",
+        "\t", 
+       RowBox[{
+        RowBox[{"Table", "[", 
+         RowBox[{
+          RowBox[{"LibraryFunctionUnload", "[", 
+           RowBox[{"hfmGetArrayBase", "[", "d", "]"}], "]"}], ",", 
+          RowBox[{"{", 
+           RowBox[{"d", ",", "1", ",", "6", ",", "1"}], "}"}]}], "]"}], "\n", 
+        "\t", 
+        RowBox[{"(*", 
+         RowBox[{"Set", " ", "functions"}], "*)"}], "\n", "\t", 
+        RowBox[{"LibraryFunctionUnload", "[", "hfmSetScalar", "]"}]}], ";", 
+       "\n", "\t", 
+       RowBox[{"LibraryFunctionUnload", "[", "hfmSetString", "]"}], ";", "\n",
+        "\t", 
+       RowBox[{"LibraryFunctionUnload", "[", "hfmSetVector", "]"}], ";", "\n",
+        "\t", 
+       RowBox[{"Table", "[", 
+        RowBox[{
+         RowBox[{"LibraryFunctionUnload", "[", 
+          RowBox[{"hfmSetArray", "[", "d", "]"}], "]"}], ",", 
+         RowBox[{"{", 
+          RowBox[{"d", ",", "1", ",", "6", ",", "1"}], "}"}]}], "]"}], 
+       ";"}]}], "\n", "]"}]}]}]}]], "Input",
+ CellChangeTimes->{{3.701578652855085*^9, 3.701578670930937*^9}, {
+  3.701578880367453*^9, 3.70157891023638*^9}, {3.701595604051529*^9, 
+  3.701595669047227*^9}, {3.701595735314288*^9, 3.701595754671096*^9}}]
+},
+WindowSize->{973, 850},
+WindowMargins->{{-1440, Automatic}, {Automatic, 0}},
+FrontEndVersion->"11.0 for Mac OS X x86 (32-bit, 64-bit Kernel) (September \
+21, 2016)",
+StyleDefinitions->"Default.nb"
+]
+(* End of Notebook Content *)
+
+(* Internal cache information *)
+(*CellTagsOutline
+CellTagsIndex->{}
+*)
+(*CellTagsIndex
+CellTagsIndex->{}
+*)
+(*NotebookFileOutline
+Notebook[{
+Cell[558, 20, 299, 8, 32, "Input"],
+Cell[860, 30, 582, 14, 54, "Input"],
+Cell[1445, 46, 9518, 219, 1230, "Input"]
+}
+]
+*)
+
