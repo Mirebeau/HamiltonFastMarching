@@ -5,6 +5,7 @@ set(Root_Headers
 
 add_subdirectory(Base)
 set(Base_Headers ${Base_Headers} PARENT_SCOPE)
+set(Base_Implementation_Headers ${Base_Implementation_Headers} PARENT_SCOPE)
 
 add_subdirectory(Specializations)
 set(Specializations_Headers ${Specializations_Headers} PARENT_SCOPE)

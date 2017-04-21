@@ -22,7 +22,10 @@
 
 #define HFMSpecializationMacro(modelName) \
 {typedef HFMInterface<Traits ## modelName> HFMI; typedef Stencil ## modelName StencilDataType;\
-if(model== #modelName){HFMI(io, std::unique_ptr<StencilDataType>(new StencilDataType)).Run(); return;} }
+if(model== #modelName){ \
+    io.currentSetter=IO::SetterTag::Compute;\
+    HFMI(io, std::unique_ptr<StencilDataType>(new StencilDataType)).Run();\
+    io.currentSetter=IO::SetterTag::User; return;} }
 
 #ifdef AllBaseModels
 #define Riemann
@@ -33,6 +36,7 @@ if(model== #modelName){HFMI(io, std::unique_ptr<StencilDataType>(new StencilData
 
 //#define HFMSpecializationMacro(hfmName,modelName) \
 //{ if(model== #modelName) {HFMInterface<Stencil ## modelName,hfmName<Traits ## modelName> >(io).Run(); return;} }
+
 
 void Run(IO & io){
     const std::string model = io.GetString("model");
@@ -70,7 +74,7 @@ void Run(IO & io){
 
 // ----------- Experimental -----------
  
-#ifdef RiemannianExtra
+#ifdef RiemannExtra
     // Differentiation with riemannian metrics
     HFMSpecializationMacro(RiemannDiff2)
     

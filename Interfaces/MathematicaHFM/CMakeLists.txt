@@ -4,7 +4,6 @@ set (CMAKE_CXX_STANDARD 14)
 project(MathematicaHFM)
 
 #set a few machine dependent paths
-#add_subdirectory("../LocalSettings" "${CMAKE_CURRENT_BINARY_DIR}/LocalSettings")
 set(JMM_CPPLibs_dir "${CMAKE_CURRENT_SOURCE_DIR}/../../../JMM_CPPLibs-master" CACHE FILEPATH "JMM_CPPLibs directory")
 
 #paths required for compilation of Lifted Fast Marching
@@ -20,10 +19,6 @@ add_subdirectory(${LinearAlgebra_dir} "${DummyBinDir}/LinearAlgebra")
 add_subdirectory(${Output_dir} "${DummyBinDir}/Output")
 add_subdirectory(${DataStructures_dir} 	"${DummyBinDir}/DataStructures")
 add_subdirectory("../../Headers" "${DummyBinDir}/HFMHeaders")
-#add_subdirectory("Base")
-#add_subdirectory("Specializations")
-#add_subdirectory("Experimental")
-#add_subdirectory("ExtraAlgorithms")
 
 set(DataStructures_Headers
 	${DataStructures_Headers}
