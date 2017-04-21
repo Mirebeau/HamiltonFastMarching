@@ -47,7 +47,7 @@ Finally(HFMI*that){
         io.SetArray("euclideanLengths",euclideanLengths);}
     if(stoppingIndex!=IndexType::Constant(-1)){
         io.template Set<PointType>("euclideanLength_stoppingIndex",that->stencil.Param().ReDim(pFM->dom.PointFromIndex(stoppingIndex)));
-        if(io.template Get<ScalarType>("euclideanLength_exportGeodesicFromStoppingIndex")){
+        if(io.template Get<ScalarType>("euclideanLength_exportGeodesicFromStoppingIndex",1.)){
             that->ExportGeodesics("euclideanLength",{that->pFM->dom.PointFromIndex(stoppingIndex)});}
     }
 }

@@ -4,7 +4,7 @@
 
 #include "Output/ExportMacros.h"
 #include "Output/FileIO.h"
-typedef IO_<File::BaseIO> IO;
+typedef IO_<FileIO> IO;
 typedef typename IO::Msg Msg;
 typedef typename IO::WarnMsg WarnMsg;
 #include "DispatchAndRun.h"
@@ -14,10 +14,10 @@ int main(int argc, const char * argv[]) {
     
     inputPrefix  = argc > 1 ? argv[1] : "input";
     outputPrefix = argc > 2 ? argv[2] : "output";
-
+    
     try {
         IO io(inputPrefix,outputPrefix);
-        io.arrayOrdering=ArrayOrdering::Reversed; // Adequate for Mathematica, not for Python.
+        io.arrayOrdering=IO::ArrayOrdering::Reversed; // Adequate for Mathematica and Python.
         Run(io);
     } catch(const std::logic_error & e) {
         IO::WarnMsg() << "Exception caught. " << e.what();

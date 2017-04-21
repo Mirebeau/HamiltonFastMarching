@@ -14,17 +14,22 @@ Redeclare2Types(FromIO,Msg,WarnMsg)
 #include "DispatchAndRun.h"
 
 struct HFMIO {
-    HFMIO(){io.arrayOrdering = ArrayOrdering::Reversed;}
     Redeclare3Types(FromIO,ScalarType,KeyCRef,ndarray);
     IO io;
     void Run(){::Run(io);}
+    
+    // Input output
     std::string GetString(KeyCRef key) const {return io.GetString(key);}
     void SetString(KeyCRef key, const std::string & val){io.SetString(key,val);}
     ScalarType GetScalar(KeyCRef key) const {return io.Get<ScalarType>(key);}
     void SetScalar(KeyCRef key, ScalarType val){io.Set<ScalarType>(key,val);}
     ndarray GetArray(KeyCRef key) const {return io.PyGetArray(key);}
     void SetArray(KeyCRef key, ndarray val) {io.PySetArray(key,val);}
+    
+    // Field inspection
     std::string GetComputedKeys() {return io.GetComputedKeys();}
+    bool HasField(KeyCRef key) const {return io.HasField(key);}
+    bool EraseField(KeyCRef key) {return io.EraseField(key);}
 };
 
 
@@ -45,5 +50,7 @@ BOOST_PYTHON_MODULE(PythonModuleName)
     .def("GetArray", &HFMIO::GetArray)
     .def("SetArray", &HFMIO::SetArray)
     .def("GetComputedKeys", &HFMIO::GetComputedKeys)
+    .def("HasField", &HFMIO::HasField)
+    .def("EraseField",&HFMIO::EraseField)
     ;
 }

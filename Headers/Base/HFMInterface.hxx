@@ -256,7 +256,7 @@ template<typename T> void HFMInterface<T>::
 Run_SetupIO() {
     // Setup input array ordering policy
     io.verbosity = io.Get<ScalarType>("verbosity",io.verbosity);
-    io.arrayOrdering = enumFromString<ArrayOrdering>(io.GetString("arrayOrdering",enumToRealString(io.arrayOrdering)));
+    io.arrayOrdering = enumFromString<IO::ArrayOrdering>(io.GetString("arrayOrdering",enumToRealString(io.arrayOrdering)));
     pTime = std::unique_ptr<TimeDependentFields<T> >(new TimeDependentFields<T>);
     pTime->Setup(this);
 }

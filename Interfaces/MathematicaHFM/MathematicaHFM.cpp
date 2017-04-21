@@ -19,11 +19,12 @@
 // Include main header 
 #include "Output/MathematicaIO.h"
 // Define IO type
-typedef IO_<Mathematica::BaseIO> IO;
+typedef IO_<MathematicaIO> IO;
 typedef typename IO::Msg Msg;
 typedef typename IO::WarnMsg WarnMsg;
 // Make IO object (initialize with libData=NULL)
 IO io(NULL);
+//io.ArrayOrdering = ArrayOrdering::Reversed;
 // Define the extern "C" functions that rely on io
 #include "Output/MathematicaIOExternC.h"
 

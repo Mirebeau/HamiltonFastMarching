@@ -10,19 +10,17 @@
 NotebookFileLineBreakTest
 NotebookFileLineBreakTest
 NotebookDataPosition[       157,          7]
-NotebookDataLength[     23865,        620]
-NotebookOptionsPosition[     23464,        601]
-NotebookOutlinePosition[     23819,        617]
-CellTagsIndexPosition[     23776,        614]
+NotebookDataLength[     23969,        619]
+NotebookOptionsPosition[     23566,        600]
+NotebookOutlinePosition[     23923,        616]
+CellTagsIndexPosition[     23880,        613]
 WindowFrame->Normal*)
 
 (* Beginning of Notebook Content *)
 Notebook[{
 
 Cell[CellGroupData[{
-Cell["\<\
-Common definitions for Hamilton Fast Marching\
-\>", "Title",
+Cell["Common definitions for Hamilton Fast Marching", "Title",
  CellChangeTimes->{{3.696873305660097*^9, 3.696873310883669*^9}, {
   3.699380210329989*^9, 3.699380270276122*^9}}],
 
@@ -47,9 +45,9 @@ Cell[BoxData[
   RowBox[{
    RowBox[{
    "binDirectoryHFM", " ", "=", " ", 
-    "\"\</Users/mirebeau/bin/2017/HamiltonFastMarching/Release\>\""}], 
-   ";"}]}]], "Input",
- CellChangeTimes->{{3.699386983914554*^9, 3.699386986480248*^9}}],
+    "\"\</Users/mirebeau/bin/2017/FileHFM/Release\>\""}], ";"}]}]], "Input",
+ CellChangeTimes->{{3.699386983914554*^9, 3.699386986480248*^9}, {
+  3.7017725659010487`*^9, 3.701772568283402*^9}}],
 
 Cell[BoxData[{
  RowBox[{
@@ -596,13 +594,14 @@ string|Numeric|Array\\n\>\"", ",",
    3.7002035804277782`*^9, 3.700203744865365*^9}, {3.700203775619684*^9, 
    3.7002037773743668`*^9}, {3.700203827416172*^9, 3.700203861373456*^9}, {
    3.7002038979905367`*^9, 3.7002039686560163`*^9}, {3.700204065457471*^9, 
-   3.700204129348976*^9}, 3.7004562988277903`*^9}]
+   3.700204129348976*^9}, 3.7004562988277903`*^9, {3.701774367564468*^9, 
+   3.7017743997212267`*^9}, 3.7017745837881813`*^9}]
 }, Open  ]]
 },
 WindowSize->{906, 855},
 WindowMargins->{{Automatic, 0}, {Automatic, 0}},
-FrontEndVersion->"9.0 for Mac OS X x86 (32-bit, 64-bit Kernel) (November 20, \
-2012)",
+FrontEndVersion->"11.0 for Mac OS X x86 (32-bit, 64-bit Kernel) (September \
+21, 2016)",
 StyleDefinitions->"Default.nb"
 ]
 (* End of Notebook Content *)
@@ -617,13 +616,12 @@ CellTagsIndex->{}
 (*NotebookFileOutline
 Notebook[{
 Cell[CellGroupData[{
-Cell[579, 22, 185, 4, 148, "Title"],
-Cell[767, 28, 425, 8, 49, "Text"],
-Cell[1195, 38, 446, 13, 46, "Input"],
-Cell[1644, 53, 21804, 545, 1729, "Input"]
+Cell[579, 22, 177, 2, 148, "Title"],
+Cell[759, 26, 425, 8, 49, "Text"],
+Cell[1187, 36, 480, 13, 54, "Input"],
+Cell[1670, 51, 21880, 546, 2191, "Input"]
 }, Open  ]]
 }
 ]
 *)
 
-(* End of internal cache information *)

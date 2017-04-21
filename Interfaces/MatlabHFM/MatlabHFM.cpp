@@ -9,7 +9,7 @@
 
 #include "Output/ExportMacros.h"
 #include "Output/MexIO.h"
-typedef IO_<Mex::BaseIO> IO;
+typedef IO_<MexIO> IO;
 typedef typename IO::Msg Msg;
 typedef typename IO::WarnMsg WarnMsg;
 #include "DispatchAndRun.h"
@@ -24,12 +24,12 @@ void mexFunction(int nlhs, mxArray *plhs[],
     try {
         try {
             IO io(prhs[0],plhs);
-            io.arrayOrdering = ArrayOrdering::Transposed;
+            io.arrayOrdering = IO::ArrayOrdering::Transposed;
             Run(io);
         } catch (const std::exception & e) {
-            IO::WarnMsg() << "Lifted Fast Marching exception.\n " << e.what() << "\n";
+            IO::WarnMsg() << "Hamilton Fast Marching exception.\n " << e.what() << "\n";
         }
     } catch(...){
-        IO::WarnMsg() << "MatlabLFM error : unspecified exception caught.\n";
+        IO::WarnMsg() << "MatlabHFM error : unspecified exception caught.\n";
     }
 }

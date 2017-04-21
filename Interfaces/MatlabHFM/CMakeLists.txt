@@ -1,10 +1,16 @@
+# ------- THIS DOES NOT BUILD MATLAB HFM ------
+
+# This file is only used for compilation tests with xcode
+# Please use the provided Matlab(R) script to compile the project
+
 cmake_minimum_required(VERSION 3.1)
 set (CMAKE_CXX_STANDARD 14)
 
-project(FileHFM)
+project(NotMatlabHFM)
+
 
 #set a few machine dependent paths
-#add_subdirectory("../LocalSettings" "${CMAKE_CURRENT_BINARY_DIR}/LocalSettings")
+set(Matlab_dir "/Applications/MATLAB_R2012b.app/extern/include" CACHE FILEPATH "Matlab directory")
 set(JMM_CPPLibs_dir "${CMAKE_CURRENT_SOURCE_DIR}/../../../JMM_CPPLibs-master" CACHE FILEPATH "JMM_CPPLibs directory")
 
 #paths required for compilation of Lifted Fast Marching
@@ -42,8 +48,8 @@ set(Output_Headers
 	${Output_Headers} 
 	"${Output_dir}/Output/BaseIO.h"
 	"${Output_dir}/Output/BaseIO.hxx"
-	"${Output_dir}/Output/FileIO.h"
-	"${Output_dir}/Output/FileIO.hxx"
+	"${Output_dir}/Output/MexIO.h"
+	"${Output_dir}/Output/MexIO.hxx"
 	"${Output_dir}/Output/IO.h"
 	"${Output_dir}/Output/IO.hxx"
 	"${Output_dir}/Output/ExceptionMacro.h"
@@ -62,47 +68,36 @@ set(Project_Headers
 	${Output_Headers}
 )
 
-include_directories(${PROJECT_DIR} ${CMAKE_CURRENT_SOURCE_DIR})
+include_directories(${PROJECT_DIR} ${CMAKE_CURRENT_SOURCE_DIR} ${Matlab_dir})
 
 # List of executables, as specified in DispachAndRun
 
 option(AllBaseExecutable "AllBaseExecutable" TRUE)
 if(AllBaseExecutable)
-add_executable(FileHFM_AllBase "FileHFM.cpp" ${Project_Headers})
-target_compile_definitions(FileHFM_AllBase PRIVATE AllBaseModels)
+add_executable(NotMatlabHFM_AllBase "MatlabHFM.cpp" ${Project_Headers})
+target_compile_definitions(NotMatlabHFM_AllBase PRIVATE AllBaseModels)
 endif()
 
 option(RiemannExtraExecutable "RiemannExtraExecutable")
 if(RiemannExtraExecutable)
-add_executable(FileHFM_RiemannExtra "FileHFM.cpp")
-target_compile_definitions(FileHFM_RiemannExtra PRIVATE RiemannExtra)
+add_executable(NotMatlabHFM_RiemannExtra "MatlabHFM.cpp")
+target_compile_definitions(NotMatlabHFM_RiemannExtra PRIVATE RiemannExtra)
 endif()
 
-# Executables that are part of FileHFM_AllBase
-# (On some systems, FileHFM_AllBase does not compile because it is too big (?))
+# Executables that are part of NotMatlabHFM_AllBase
+# (On some systems, NotMatlabHFM_AllBase does not compile because it is too big (?))
 
-option(Curvature2Executable "Curvature2Executable")
-if(Curvature2Executable)
-add_executable(FileHFM_Curvature2 "FileHFM.cpp")
-target_compile_definitions(FileHFM_Curvature2 PRIVATE Curvature2)
-endif()
-
-option(Curvature3Executable "Curvature3Executable")
-if(Curvature3Executable)
-add_executable(FileHFM_Curvature3 "FileHFM.cpp")
-target_compile_definitions(FileHFM_Curvature3 PRIVATE Curvature3)
-endif()
 
 option(IsotropicExecutable "IsotropicExecutable")
 if(IsotropicExecutable)
-add_executable(FileHFM_Isotropic "FileHFM.cpp")
-target_compile_definitions(FileHFM_Isotropic PRIVATE Isotropic)
+add_executable(NotMatlabHFM_Isotropic "MatlabHFM.cpp")
+target_compile_definitions(NotMatlabHFM_Isotropic PRIVATE Isotropic)
 endif()
 
 option(RiemannExecutable "RiemannExecutable")
 if(RiemannExecutable)
-add_executable(FileHFM_Riemann "FileHFM.cpp")
-target_compile_definitions(FileHFM_Riemann PRIVATE Riemann)
+add_executable(NotMatlabHFM_Riemann "MatlabHFM.cpp")
+target_compile_definitions(NotMatlabHFM_Riemann PRIVATE Riemann)
 endif()
 
 
@@ -110,15 +105,15 @@ endif()
 
 option(CustomExecutable "CustomExecutable")
 if(CustomExecutable)
-add_executable(FileHFM_Custom "FileHFM.cpp")
-target_compile_definitions(FileHFM_Custom PRIVATE Custom)
+add_executable(NotMatlabHFM_Custom "MatlabHFM.cpp")
+target_compile_definitions(NotMatlabHFM_Custom PRIVATE Custom)
 endif()
 
 
 option(Experimental0Executable "Experimental0Executable")
 if(Experimental0Executable)
-add_executable(FileHFM_Experimental0 "FileHFM.cpp")
-target_compile_definitions(FileHFM_Experimental0 PRIVATE Experimental0)
+add_executable(NotMatlabHFM_Experimental0 "MatlabHFM.cpp")
+target_compile_definitions(NotMatlabHFM_Experimental0 PRIVATE Experimental0)
 endif()
 
 # Headers IDE layout

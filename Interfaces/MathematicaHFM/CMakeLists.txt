@@ -35,8 +35,8 @@ set(LinearAlgebra_Headers
 
 set(Output_Headers 
 	${Output_Headers} 
-	"${Output_dir}/Output/FileIO.h"
-	"${Output_dir}/Output/FileIO.hxx"
+	"${Output_dir}/Output/BaseIO.h"
+	"${Output_dir}/Output/BaseIO.hxx"
 	"${Output_dir}/Output/IO.h"
 	"${Output_dir}/Output/IO.hxx"
 	"${Output_dir}/Output/ExceptionMacro.h"
@@ -106,7 +106,12 @@ target_link_libraries(MathematicaHFM_RiemannExtra -Wl, -lstdc++ -lpthread -Wl, $
 target_compile_definitions(MathematicaHFM_RiemannExtra PRIVATE RiemannExtra)
 endif()
 
-
+option(Executable_Isotropic "Executable_Isotropic")
+if(Executable_Isotropic)
+add_library(MathematicaHFM_Isotropic SHARED "MathematicaHFM.cpp")
+target_link_libraries(MathematicaHFM_Isotropic -Wl, -lstdc++ -lpthread -Wl, ${Mathematica_Libraries})
+target_compile_definitions(MathematicaHFM_Isotropic PRIVATE Isotropic)
+endif()
 
 # Note from JMM to Erik Bekkers: For OSX compilation, I had to delete all static bindings
 #target_link_libraries(MathematicaHFM -static-libgcc -static-libstdc++ -Wl,-Bstatic -lstdc++ -lpthread -Wl,-Bdynamic)

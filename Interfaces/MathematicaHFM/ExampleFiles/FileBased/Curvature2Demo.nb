@@ -10,19 +10,17 @@
 NotebookFileLineBreakTest
 NotebookFileLineBreakTest
 NotebookDataPosition[       157,          7]
-NotebookDataLength[     22317,        570]
-NotebookOptionsPosition[     21600,        541]
-NotebookOutlinePosition[     21958,        557]
-CellTagsIndexPosition[     21915,        554]
+NotebookDataLength[     22537,        571]
+NotebookOptionsPosition[     21818,        542]
+NotebookOutlinePosition[     22178,        558]
+CellTagsIndexPosition[     22135,        555]
 WindowFrame->Normal*)
 
 (* Beginning of Notebook Content *)
 Notebook[{
 
 Cell[CellGroupData[{
-Cell["\<\
-Curvature penalized shortest paths\
-\>", "Title",
+Cell["Curvature penalized shortest paths", "Title",
  CellChangeTimes->{{3.699389099146619*^9, 3.699389123701202*^9}}],
 
 Cell[BoxData[
@@ -47,6 +45,9 @@ Cell[BoxData[
         RowBox[{"options", ",", 
          RowBox[{"{", "\[IndentingNewLine]", 
           RowBox[{
+           RowBox[{
+           "\"\<executable\>\"", "\[Rule]", "\"\<FileHFM_AllBase\>\""}], ",", 
+           "\[IndentingNewLine]", 
            RowBox[{"\"\<r\>\"", "\[Rule]", " ", "1.4"}], ",", " ", 
            RowBox[{"(*", 
             RowBox[{"Domain", " ", 
@@ -236,8 +237,9 @@ Cell[BoxData[
       ";", "\[IndentingNewLine]", "\[IndentingNewLine]", 
       RowBox[{"out", "=", 
        RowBox[{"RunExec", "[", 
-        RowBox[{"\"\<FileHFM_Curvature2\>\"", ",", "prms"}], "]"}]}], ";", 
-      "\[IndentingNewLine]", 
+        RowBox[{
+         RowBox[{"\"\<executable\>\"", "/.", "opts"}], ",", "prms"}], "]"}]}],
+       ";", "\[IndentingNewLine]", 
       RowBox[{"If", "[", 
        RowBox[{
         RowBox[{"\"\<verbose\>\"", "/.", "opts"}], ",", 
@@ -462,7 +464,8 @@ Cell[BoxData[
    3.699464919534954*^9}, {3.699464952459826*^9, 3.699464952685605*^9}, {
    3.699815192167941*^9, 3.6998152118488607`*^9}, 3.699816368717128*^9, {
    3.699822978079652*^9, 3.6998230060029716`*^9}, {3.699962504141141*^9, 
-   3.699962531631562*^9}}],
+   3.699962531631562*^9}, 3.701772588553811*^9, {3.701773068386405*^9, 
+   3.7017731008402023`*^9}}],
 
 Cell["\<\
 Available models:
@@ -517,9 +520,7 @@ Module[{r = 1.7, k}, k = Round[100 r];
 
 Cell[CellGroupData[{
 
-Cell["\<\
-Variants : Position dependent speed\
-\>", "Subsection",
+Cell["Variants : Position dependent speed", "Subsection",
  CellChangeTimes->{{3.699465376489976*^9, 3.6994654002853603`*^9}, {
   3.699465609874773*^9, 3.699465616194232*^9}}],
 
@@ -541,8 +542,8 @@ Module[{r = 1.8, k}, k = Round[100 r];
 },
 WindowSize->{867, 754},
 WindowMargins->{{Automatic, -44}, {Automatic, 50}},
-FrontEndVersion->"9.0 for Mac OS X x86 (32-bit, 64-bit Kernel) (November 20, \
-2012)",
+FrontEndVersion->"11.0 for Mac OS X x86 (32-bit, 64-bit Kernel) (September \
+21, 2016)",
 StyleDefinitions->"Default.nb"
 ]
 (* End of Notebook Content *)
@@ -557,23 +558,22 @@ CellTagsIndex->{}
 (*NotebookFileOutline
 Notebook[{
 Cell[CellGroupData[{
-Cell[579, 22, 125, 3, 92, "Title"],
-Cell[707, 27, 18153, 437, 1185, "Input"],
-Cell[18863, 466, 458, 10, 106, "Text"],
-Cell[19324, 478, 846, 15, 125, "Text"],
+Cell[579, 22, 117, 1, 92, "Title"],
+Cell[699, 25, 18387, 442, 1516, "Input"],
+Cell[19089, 469, 458, 10, 106, "Text"],
+Cell[19550, 481, 846, 15, 125, "Text"],
 Cell[CellGroupData[{
-Cell[20195, 497, 162, 2, 44, "Subsection"],
-Cell[20360, 501, 158, 3, 30, "Text"],
-Cell[20521, 506, 327, 8, 125, "Text"]
+Cell[20421, 500, 162, 2, 44, "Subsection"],
+Cell[20586, 504, 158, 3, 30, "Text"],
+Cell[20747, 509, 327, 8, 125, "Text"]
 }, Open  ]],
 Cell[CellGroupData[{
-Cell[20885, 519, 182, 4, 44, "Subsection"],
-Cell[21070, 525, 188, 2, 30, "Text"],
-Cell[21261, 529, 311, 8, 125, "Text"]
+Cell[21111, 522, 174, 2, 44, "Subsection"],
+Cell[21288, 526, 188, 2, 30, "Text"],
+Cell[21479, 530, 311, 8, 125, "Text"]
 }, Open  ]]
 }, Open  ]]
 }
 ]
 *)
 
-(* End of internal cache information *)
