@@ -1,9 +1,0 @@
-set(ExtraAlgorithms_Headers
-	${CMAKE_CURRENT_SOURCE_DIR}/CommonStoppingCriteria.h
-	${CMAKE_CURRENT_SOURCE_DIR}/EuclideanPathLength.h
-	${CMAKE_CURRENT_SOURCE_DIR}/FirstVariation.h
-	${CMAKE_CURRENT_SOURCE_DIR}/TimeDependentFields.h
-	${CMAKE_CURRENT_SOURCE_DIR}/VoronoiDiagram.h
-	${CMAKE_CURRENT_SOURCE_DIR}/WallObstructionTest.h
-	PARENT_SCOPE
-	)
