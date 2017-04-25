@@ -36,7 +36,7 @@ struct StencilRiemannLifted2 : HamiltonFastMarching<TraitsRiemannLifted2<cond> >
         typedef typename Traits::template Difference<1> DifferenceType;
         static const DiscreteType nStencilDependencies = 1;
         typedef const std::array<DiscreteType, nStencilDependencies> StencilDepType;
-        constexpr static StencilDepType stencilDependencies = {{3}};};
+        constexpr static StencilDepType stencilDependencies = {{2}};};
     typedef typename HamiltonFastMarching<DummyTraits>::StencilDataType::ParamType ParamType;
     ParamType param;
     
@@ -49,10 +49,11 @@ struct StencilRiemannLifted2 : HamiltonFastMarching<TraitsRiemannLifted2<cond> >
     virtual const ParamInterface & Param() const override {return param;}
     virtual void Setup(HFMI *that) override {
         Superclass::Setup(that);
-        const ScalarType liftedScale =
-        that->io.template Get<ScalarType>("liftedScale",cond==Boundary::Periodic ? 2.*Traits::mathPi/this->dims[2] : 1.);
-        param.Setup(that->io,liftedScale);
-        pDualMetric=that->template GetField<MetricElementType>("dualMetric");}
+        const ScalarType bundleScale =
+        that->io.template Get<ScalarType>("bundleScale",cond==Boundary::Periodic ? 2.*Traits::mathPi/this->dims[2] : 1.);
+        param.Setup(that->io,bundleScale);
+        pDualMetric=that->template GetField<MetricElementType>("dualMetric");        
+    }
 };
 template<Boundary cond> constexpr typename StencilRiemannLifted2<cond>::DummyTraits::StencilDepType
 StencilRiemannLifted2<cond>::DummyTraits::stencilDependencies;
@@ -90,8 +91,8 @@ struct StencilRiemannLifted3 : HamiltonFastMarching<TraitsRiemannLifted3>::Stenc
     virtual const ParamInterface & Param() const override {return param;}
     virtual void Setup(HFMI *that) override {
         Superclass::Setup(that);
-        const ScalarType liftedScale = that->io.Get<ScalarType>("liftedScale",1.);
-        param.Setup(that->io,liftedScale);
+        const ScalarType bundleScale = that->io.Get<ScalarType>("bundleScale",1.);
+        param.Setup(that->io,bundleScale);
         pDualMetric=that->template GetField<MetricElementType>("dualMetric");}
 };
 constexpr decltype(StencilRiemannLifted3::DummyTraits::stencilDependencies) StencilRiemannLifted3::DummyTraits::stencilDependencies;

@@ -1,4 +1,4 @@
-if false %Some geodesics, around the origin, without obstacles.
+if true %Some geodesics, around the origin, without obstacles.
     clear input;
     n=101;
     nTheta=60;
@@ -9,7 +9,7 @@ if false %Some geodesics, around the origin, without obstacles.
     input.origin=[0;0];  % Physical origin
     input.gridScale=1/n; % Physical gridScale
 
-    input.model = 'ReedsSheppForward2'; %Alternatively : 'ReedsShepp2', 'Elastica2<5>', 'Dubins2'
+    input.model = 'ReedsShepp2';%Alternatively : 'ReedsShepp2','ReedsSheppForward2', 'Elastica2<5>', 'Dubins2'
     input.speed = 1; %Use an array for a position, angle, or (position and angle) dependent speed. 
     % Alternatively input.speed = ones(n,n), or ones(nTheta), or ones(n,n,nTheta)
     input.xi = 0.3; %Model parameter, typical radius of curvature.
@@ -21,9 +21,10 @@ if false %Some geodesics, around the origin, without obstacles.
     arrGeo = (epsGeo/2):epsGeo:(1-epsGeo/2);
     [x,y]=meshgrid(arrGeo,arrGeo);
     x=reshape(x,[numel(x),1]); y=reshape(y,[numel(y),1]);
-    input.tips = [x,y,(pi/2)*ones(size(x))]'; % where the geodesics end. [x;y;theta]
+    input.tips = [x,y,(pi/3)*ones(size(x))]'; % where the geodesics end. [x;y;theta]
     input.exportValues=1; % distance table, of size [n,n,numberOfDirections]
     
+    input.pointToIndex=input.seeds;
     output=MatlabHFM_Curvature2(input);
     
     clf;
@@ -36,7 +37,7 @@ if false %Some geodesics, around the origin, without obstacles.
     pause;
 end
 
-if true
+if false
     clear input;
     input.model = 'ReedsSheppForward2'; % Alternatively 'ReedSheppForward2', %'Elastica2<5>', 'Dubins2'; 
     input.xi = 0.7; %Model parameter, typical radius of curvature.
