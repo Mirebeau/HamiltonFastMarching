@@ -1,6 +1,7 @@
 % Copyright Jean-Marie Mirebeau, University Paris-Sud, CNRS, University Paris-Saclay
 
 % This file demonstrate anisotropic fast marching with the "Half-Disk" model.
+% Since it is not among the "standard" models, you need to build the executable MatlabHFM_RiemannExtra, using the script CompileMexHFM.m
 
 clear input;
 nx=81;ny=83; %Taking different dimensions to make sure axes are not inverted...

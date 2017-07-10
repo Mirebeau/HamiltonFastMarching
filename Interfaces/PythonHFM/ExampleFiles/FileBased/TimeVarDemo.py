@@ -55,7 +55,7 @@ if len(sys.argv) >=2:
 
 #Write parameter file to disk, execute program, import results
 FileIO.RulesToRaw(input,"input")
-call('./FileHFM_Isotropic')
+call('./FileHFM_AllBase') #Also in FileHFM_Isotropic
 result = FileIO.RawToRules()
 
 # Restore working directory

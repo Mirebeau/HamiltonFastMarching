@@ -75,7 +75,7 @@ if len(sys.argv) >=2:
 #Write parameter file to disk, execute program, import results
 FileIO.RulesToRaw(SquareTest(size,model,withWall),"input")
 # call(path+'/FileHFM_Curvature2 | tee log.txt')
-call('./FileHFM_Curvature2')
+call('./FileHFM_AllBase') # Also in FileHFM_Curvature2
 result = FileIO.RawToRules()
 
 # Restore working directory
