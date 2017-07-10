@@ -15,6 +15,7 @@
 #include "Specializations/Curvature2.h"
 #include "Specializations/Curvature3.h"
 
+#include "Experimental/HalfDisk.h"
 #include "Experimental/RiemannLifted.h"
 #include "Experimental/ReedsSheppAdaptive2.h"
 #include "Experimental/Quaternionic.h"
@@ -75,6 +76,10 @@ void Run(IO & io){
 // ----------- Experimental -----------
  
 #ifdef RiemannExtra
+    // HalfDisk models
+    HFMSpecializationMacro(HalfDisk2)
+    HFMSpecializationMacro(HalfDisk3)
+    
     // Differentiation with riemannian metrics
     HFMSpecializationMacro(RiemannDiff2)
     

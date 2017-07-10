@@ -14,29 +14,34 @@
 template<int VDim> struct TraitsBase {
     static const int Dimension = VDim;
     typedef double ScalarType;
-    typedef int DiscreteType;
+    typedef int DiscreteType; /// Used for array indexing and multi-index components.
     typedef int_least8_t ShortType;
     static constexpr ScalarType Infinity() {return std::numeric_limits<ScalarType>::infinity();}
     static constexpr ScalarType mathPi = M_PI;
     
     typedef LinearAlgebra::Point<ScalarType, Dimension> PointType;
     typedef LinearAlgebra::Vector<ScalarType, Dimension> VectorType;
-    typedef LinearAlgebra::Point<DiscreteType, Dimension> IndexType;
-    typedef LinearAlgebra::Vector<ShortType, Dimension> OffsetType;
+    typedef LinearAlgebra::Point<DiscreteType, Dimension> IndexType; /// Multi-index of a grid point
+    typedef LinearAlgebra::Vector<ShortType, Dimension> OffsetType; /// Used for offsets between neighbor indices
     template<size_t n> using
-    BasisReduction=LinearAlgebra::BasisReduction<ScalarType, DiscreteType, n>;
+    BasisReduction=LinearAlgebra::BasisReduction<ScalarType, DiscreteType, n>; // Ingredient of many PDE discretization schemes.
     
     template<typename T, size_t n> using Array=LinearAlgebra::Array<T,n>;
     
-    // The following stencil specs should be overriden in subclass
+    /** A Difference is a basic component of a PDE scheme. It is the data of an offset and weight.
+     The weight which is either specified directly or as a baseweight and a multiplier index, within [0,VMultSize[.*/
+    template<size_t VMultSize, typename Dummy=void> struct Difference;
+
+    
+    /** A PDE discretization is specified via a set of differences, of several types, 
+     which number is fixed in advance by the following parameters.
+     These (empty) defaults need to be redefined (=shadowed) in a subclass.*/
     static const DiscreteType
     nForward=0, nSymmetric=0,
     nMax=1, nMaxForward=0, nMaxSymmetric=0;
     
-    // How many scalars determine the weights ?
-    template<size_t VMultSize, typename Dummy=void> struct Difference;
     
-    // Data sources
+    /// A DataSource is a pure interface, multi-dimensional-array-like for providing pointwise data on a grid
     template<typename E> struct DataSource {
         virtual ~DataSource(){};
 //        typedef typename std::conditional<std::numeric_limits<E>::is_specialized, E, const E &>::type ReturnType;
@@ -70,7 +75,8 @@ template<int VDim> template<typename Dummy> struct TraitsBase<VDim>::Difference<
     ScalarType Weight(MultiplierType) const {return baseWeight;}
 };
 
-/* // GCC cannot match the following template in a template, so a macro is used instead
+/* // Print differences
+ // GCC cannot match the following template in a template, so a macro is used instead
 template<int VDim,int k> std::ostream & operator <<
 (std::ostream & os, const typename TraitsBase<VDim>::template Difference<k> & diff) {
      return os << "{" << diff.baseWeight << "," << diff.offset  << "}";}*/
@@ -84,6 +90,14 @@ __PrintDiff(2) __PrintDiff(3) __PrintDiff(4) __PrintDiff(5)
 
 // --------------------- Tensor decomposition ---------------------
 
+/** PDE discretization helper.
+ This function leverages Voronoi's first reduction of quadratic forms to decompose
+ a symmetric positive definite matrix into a positively weighted sum of
+ rank one tensors with integer coefficients. D = sum_i lambda_i e_i x e_i.
+ The (lambda_i, e_i) are returned as baseweight and offset of differences (pDiff).
+ Excessively small lambda_i are erased, based on tol parameter.
+ See : Jean-Marie Mirebeau, (preprint available on Arxiv)
+ Anisotropic fast-marching on cartesian grids using Voronoi’s first reduction of quadratic forms */
 template<typename ReductionType, int VDimShift=0, typename DiffType,
 typename SymmetricMatrixType = typename ReductionType::SymmetricMatrixType,
 typename ScalarType = typename ReductionType::ScalarType>
@@ -105,6 +119,12 @@ DiffType * Voronoi1Mat(DiffType * pDiff,
     return pDiff;
 }
 
+/** PDE discretization helper.
+ This function leverages Voronoi's first reduction of quadratic forms to
+ construct approximations <v,g>_+^2 = sum_i lambda_i <e_i,g>_+^2,
+ where _+ denotes positive part, lambda_i>=0, e_i is an offset.
+ See : Jean-Marie Mirebeau, (preprint available on Arxiv)
+ Fast Marching methods for Curvature Penalized Shortest Paths*/
 template<typename ReductionType, int VDimShift=0, typename DiffType,
 typename VectorType = typename ReductionType::VectorType,
 typename ScalarType = typename ReductionType::ScalarType

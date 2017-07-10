@@ -1,27 +1,34 @@
 % Copyright Jean-Marie Mirebeau, University Paris-Sud, CNRS, University Paris-Saclay
 
-% This file demonstrate riemannian anisotropic fast marching.
+% This file demonstrate anisotropic fast marching with the "Half-Disk" model.
 
 clear input;
 nx=81;ny=83; %Taking different dimensions to make sure axes are not inverted...
 nGeo=8;
 
 % 'Trivial' means that we work on plain R^d, without a bundle-like component.
-input.model = 'Riemann2';
+input.model = 'HalfDisk2';
 
 % We do use Matlab's convention of ordering the axes as y, x, z.
 % Internally, the first two array coordinates are transposed.
 % This feature can be turned off by setting input.transposeFirstTwoCoordinates=False
 [x,y]=meshgrid(1:nx,1:ny);
 
-
-%    Two dimensional :  xx, xy, yy
-%    Three dimensional  xx, xy, yy, xz, yz, zz
+%   dualMetric [Vx,Vy,r] for the hamiltonian V o V + r^2 Vp o Vp, where V=(Vx,Vy), and Vp is the orthogonal vector.
+% In other words, the front goes in the direction of V at speed |V| (the norm of V), and in the sideways direction of +Vp and -Vp at speed r |V|.
+% Motion in the direction of -V is in principle forbidden (in practice, it still happens at speed eps r |V|).
 input.dualMetric = zeros([3,ny,nx]);
-input.dualMetric(1,:,:)=1;
-input.dualMetric(2,:,:)=0.5*((x>nx/2)-(x<nx/2));
-input.dualMetric(3,:,:)=1+(y>0.75*ny);
-% (In contrast with this example, convergence analysis was only done for continuous metrics.)
+input.dualMetric(1,:,:)=1;      % Vx
+input.dualMetric(2,:,:)=0.5;    % Vy
+input.dualMetric(3,:,:)=0.5;    % r
+
+% Relaxation parameters are:
+% - a scalar eps, for how badly is backwards motion penalized.
+% - a scalar epsForward, for how accurately forward speed is implemented.
+% As usual, small parameters yield large stencils. We leave default values here.
+
+% The three dimensional model HalfDisk3 is completely similar, except that the dualMetric format reads [Vx,Vy,Vz,r].
+
 
 input.origin=[0;0]; % grid position parameters
 input.gridScale=1/nx;
@@ -37,7 +44,7 @@ x=reshape(x,[numel(x),1]); y=reshape(y,[numel(y),1]);
 input.tips = [x,y]'; % where the geodesics end. This will select the angle t for which the geodesic is the shortest.
 input.exportValues=1; % distance table, of size [n,n] (minimum of the previous one over directions)
 
-output=MatlabHFM_Riemann(input);
+output=MatlabHFM_RiemannExtra(input);
 
 clf;
 imagesc(output.values)
