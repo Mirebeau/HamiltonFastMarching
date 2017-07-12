@@ -31,7 +31,7 @@ def SquareTest(n,model,withWall=False):
     input={
         'eps':0.1,
         # space0,space1,angle
-        'dims':np.array([n,n,60]),
+        'dims':np.array([n+1,n,60]),
         # size of a pixel (only for physical dimensions)
         'gridScale':1./n,
         'model':model,
@@ -58,10 +58,9 @@ def SquareTest(n,model,withWall=False):
             [0.75, 0.92, 0.0], [0.92, 0.08, 0.0], [0.92, 0.25, 0.0], [0.92, 0.42, 0.0], [0.92, 0.58, 0.0],
             [0.92, 0.75, 0.0], [0.92, 0.92, 0.0]
         ]),
-        'arrayOrdering':'Default',
     }
     if withWall:
-        input['walls']=np.array([[i==math.floor(n/3) and j<2*n/3 for i in range(n)] for j in range(n)])
+        input['walls']=np.array([[i==math.floor(n/3) and j<2*n/3 for j in range(n)] for i in range(n+1)])
     # This defines a wall depending on the physical coordinates. Alternatively one may define a wall depending on both physical and bundle coordinates.
     return input
 

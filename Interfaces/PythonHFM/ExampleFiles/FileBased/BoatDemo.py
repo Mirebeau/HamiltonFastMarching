@@ -2,7 +2,7 @@
 
 
 """
-    This file demonstrates:
+    This file demonstrates some EXPERIMENTAL models (not in the base executable):
     - ReedsSheppThreeSpeeds2 and ReedsSheppAdaptive2 model. 
     They both implement the same model: ReedsShepp with (forward, reverse, angular) speed
     specified independently. 
@@ -67,7 +67,6 @@ input = {
                  [0.75, 0.92, 0.0], [0.92, 0.08, 0.0], [0.92, 0.25, 0.0], [0.92, 0.42, 0.0], [0.92, 0.58, 0.0],
                  [0.92, 0.75, 0.0], [0.92, 0.92, 0.0]
                  ]),
-"arrayOrdering":'Default',
 
 "eps":0.1, #does not apply to the ReedsSheppForwardAdaptive2 model
 "xi":xi,
