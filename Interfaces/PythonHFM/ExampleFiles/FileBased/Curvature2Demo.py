@@ -46,8 +46,14 @@ def SquareTest(n,model,withWall=False):
 
         # typical radius of curvature
         'xi': 0.1,
+        
+        # Starting point(s) for the front propagation.
         # pos_x, pos_y, angle_theta
         'seeds':np.array([[0.5,0.5,1.]]),
+        # Alternatively (or in addition), omni-directional starting points can be specified. # pos_x, pos_y
+        # 'seeds_Unoriented':np.array([[0.5,0.5]]),
+        
+        # Starting points for geodesic backtracking
         # pos_x, pos_y, angle_theta
         'tips':np.array([
             [0.08, 0.08, 0.0], [0.08, 0.25, 0.0], [0.08, 0.42, 0.0], [0.08, 0.58, 0.0], [0.08, 0.75, 0.0],
@@ -58,6 +64,18 @@ def SquareTest(n,model,withWall=False):
             [0.75, 0.92, 0.0], [0.92, 0.08, 0.0], [0.92, 0.25, 0.0], [0.92, 0.42, 0.0], [0.92, 0.58, 0.0],
             [0.92, 0.75, 0.0], [0.92, 0.92, 0.0]
         ]),
+        # Alternatively (or in addition), omni-directional tips can be specified. The minimal orientation is automatically selected. # pos_x, pos_y
+        'tips_Unoriented':
+        np.array([
+            [0.08, 0.08], [0.08, 0.25], [0.08, 0.42], [0.08, 0.58], [0.08, 0.75],
+            [0.08, 0.92], [0.25, 0.08], [0.25, 0.25], [0.25, 0.42], [0.25, 0.58],
+            [0.25, 0.75], [0.25, 0.92], [0.42, 0.08], [0.42, 0.25], [0.42, 0.75],
+            [0.42, 0.92], [0.58, 0.08], [0.58, 0.25], [0.58, 0.75], [0.58, 0.92],
+            [0.75, 0.08], [0.75, 0.25], [0.75, 0.42], [0.75, 0.58], [0.75, 0.75],
+            [0.75, 0.92], [0.92, 0.08], [0.92, 0.25], [0.92, 0.42], [0.92, 0.58],
+            [0.92, 0.75], [0.92, 0.92]
+        ]),
+        'verbosity':2,
     }
     if withWall:
         input['walls']=np.array([[i==math.floor(n/3) and j<2*n/3 for j in range(n)] for i in range(n+1)])
@@ -77,9 +95,13 @@ FileIO.RulesToRaw(SquareTest(size,model,withWall),"input")
 call('./FileHFM_AllBase') # Also in FileHFM_Curvature2
 result = FileIO.RawToRules()
 
+# print the result to see additional output fields
+#print(result)
+
 # Restore working directory
 os.chdir(path)
 geodesics = np.vsplit(result['geodesicPoints'],result['geodesicLengths'].astype(int).cumsum()[:-1])
+geodesicsU = np.vsplit(result['geodesicPoints_Unoriented'],result['geodesicLengths_Unoriented'].astype(int).cumsum()[:-1])
 
 with PdfPages("Output/Curvature2_"+model+'_results.pdf') as pdf:
     plt.figure()
@@ -90,6 +112,14 @@ with PdfPages("Output/Curvature2_"+model+'_results.pdf') as pdf:
     if withWall:
         plt.plot([1/3,1/3],[0,2/3],'b')
     plt.title('Some geodesics')
+    pdf.savefig()  # saves the current figure into a pdf page
+
+    plt.figure()
+    for geo in geodesicsU:
+        plt.plot(geo[:,0],geo[:,1],'r')
+    if withWall:
+        plt.plot([1/3,1/3],[0,2/3],'b')
+    plt.title('Some geodesics, with unoriented tips')
     pdf.savefig()  # saves the current figure into a pdf page
     plt.close()
 
