@@ -70,6 +70,12 @@ PYTHON_ADD_MODULE(PythonHFM_RiemannExtra PythonHFM.cpp)
 target_compile_definitions(PythonHFM_RiemannExtra PRIVATE RiemannExtra PythonModuleName=PythonHFM_RiemannExtra)
 endif()
 
+option(Executable_PrescribedCurvature2 "Executable_PrescribedCurvature2")
+if(Executable_PrescribedCurvature2)
+PYTHON_ADD_MODULE(PythonHFM_PrescribedCurvature2 PythonHFM.cpp)
+target_compile_definitions(PythonHFM_PrescribedCurvature2 PRIVATE PrescribedCurvature2 PythonModuleName=PythonHFM_PrescribedCurvature2)
+endif()
+
 option(Executable_Isotropic "Executable_Isotropic")
 if(Executable_Isotropic)
 PYTHON_ADD_MODULE(PythonHFM_Isotropic PythonHFM.cpp)

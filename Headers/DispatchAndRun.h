@@ -16,6 +16,7 @@
 #include "Specializations/Curvature3.h"
 
 #include "Experimental/HalfDisk.h"
+#include "Experimental/PrescribedCurvature2.h"
 #include "Experimental/RiemannLifted.h"
 #include "Experimental/ReedsSheppAdaptive2.h"
 #include "Experimental/Quaternionic.h"
@@ -75,6 +76,13 @@ void Run(IO & io){
 
 // ----------- Experimental -----------
  
+#ifdef PrescribedCurvature2
+    HFMSpecializationMacro(ReedsSheppExt2)
+    HFMSpecializationMacro(ReedsSheppForwardExt2)
+    HFMSpecializationMacro(DubinsExt2)
+    HFMSpecializationMacro(ElasticaExt2<5>)
+#endif
+    
 #ifdef RiemannExtra
     // HalfDisk models
     HFMSpecializationMacro(HalfDisk2)

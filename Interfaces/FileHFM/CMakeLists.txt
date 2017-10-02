@@ -105,6 +105,13 @@ add_executable(FileHFM_Riemann "FileHFM.cpp")
 target_compile_definitions(FileHFM_Riemann PRIVATE Riemann)
 endif()
 
+option(PrescribedCurvature2Executable "PrescribedCurvature2Executable")
+if(PrescribedCurvature2Executable)
+add_executable(FileHFM_PrescribedCurvature2 "FileHFM.cpp")
+target_compile_definitions(FileHFM_PrescribedCurvature2 PRIVATE PrescribedCurvature2)
+endif()
+
+
 
 # Other optional executables
 

@@ -9,10 +9,10 @@ if true %Some geodesics, around the origin, without obstacles.
     input.origin=[0;0];  % Physical origin
     input.gridScale=1/n; % Physical gridScale
 
-    input.model = 'ReedsShepp2';%Alternatively : 'ReedsShepp2','ReedsSheppForward2', 'Elastica2<5>', 'Dubins2'
+    input.model = 'Elastica2<5>';%Alternatively : 'ReedsShepp2','ReedsSheppForward2', 'Elastica2<5>', 'Dubins2'
     input.speed = 1; %Use an array for a position, angle, or (position and angle) dependent speed. 
     % Alternatively input.speed = ones(n,n), or ones(nTheta), or ones(n,n,nTheta)
-    input.xi = 0.3; %Model parameter, typical radius of curvature.
+    input.xi = 0.1; %Model parameter, typical radius of curvature.
     input.eps=0.1;
     
     input.seeds=[0.5;0.5;0]; % Where the geodesics start [x;y;theta]. You can set multiple seeds, as for the tips below.
@@ -37,7 +37,7 @@ if true %Some geodesics, around the origin, without obstacles.
     pause;
 end
 
-if false
+if false % Within centre Pompidou
     clear input;
     input.model = 'ReedsSheppForward2'; % Alternatively 'ReedSheppForward2', %'Elastica2<5>', 'Dubins2'; 
     input.xi = 0.7; %Model parameter, typical radius of curvature.

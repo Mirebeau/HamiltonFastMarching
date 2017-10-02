@@ -106,6 +106,13 @@ target_link_libraries(MathematicaHFM_RiemannExtra -Wl, -lstdc++ -lpthread -Wl, $
 target_compile_definitions(MathematicaHFM_RiemannExtra PRIVATE RiemannExtra)
 endif()
 
+option(Executable_PrescribedCurvature2 "Executable_PrescribedCurvature2")
+if(Executable_PrescribedCurvature2)
+add_library(MathematicaHFM_PrescribedCurvature2 SHARED "MathematicaHFM.cpp")
+target_link_libraries(MathematicaHFM_PrescribedCurvature2 -Wl, -lstdc++ -lpthread -Wl, ${Mathematica_Libraries})
+target_compile_definitions(MathematicaHFM_PrescribedCurvature2 PRIVATE PrescribedCurvature2)
+endif()
+
 option(Executable_Isotropic "Executable_Isotropic")
 if(Executable_Isotropic)
 add_library(MathematicaHFM_Isotropic SHARED "MathematicaHFM.cpp")
