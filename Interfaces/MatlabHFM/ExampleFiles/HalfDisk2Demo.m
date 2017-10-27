@@ -12,7 +12,7 @@ input.model = 'HalfDisk2';
 
 % We do use Matlab's convention of ordering the axes as y, x, z.
 % Internally, the first two array coordinates are transposed.
-% This feature can be turned off by setting input.transposeFirstTwoCoordinates=False
+% This feature can be turned off by setting input.arrayOrdering='Default';
 [x,y]=meshgrid(1:nx,1:ny);
 
 %   dualMetric [Vx,Vy,r] for the hamiltonian V o V + r^2 Vp o Vp, where V=(Vx,Vy), and Vp is the orthogonal vector.

@@ -1,4 +1,7 @@
-% Demo of Prescribed 
+% Demo of PrescribedCurvature2 executable. 
+% It must be compiled first by executing CompileHFM(binary_Dir,JMM_CPPLibs_Dir,'PrescribedCurvature2'), from the CompileHFM.m script.
+% The cost takes the form C(xi(x''-kappa))/speed, where speed, xi and kappa are either constant or state dependent.
+% The function C is model dependent, see the Curvature2Demo script for details.
 
 if true %Some geodesics, around the origin, without obstacles.
     clear input;

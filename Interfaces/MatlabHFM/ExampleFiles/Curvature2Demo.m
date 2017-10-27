@@ -1,3 +1,9 @@
+% The cost for these model takes the form C(xi x'')/speed, where speed=speed(x,x') is constant or state dependent, and xi is constant.
+% The function C is model dependent: 
+% - C(s)=sqrt(1+s^2) for the ReedsSheppForward2 model. The ReedsShepp2 model is similar but allows cusps.
+% - C(s)=1+s^2 for Elastica2<5>.
+% - C(s)=1 if |s|<=1, infty otherwise for the Dubins2 model.
+
 if true %Some geodesics, around the origin, without obstacles.
     clear input;
     n=101;

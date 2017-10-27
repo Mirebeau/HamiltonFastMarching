@@ -87,6 +87,7 @@ void Run(IO & io){
     // HalfDisk models
     HFMSpecializationMacro(HalfDisk2)
     HFMSpecializationMacro(HalfDisk3)
+    HFMSpecializationMacro(HalfDisk3p1)
     
     // Differentiation with riemannian metrics
     HFMSpecializationMacro(RiemannDiff2)
