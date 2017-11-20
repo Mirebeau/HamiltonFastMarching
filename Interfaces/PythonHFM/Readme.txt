@@ -17,3 +17,7 @@ PYTHON_LIBRARY =
 Important : Be careful to use the same version of python (2 or 3) for compiling the library and executing the scripts.
 Failing to do results in the following error message (if compiling with python2 and executing scripts with python3)
 ImportError: dynamic module does not define module export function (PyInit_PythonHFM_AllBase)
+
+---------
+brew uninstall --force boost-python
+brew install boost-python --with-python3 --without-python

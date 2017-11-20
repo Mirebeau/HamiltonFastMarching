@@ -21,6 +21,7 @@ int main(int argc, const char * argv[]) {
         Run(io);
     } catch(const std::logic_error & e) {
         IO::WarnMsg() << "Exception caught. " << e.what();
+        return EXIT_FAILURE;
     }
-    return 0;
+    return EXIT_SUCCESS;
 }

@@ -12,7 +12,7 @@ typedef IO_<PythonIO> IO;
 Redeclare2Types(FromIO,Msg,WarnMsg)
 
 #include "DispatchAndRun.h"
-
+  
 struct HFMIO {
     Redeclare3Types(FromIO,ScalarType,KeyCRef,ndarray);
     IO io;

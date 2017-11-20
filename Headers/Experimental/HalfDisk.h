@@ -24,8 +24,9 @@
  - a scalar epsForward, for how accurately is forward speed implemented.
  As usual, small parameters yield large stencils.
  
- 
 ********/
+
+// TODO a distinct grid scale for the radius dimension in HalfDisk3p1.
 
 // ------- Two dimensional model --------
 
