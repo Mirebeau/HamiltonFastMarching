@@ -29,12 +29,18 @@ model = "Elastica2<5>" if len(sys.argv)<=3 else sys.argv[3]
 
 def SquareTest(n,model,withWall=False):
     input={
+        'arrayOrdering':'YXZ_RowMajor', # Using the YXZ axes ordering as in numpy (meshgrid, contourf, ...)
+        
+        # model and relaxation parameter
+        'model':model,
         'eps':0.1,
+        
         # space0,space1,angle
         'dims':np.array([n+1,n,60]),
+        
         # size of a pixel (only for physical dimensions)
         'gridScale':1./n,
-        'model':model,
+        
         # Speed(s) multiplier
         # constant
         # 'multiplier':1,
@@ -64,6 +70,7 @@ def SquareTest(n,model,withWall=False):
             [0.75, 0.92, 0.0], [0.92, 0.08, 0.0], [0.92, 0.25, 0.0], [0.92, 0.42, 0.0], [0.92, 0.58, 0.0],
             [0.92, 0.75, 0.0], [0.92, 0.92, 0.0]
         ]),
+        
         # Alternatively (or in addition), omni-directional tips can be specified. The minimal orientation is automatically selected. # pos_x, pos_y
         'tips_Unoriented':
         np.array([
@@ -75,33 +82,28 @@ def SquareTest(n,model,withWall=False):
             [0.75, 0.92], [0.92, 0.08], [0.92, 0.25], [0.92, 0.42], [0.92, 0.58],
             [0.92, 0.75], [0.92, 0.92]
         ]),
-        'verbosity':2,
+        
+        'verbosity':1,
     }
-    if withWall:
-        input['walls']=np.array([[i==math.floor(n/3) and j<2*n/3 for j in range(n)] for i in range(n+1)])
+    if withWall: # Using the YXZ axes ordering as in (numpy, ...)
+        input['walls']=np.array([[x==math.floor(n/3) and y<2*n/3 for x in range(n+1)] for y in range(n)])
     # This defines a wall depending on the physical coordinates. Alternatively one may define a wall depending on both physical and bundle coordinates.
     return input
 
 withWall=True;
 
-# Set to the directory containing ExternLFM executables FileLFM2D and FileLFM3D
-path=os.getcwd()
-if len(sys.argv) >=2:
-    os.chdir(sys.argv[1])
+# Get the executable name and path
+FileHFM_executable = "FileHFM_AllBase"
+if len(sys.argv) >=2:   FileHFM_binary_dir = sys.argv[1];
 
 #Write parameter file to disk, execute program, import results
-FileIO.RulesToRaw(SquareTest(size,model,withWall),"input")
-# call(path+'/FileHFM_Curvature2 | tee log.txt')
-call('./FileHFM_AllBase') # Also in FileHFM_Curvature2
-result = FileIO.RawToRules()
+result = FileIO.WriteCallRead(SquareTest(size,model,withWall),
+                              FileHFM_executable, binary_dir=FileHFM_binary_dir,
+                              logFile=None) # Display output directly
 
-# print the result to see additional output fields
-#print(result)
-
-# Restore working directory
-os.chdir(path)
 geodesics = np.vsplit(result['geodesicPoints'],result['geodesicLengths'].astype(int).cumsum()[:-1])
-geodesicsU = np.vsplit(result['geodesicPoints_Unoriented'],result['geodesicLengths_Unoriented'].astype(int).cumsum()[:-1])
+geodesicsU = np.vsplit(result['geodesicPoints_Unoriented'],
+                       result['geodesicLengths_Unoriented'].astype(int).cumsum()[:-1])
 
 with PdfPages("Output/Curvature2_"+model+'_results.pdf') as pdf:
     plt.figure()

@@ -87,7 +87,7 @@ struct HamiltonFastMarching {
 
     // StencilDataType must be subclassed.
     struct StencilType;
-    typedef ParamInterface<PointType> ParamInterface;
+    typedef ParamInterface_<PointType,VectorType> ParamInterface;
     typedef typename DifferenceType::MultiplierType MultiplierType;
     static const bool hasMultiplier = DifferenceType::multSize>0;
     template<bool b=hasMultiplier, typename Dummy=void> struct _StencilDataType;

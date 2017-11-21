@@ -1,7 +1,7 @@
 The HamiltonFastMarching can be used from Python in two ways:
 
-1- using the library PythonHFM, compiled with boost-numpy
-2- using the executable FileHFM, with no external dependencies
+1- using the library PythonHFM, compiled with boost-numpy (Experimental)
+2- using the executable FileHFM, which has no external dependencies
 
 The two methods provide similar functionality. 
 1 offers faster input/output, while 2 may be easier to compile.
@@ -18,6 +18,9 @@ Important : Be careful to use the same version of python (2 or 3) for compiling 
 Failing to do results in the following error message (if compiling with python2 and executing scripts with python3)
 ImportError: dynamic module does not define module export function (PyInit_PythonHFM_AllBase)
 
----------
+--------- Remarks on linking with python3 on Apple -------
+By default, boost-python links with python2, and the python refers to python2, on this platform.
+I have not tested python3 linking, but would be happy to now if anyone succeeds. 
+Starting point:
 brew uninstall --force boost-python
 brew install boost-python --with-python3 --without-python

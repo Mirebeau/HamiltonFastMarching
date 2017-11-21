@@ -4,14 +4,14 @@
 % - C(s)=1+s^2 for Elastica2<5>.
 % - C(s)=1 if |s|<=1, infty otherwise for the Dubins2 model.
 
-if true %Some geodesics, around the origin, without obstacles.
+if false %Some geodesics, around the origin, without obstacles.
     clear input;
     n=101;
     nTheta=60;
     nGeo=8;
     
     % Defining the domain
-    input.dims = [n;n;nTheta];
+    input.dims = [n+2;n;nTheta];
     input.origin=[0;0];  % Physical origin
     input.gridScale=1/n; % Physical gridScale
 
@@ -39,17 +39,21 @@ if true %Some geodesics, around the origin, without obstacles.
     for i=1:size(geodesics,2) %geodesics joining the "tips"
         rescaledGeodesic=RescaledCoords(geodesics{i}(1:2,:),input.origin,[input.gridScale;input.gridScale]);
         line(rescaledGeodesic(1,:),rescaledGeodesic(2,:));
-    end;
+    end
     pause;
 end
 
-if false % Within centre Pompidou
+if true % Within centre Pompidou
     clear input;
-    input.model = 'ReedsSheppForward2'; % Alternatively 'ReedSheppForward2', %'Elastica2<5>', 'Dubins2'; 
+    input.model = 'Elastica2<5>'; % 'ReedsSheppForward2'; % Alternatively 'ReedSheppForward2', %'Elastica2<5>', 'Dubins2'; 
     input.xi = 0.7; %Model parameter, typical radius of curvature.
     input.eps=0.1;
     input.speed=1;
-    input.projective=1; % Applies to the ReedsShepp model only
+    nTheta=60;
+    if strcmp(input.model,'ReedsShepp2')
+        input.projective=1; % Applies to the ReedsShepp model only.
+        nTheta=nTheta/2; % Allows to identify opposite directions
+    end
     
     im = imread('centre_pompidou_800x546.png');
     im = ( (im(:,:,1)==255) | (im(:,:,3)==255)) & (im(:,:,2)==0);    
@@ -61,7 +65,7 @@ if false % Within centre Pompidou
     input.seeds_Unoriented=[80,80;170,290]*gridScale;
     
     input.exportValues=1;
-    input.dims = [fliplr(size(im(:,:,1)))';60/(1+input.projective)];
+    input.dims = [fliplr(size(im(:,:,1)))';nTheta];
     
     input.tips_Unoriented=...
         [369.4, 252.2, 285., 418.6, 479.8, 687.2, 745.8, 740.4, 593.8, 558.6,...
@@ -73,16 +77,24 @@ if false % Within centre Pompidou
     input.geodesicVolumeBound=12;
     output=MatlabHFM_Curvature2(input);
     
-    dist=output.values;
-    dist(dist==Inf)=0;
     
     clf;
-    imagesc(min(dist,[],3))
+    % Display minimal distance over all directions, with a cutoff due to
+    % inaccessible regions for e.g. the Dubins car
+    dist=min(output.values,[],3);
+    dist(dist==Inf)=0;
+    if strcmp(input.model,'Dubins2')
+        cutoff = sort(dist(:)); 
+        cutoff = cutoff(ceil(numel(dist)*0.95));
+        dist = min(dist,cutoff);
+    end
+    imagesc(dist);
+    
     geodesics = mat2cell(output.geodesicPoints_Unoriented,3,output.geodesicLengths_Unoriented);    
     for i=1:size(geodesics,2)
         rescaledGeodesic=RescaledCoords(geodesics{i}(1:2,:),input.origin,[input.gridScale;input.gridScale]);
         line(rescaledGeodesic(1,:),rescaledGeodesic(2,:));
-    end;
+    end
 
 end
 
@@ -122,6 +134,6 @@ if false % Straight geodesics, for comparison
     for i=1:size(geodesics,2)
         rescaledGeodesic=RescaledCoords(geodesics{i}(1:2,:),input.origin,[input.gridScale;input.gridScale]);
         line(rescaledGeodesic(1,:),rescaledGeodesic(2,:));
-    end;
+    end
 
 end

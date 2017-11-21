@@ -11,7 +11,7 @@ project(NotMatlabHFM)
 
 #set a few machine dependent paths
 set(Matlab_dir "/Applications/MATLAB_R2012b.app/extern/include" CACHE FILEPATH "Matlab directory")
-set(JMM_CPPLibs_dir "${CMAKE_CURRENT_SOURCE_DIR}/../../../JMM_CPPLibs-master" CACHE FILEPATH "JMM_CPPLibs directory")
+set(JMM_CPPLibs_dir "${CMAKE_CURRENT_SOURCE_DIR}/../../../../JMM_CPPLibs-master" CACHE FILEPATH "JMM_CPPLibs directory")
 
 #paths required for compilation of Lifted Fast Marching
 set(LinearAlgebra_dir 		"${JMM_CPPLibs_dir}/LinearAlgebra")
@@ -25,7 +25,7 @@ set(DummyBinDir "${CMAKE_CURRENT_BINARY_DIR}/Dummy")
 add_subdirectory(${LinearAlgebra_dir} "${DummyBinDir}/LinearAlgebra")
 add_subdirectory(${Output_dir} "${DummyBinDir}/Output")
 add_subdirectory(${DataStructures_dir} 	"${DummyBinDir}/DataStructures")
-add_subdirectory("../../Headers" "${DummyBinDir}/HFMHeaders")
+add_subdirectory("../../../Headers" "${DummyBinDir}/HFMHeaders")
 #add_subdirectory("Base")
 #add_subdirectory("Specializations")
 #add_subdirectory("Experimental")
@@ -74,7 +74,7 @@ include_directories(${PROJECT_DIR} ${CMAKE_CURRENT_SOURCE_DIR} ${Matlab_dir})
 
 option(AllBaseExecutable "AllBaseExecutable" TRUE)
 if(AllBaseExecutable)
-add_executable(NotMatlabHFM_AllBase "MatlabHFM.cpp" ${Project_Headers})
+add_executable(NotMatlabHFM_AllBase "../MatlabHFM.cpp" ${Project_Headers})
 target_compile_definitions(NotMatlabHFM_AllBase PRIVATE AllBaseModels)
 endif()
 

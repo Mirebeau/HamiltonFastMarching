@@ -50,6 +50,7 @@ if model=="ReedsSheppThreeSpeeds2" or model=="ReedsSheppAdaptive2":
     the [forward, reverse, angular] speed."""
 
 input = {
+"arrayOrdering": "YXZ_RowMajor", #compatibility with numpy.meshgrid
 "model": model,
 "dims": np.array([n, n, nTheta]),
 "gridScale": 1./n,
@@ -73,18 +74,14 @@ input = {
 "uniformlySampledSpeed":nTheta,
 }
 
-# Set to the directory containing ExternLFM executables FileLFM2D and FileLFM3D
-path=os.getcwd()
-if len(sys.argv) >=2:
-    os.chdir(sys.argv[1])
+# Get the executable name and path
+FileHFM_executable = "FileHFM_Experimental0"
+if len(sys.argv) >=2:   FileHFM_binary_dir = sys.argv[1];
 
 #Write parameter file to disk, execute program, import results
-FileIO.RulesToRaw(input,"input")
-call('./FileHFM_Experimental0')
-result = FileIO.RawToRules()
-
-# Restore working directory
-os.chdir(path)
+result = FileIO.WriteCallRead(input,
+                              FileHFM_executable, binary_dir=FileHFM_binary_dir,
+                              logFile=None) # Display output directly
 
 geodesics = np.vsplit(result['geodesicPoints'],result['geodesicLengths'].astype(int).cumsum()[:-1])
 

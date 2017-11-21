@@ -69,11 +69,13 @@ protected:
 };
 
 // A second class is used to reparametrize the domain
-template<typename TPoint> struct ParamInterface {
+template<typename TPoint, typename TVec> struct ParamInterface_ {
     typedef TPoint PointType;
+    typedef TVec VectorType;
     virtual PointType ADim(const PointType & p) const=0;
     virtual PointType ReDim(const PointType & p) const=0;
-    virtual ~ParamInterface(){};
+    virtual VectorType ReDim(const VectorType & p) const=0;
+    virtual ~ParamInterface_(){};
 };
 
 

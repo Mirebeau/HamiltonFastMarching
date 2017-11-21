@@ -24,7 +24,7 @@ void mexFunction(int nlhs, mxArray *plhs[],
     try {
         try {
             IO io(prhs[0],plhs);
-            io.arrayOrdering = IO::ArrayOrdering::Transposed;
+            io.arrayOrdering = IO::ArrayOrdering::YXZ_ColumnMajor;
             Run(io);
         } catch (const std::exception & e) {
             IO::WarnMsg() << "Hamilton Fast Marching exception.\n " << e.what() << "\n";

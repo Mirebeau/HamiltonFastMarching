@@ -10,10 +10,10 @@
 NotebookFileLineBreakTest
 NotebookFileLineBreakTest
 NotebookDataPosition[       157,          7]
-NotebookDataLength[     23969,        619]
-NotebookOptionsPosition[     23566,        600]
-NotebookOutlinePosition[     23923,        616]
-CellTagsIndexPosition[     23880,        613]
+NotebookDataLength[     23753,        613]
+NotebookOptionsPosition[     23348,        594]
+NotebookOutlinePosition[     23707,        610]
+CellTagsIndexPosition[     23664,        607]
 WindowFrame->Normal*)
 
 (* Beginning of Notebook Content *)
@@ -337,26 +337,17 @@ string|Numeric|Array\\n\>\"", ",",
          RowBox[{"{", 
           RowBox[{"eNum", ",", "lNum"}], "}"}]}], "]"}], ";", 
        "\[IndentingNewLine]", "\[IndentingNewLine]", 
-       RowBox[{"Do", "[", 
-        RowBox[{"(*", 
-         RowBox[{
-          RowBox[{
-          "Dimensions", " ", "are", " ", "reversed", " ", "because", " ", 
-           "we", " ", "want", " ", "the", " ", "first", " ", "index", " ", 
-           "to", " ", "be", " ", "the", " ", "fast", " ", "index"}], ",", " ", 
-          RowBox[{"like", " ", "Matlab"}], ",", " ", 
-          RowBox[{"and", " ", "contrary", " ", "to", " ", "Mathematica"}]}], 
-         "*)"}], "\[IndentingNewLine]", 
+       RowBox[{"Do", "[", "\[IndentingNewLine]", 
         RowBox[{
          RowBox[{
           RowBox[{"With", "[", 
            RowBox[{
             RowBox[{"{", 
              RowBox[{"dims", "=", 
-              RowBox[{"Reverse", "@", 
-               RowBox[{"Dimensions", "@", 
-                RowBox[{"Last", "@", "eArr"}]}]}]}], "}"}], ",", " ", 
-            "\[IndentingNewLine]", 
+              RowBox[{"Dimensions", "@", 
+               RowBox[{"Last", "@", "eArr"}]}]}], "}"}], ",", " ", 
+            RowBox[{"(*", 
+             RowBox[{"Row", " ", "major"}], "*)"}], "\[IndentingNewLine]", 
             RowBox[{
              RowBox[{"str", "=", 
               RowBox[{"str", "<>", 
@@ -523,7 +514,6 @@ string|Numeric|Array\\n\>\"", ",",
                     RowBox[{"dim", "+", "2"}]}], ",", "\[IndentingNewLine]", 
                    RowBox[{
                     RowBox[{"dims", "=", 
-                    RowBox[{"Reverse", "@", 
                     RowBox[{"Table", "[", 
                     RowBox[{
                     RowBox[{"ToExpression", "@", 
@@ -531,7 +521,9 @@ string|Numeric|Array\\n\>\"", ",",
                     RowBox[{"[", 
                     RowBox[{"i", "+", "2"}], "]"}], "]"}]}], ",", 
                     RowBox[{"{", 
-                    RowBox[{"i", ",", "dim"}], "}"}]}], "]"}]}]}], ";", 
+                    RowBox[{"i", ",", "dim"}], "}"}]}], "]"}]}], ";", " ", 
+                    RowBox[{"(*", 
+                    RowBox[{"row", " ", "major"}], "*)"}], 
                     "\[IndentingNewLine]", 
                     RowBox[{"pos", "=", 
                     RowBox[{"pos", "+", 
@@ -595,11 +587,13 @@ string|Numeric|Array\\n\>\"", ",",
    3.7002037773743668`*^9}, {3.700203827416172*^9, 3.700203861373456*^9}, {
    3.7002038979905367`*^9, 3.7002039686560163`*^9}, {3.700204065457471*^9, 
    3.700204129348976*^9}, 3.7004562988277903`*^9, {3.701774367564468*^9, 
-   3.7017743997212267`*^9}, 3.7017745837881813`*^9}]
+   3.7017743997212267`*^9}, 3.7017745837881813`*^9, {3.720184242947942*^9, 
+   3.720184279651361*^9}, {3.720184623142488*^9, 3.720184624857038*^9}, {
+   3.720184660800836*^9, 3.720184661590372*^9}}]
 }, Open  ]]
 },
 WindowSize->{906, 855},
-WindowMargins->{{Automatic, 0}, {Automatic, 0}},
+WindowMargins->{{Automatic, 235}, {Automatic, 0}},
 FrontEndVersion->"11.0 for Mac OS X x86 (32-bit, 64-bit Kernel) (September \
 21, 2016)",
 StyleDefinitions->"Default.nb"
@@ -619,7 +613,7 @@ Cell[CellGroupData[{
 Cell[579, 22, 177, 2, 148, "Title"],
 Cell[759, 26, 425, 8, 49, "Text"],
 Cell[1187, 36, 480, 13, 54, "Input"],
-Cell[1670, 51, 21880, 546, 2191, "Input"]
+Cell[1670, 51, 21662, 540, 2112, "Input"]
 }, Open  ]]
 }
 ]

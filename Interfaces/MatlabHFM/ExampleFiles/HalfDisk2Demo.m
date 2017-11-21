@@ -53,5 +53,5 @@ geodesics = mat2cell(output.geodesicPoints,2,output.geodesicLengths);
 for i=1:size(geodesics,2) %geodesics joining the "tips"
     rescaledGeodesic=RescaledCoords(geodesics{i},input.origin,[input.gridScale;input.gridScale]);
     line(rescaledGeodesic(1,:),rescaledGeodesic(2,:));
-end;
+end
 pause;

@@ -27,6 +27,7 @@ HamiltonFastMarching<Traits>::_StencilDataType<true,Dummy>::ParamType : HFM::Par
     ScalarType gridScale=1, dependScale=1;
     virtual PointType ADim(const PointType & p) const override;
     virtual PointType ReDim(const PointType & p) const override;
+    virtual VectorType ReDim(const VectorType & u) const override;
     void Setup(IO & io, ScalarType _dependScale){
         // Setting the scale and origin. This is really specialized for R^n x S^d structures.
         gridScale = io.template Get<ScalarType>("gridScale");
@@ -54,6 +55,8 @@ HamiltonFastMarching<Traits>::_StencilDataType<false,Dummy>::ParamType : HFM::Pa
         return PointType::FromOrigin((p-origin)/gridScale);}
     virtual PointType ReDim(const PointType & p) const override {
         return VectorType::FromOrigin(p)*gridScale+origin;}
+    virtual VectorType ReDim(const VectorType & v) const override {
+        return v*gridScale;}
     void Setup(HFMI * that) {
         origin=that->io.template Get<PointType>("origin",origin);
         gridScale = that->io.template Get<ScalarType>("gridScale");
@@ -86,6 +89,21 @@ ReDim(const PointType & p) const -> PointType {
             ++j;
         } else {
             result[i] = p[i]*gridScale+origin[i];
+        }
+    }
+    return result;
+}
+
+template<typename T> template<typename Dummy> auto
+HamiltonFastMarching<T>::_StencilDataType<true,Dummy>::ParamType::
+ReDim(const VectorType & p) const -> VectorType {
+    VectorType result;
+    for(int i=0,j=0; i<Dimension; ++i){
+        if(j<T::nStencilDependencies && i==Traits::stencilDependencies[j]){
+            result[i] = p[i]*dependScale;
+            ++j;
+        } else {
+            result[i] = p[i]*gridScale;
         }
     }
     return result;

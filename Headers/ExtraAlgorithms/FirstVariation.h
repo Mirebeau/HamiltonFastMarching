@@ -112,15 +112,15 @@ template<typename T> void FirstVariation<T>::Finally(HFMI*that){
             const auto seeds = io.template GetVector<PointType>("seeds");
             const auto seedVariations = io.template GetArray<ScalarType,2>("seedValueVariation");
             
-            const DiscreteType nVar =seedVariations.dims[1];
+            const DiscreteType nVar = seedVariations.dims[0];
             valueVariations.dims=DeepIndex(that->stencil.dims, nVar);
             valueVariations.resize(valueVariations.dims.ProductOfCoordinates(),0);
             
-            if(seeds.size()!=seedVariations.size())
+            if(seeds.size()!=seedVariations.dims[1])
                 ExceptionMacro("Error : Inconsistent size of seedValueVariation");
             for(int i=0; i<seeds.size(); ++i){
                 const IndexType index = that->pFM->dom.IndexFromPoint(that->stencil.Param().ADim(seeds[i]));
-                for(int k=0; k<nVar; ++k){valueVariations(DeepIndex(index, k)) = seedVariations({i,k});}
+                for(int k=0; k<nVar; ++k){valueVariations(DeepIndex(index, k)) = seedVariations({k,i});}
             }
         }
         ForwardVariation(fwdVar,valueVariations);

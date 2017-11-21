@@ -21,13 +21,12 @@ if true %Some geodesics, around the origin, without obstacles.
 
     % The three folloinwg fields may be uniform over the domain, or state dependent. E.g. =1, or =ones(n,n,nTheta).
     
-%    input.speed = 1; input.xi = 0.15; input.kappa=1./(2*input.xi); % A car that turns better left than right.
+ %   input.speed = 1; input.xi = 0.15; input.kappa=1./(2*input.xi); % A car that turns better left than right.
     input.speed = 1; input.xi = 0.15./(1+(y<0.5)); input.kappa=0; % A car that turns better on the upper part of the domain.
     
         % Not currently available :
-    % - Fields position dependent ones(n,n), or orientation dependent ones(nTheta). (Could be if requested)
+    % - Fields depending only on position, e.g. ones(n,n), or on orientation, e.g. ones(nTheta). (Could be if requested)
     % - Time dependency and automatic differentiation (could be for speed if requested)
-
     
     input.seeds=[0.5;0.5;0]; % Where the geodesics start [x;y;theta]. You can set multiple seeds, as for the tips below.
     % Defining the geodesic endpoints
@@ -47,6 +46,6 @@ if true %Some geodesics, around the origin, without obstacles.
     for i=1:size(geodesics,2) %geodesics joining the "tips"
         rescaledGeodesic=RescaledCoords(geodesics{i}(1:2,:),input.origin,[input.gridScale;input.gridScale]);
         line(rescaledGeodesic(1,:),rescaledGeodesic(2,:));
-    end;
+    end
     pause;
 end

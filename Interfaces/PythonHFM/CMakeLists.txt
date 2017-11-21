@@ -2,6 +2,7 @@ cmake_minimum_required(VERSION 2.8.3)
 set (CMAKE_CXX_STANDARD 14)
 
 project(PythonHFM)
+
 # -------- Header include directories --------
 
 set(JMM_CPPLibs_dir "${CMAKE_CURRENT_SOURCE_DIR}/../../../JMM_CPPLibs-master" CACHE FILEPATH "JMM_CPPLibs directory")
@@ -45,15 +46,13 @@ set(Project_Headers
 #FILE(COPY hello.py DESTINATION .)
 
 FIND_PACKAGE(PythonInterp)
-FIND_PACKAGE(PythonLibs 3)
+FIND_PACKAGE(PythonLibs)
+if(APPLE AND ${PYTHON_VERSION_MAJOR} EQUAL 3)
+    FIND_PACKAGE(Boost COMPONENTS python3)
+else()
+    FIND_PACKAGE(Boost COMPONENTS python)
+endif()
 
-#if(APPLE AND ${PYTHON_VERSION_MAJOR} EQUAL 3)
-#    FIND_PACKAGE(Boost COMPONENTS python3)
-#else()
-#    FIND_PACKAGE(Boost COMPONENTS python)
-#endif()
-
-FIND_PACKAGE(Boost COMPONENTS python)
 find_library(BoostNumpy NAMES boost_numpy)
 INCLUDE_DIRECTORIES(${PROJECT_DIR} ${Boost_INCLUDE_DIRS} ${PYTHON_INCLUDE_DIRS})
 LINK_LIBRARIES(${Boost_LIBRARIES} ${PYTHON_LIBRARIES} ${BoostNumpy}) # Deprecated but so convenient!

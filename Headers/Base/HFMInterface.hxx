@@ -120,7 +120,8 @@ HFMInterface<T>::DataSource_Array : DataSource<E> {
     typedef typename DataSource<E>::ReturnType ReturnType;
     Array<E,Dimension> values;
     DataSource_Array(Array<E, Dimension> && _values):values(std::move(_values)){};
-    virtual bool CheckDims(const IndexType & dims) const {return dims==values.dims;}
+    virtual bool CheckDims(const IndexType & dims) const {
+        return dims==values.dims;}
     virtual ReturnType operator()(const IndexType & index) const {return values(index);}
 };
 
@@ -257,6 +258,7 @@ Run_SetupIO() {
     // Setup input array ordering policy
     io.verbosity = io.Get<ScalarType>("verbosity",io.verbosity);
     io.arrayOrdering = enumFromString<IO::ArrayOrdering>(io.GetString("arrayOrdering",enumToRealString(io.arrayOrdering)));
+    if(static_cast<int>(io.arrayOrdering)==-1) ExceptionMacro("Error : unrecognized array ordering");
     pTime = std::unique_ptr<TimeDependentFields<T> >(new TimeDependentFields<T>);
     pTime->Setup(this);
 }
@@ -313,7 +315,11 @@ Run_SetupSolver() {
         if(io.HasField("seeds")){
             seedPoints = io.GetVector<PointType>("seeds");
             for(auto & p : seedPoints) p=stencil.Param().ADim(p);
-            if(io.HasField("seedValues")) seedValues = io.GetVector<ScalarType>("seedValues");
+            if(io.HasField("seedValues")) {
+                seedValues = io.GetVector<ScalarType>("seedValues");
+                if(seedValues.size()!=seedPoints.size())
+                    ExceptionMacro("Error : Inconsistent size of seedValues.")
+            }
             else seedValues.resize(seedPoints.size(),0.);
         }
         
@@ -340,7 +346,7 @@ Run_SetupSolver() {
         for(int i=0; i<seedPoints.size(); ++i){
             auto seedIndex=pFM->dom.IndexFromPoint(seedPoints[i]);
             if(pFM->dom.Periodize(seedIndex)[Dimension]){
-                WarnMsg() << "Error : seed " << seedPoints[i] << " is out of range.\n";
+                WarnMsg() << "Error : seed " << stencil.Param().ReDim(seedPoints[i]) << " is out of range.\n";
                 continue;}
             pFM->seeds.insert({seedIndex,seedValues[i]});}
         if(pFM->seeds.empty() && !seedPoints.empty())
@@ -460,7 +466,9 @@ Run_ExportData() {
         flow.dims=pFM->values.dims;
         flow.resize(pFM->values.size());
         for(DiscreteType i=0; i<flow.size(); ++i){
-            flow[i] = pFM->GeodesicFlow(flow.Convert(i)).flow;} //TODO : ReDim ?
+            flow[i] = pFM->GeodesicFlow(flow.Convert(i)).flow;
+            flow[i] = stencil.Param().ReDim(flow[i]);
+        }
         io.SetArray<VectorType>("geodesicFlow", flow);
     }
     

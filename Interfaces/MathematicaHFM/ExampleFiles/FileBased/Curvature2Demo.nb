@@ -10,10 +10,10 @@
 NotebookFileLineBreakTest
 NotebookFileLineBreakTest
 NotebookDataPosition[       157,          7]
-NotebookDataLength[     22911,        576]
-NotebookOptionsPosition[     22193,        547]
-NotebookOutlinePosition[     22552,        563]
-CellTagsIndexPosition[     22509,        560]
+NotebookDataLength[     23085,        580]
+NotebookOptionsPosition[     22367,        551]
+NotebookOutlinePosition[     22726,        567]
+CellTagsIndexPosition[     22683,        564]
 WindowFrame->Normal*)
 
 (* Beginning of Notebook Content *)
@@ -47,6 +47,9 @@ Cell[BoxData[
           RowBox[{
            RowBox[{
            "\"\<executable\>\"", "\[Rule]", "\"\<FileHFM_AllBase\>\""}], ",", 
+           " ", 
+           RowBox[{"(*", 
+            RowBox[{"FileHFM_Curvature2", " ", "also", " ", "fits"}], "*)"}], 
            "\[IndentingNewLine]", 
            RowBox[{"\"\<r\>\"", "\[Rule]", " ", "1.4"}], ",", " ", 
            RowBox[{"(*", 
@@ -467,7 +470,8 @@ Cell[BoxData[
    3.699815192167941*^9, 3.6998152118488607`*^9}, 3.699816368717128*^9, {
    3.699822978079652*^9, 3.6998230060029716`*^9}, {3.699962504141141*^9, 
    3.699962531631562*^9}, 3.701772588553811*^9, {3.701773068386405*^9, 
-   3.7017731008402023`*^9}, {3.7049914897222443`*^9, 3.704991499344905*^9}}],
+   3.7017731008402023`*^9}, {3.7049914897222443`*^9, 3.704991499344905*^9}, {
+   3.7201874159796352`*^9, 3.720187431155006*^9}}],
 
 Cell["\<\
 Available models:
@@ -564,18 +568,18 @@ CellTagsIndex->{}
 Notebook[{
 Cell[CellGroupData[{
 Cell[579, 22, 117, 1, 92, "Title"],
-Cell[699, 25, 18656, 444, 1537, "Input"],
-Cell[19358, 471, 458, 10, 106, "Text"],
-Cell[19819, 483, 899, 16, 125, "Text"],
+Cell[699, 25, 18830, 448, 1503, "Input"],
+Cell[19532, 475, 458, 10, 106, "Text"],
+Cell[19993, 487, 899, 16, 125, "Text"],
 Cell[CellGroupData[{
-Cell[20743, 503, 162, 2, 44, "Subsection"],
-Cell[20908, 507, 158, 3, 30, "Text"],
-Cell[21069, 512, 353, 9, 125, "Text"]
+Cell[20917, 507, 162, 2, 44, "Subsection"],
+Cell[21082, 511, 158, 3, 30, "Text"],
+Cell[21243, 516, 353, 9, 125, "Text"]
 }, Open  ]],
 Cell[CellGroupData[{
-Cell[21459, 526, 174, 2, 44, "Subsection"],
-Cell[21636, 530, 188, 2, 30, "Text"],
-Cell[21827, 534, 338, 9, 125, "Text"]
+Cell[21633, 530, 174, 2, 44, "Subsection"],
+Cell[21810, 534, 188, 2, 30, "Text"],
+Cell[22001, 538, 338, 9, 125, "Text"]
 }, Open  ]]
 }, Open  ]]
 }

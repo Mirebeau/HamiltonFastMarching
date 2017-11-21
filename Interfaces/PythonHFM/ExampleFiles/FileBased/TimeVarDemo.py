@@ -30,6 +30,7 @@ import FileIO
 n = 100 if len(sys.argv)<=2 else int(sys.argv[2])
 
 input = {
+"arrayOrdering": "YXZ_RowMajor", #compatibility with numpy.meshgrid
 "sndOrder": 1,
 "model": "IsotropicBox2<Boundary::Closed>",
 "dims": np.array([n, n]),
@@ -48,21 +49,14 @@ input = {
 "inspectSensitivity": np.array([[1./6, 1./6],[1./6,1./2],[0.67,0.6]])
 }
 
-# Set to the directory containing ExternLFM executables FileLFM2D and FileLFM3D
-path=os.getcwd()
-if len(sys.argv) >=2:
-    os.chdir(sys.argv[1])
+# Get the executable name and path
+FileHFM_executable = "FileHFM_AllBase"
+if len(sys.argv) >=2:   FileHFM_binary_dir = sys.argv[1];
 
 #Write parameter file to disk, execute program, import results
-FileIO.RulesToRaw(input,"input")
-call('./FileHFM_AllBase') #Also in FileHFM_Isotropic
-result = FileIO.RawToRules()
-
-# Restore working directory
-os.chdir(path)
-
-#print(result['geodesicLengths'])
-#geodesics = np.vsplit(result['geodesics'],result['geodesicLengths'].cumsum()[:-1])
+result = FileIO.WriteCallRead(input,
+                              FileHFM_executable, binary_dir=FileHFM_binary_dir,
+                              logFile=None) # Display output directly
 
 with PdfPages("Output/TimeVar_results.pdf") as pdf:
     side = np.linspace(0., 1., n)

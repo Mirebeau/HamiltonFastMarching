@@ -10,10 +10,10 @@
 NotebookFileLineBreakTest
 NotebookFileLineBreakTest
 NotebookDataPosition[       157,          7]
-NotebookDataLength[     82389,       1709]
-NotebookOptionsPosition[     81426,       1672]
-NotebookOutlinePosition[     81783,       1688]
-CellTagsIndexPosition[     81740,       1685]
+NotebookDataLength[     87148,       1831]
+NotebookOptionsPosition[     86183,       1794]
+NotebookOutlinePosition[     86541,       1810]
+CellTagsIndexPosition[     86498,       1807]
 WindowFrame->Normal*)
 
 (* Beginning of Notebook Content *)
@@ -209,12 +209,8 @@ Cell[BoxData[{
           "\[IndentingNewLine]", 
           RowBox[{"\"\<seeds\>\"", "\[Rule]", "pts"}], ",", 
           "\[IndentingNewLine]", 
-          RowBox[{"\"\<multiplier\>\"", "\[Rule]", "1"}], ",", 
-          "\[IndentingNewLine]", 
           RowBox[{"\"\<exportValues\>\"", "\[Rule]", "1"}], ",", 
           "\[IndentingNewLine]", 
-          RowBox[{"\"\<arrayOrdering\>\"", "\[Rule]", "\"\<Reversed\>\""}], 
-          ",", "\[IndentingNewLine]", 
           RowBox[{"\"\<progressReportLandmarks\>\"", "\[Rule]", 
            RowBox[{"{", "}"}]}], ",", "\[IndentingNewLine]", 
           RowBox[{"\"\<speed\>\"", "\[Rule]", "1"}]}], "\[IndentingNewLine]", 
@@ -269,13 +265,18 @@ Cell[BoxData[{
           RowBox[{"Module", "[", 
            RowBox[{
             RowBox[{"{", 
-             RowBox[{"knots", ",", "sigma", ",", "speed", ",", "rast"}], 
-             "}"}], ",", 
+             RowBox[{"knots", ",", "sigma", ",", "speed"}], "}"}], ",", 
             RowBox[{
              RowBox[{
               RowBox[{"{", 
                RowBox[{"knots", ",", "sigma", ",", "speed"}], "}"}], "=", 
               "curve"}], ";", "\[IndentingNewLine]", 
+             RowBox[{"Print", "[", 
+              RowBox[{"RasterCurve", "[", 
+               RowBox[{
+                RowBox[{"{", 
+                 RowBox[{"knots", ",", "sigma"}], "}"}], ",", "n"}], "]"}], 
+              "]"}], ";", "\[IndentingNewLine]", 
              RowBox[{"result", "=", 
               RowBox[{"MapThread", "[", 
                RowBox[{
@@ -297,63 +298,175 @@ Cell[BoxData[{
    ";"}], "\[IndentingNewLine]"}], "\[IndentingNewLine]", 
  RowBox[{
   RowBox[{
-   RowBox[{"RunSegmentation2", "[", 
-    RowBox[{"options_", ",", "params_"}], "]"}], ":=", 
+   RowBox[{
+    RowBox[{"RunSegmentation2", "[", 
+     RowBox[{"options_", ",", "params_"}], "]"}], ":=", 
+    RowBox[{"Module", "[", 
+     RowBox[{
+      RowBox[{"{", 
+       RowBox[{
+        RowBox[{"n", "=", 
+         RowBox[{"Length", "@", "manSpeedSeg2"}]}], ",", "opts", ",", "prms", 
+        ",", "out"}], "}"}], ",", "\[IndentingNewLine]", 
+      RowBox[{
+       RowBox[{"opts", "=", 
+        RowBox[{"{", 
+         RowBox[{"\"\<nDir\>\"", "\[Rule]", "60"}], "}"}]}], ";", 
+       RowBox[{"opts", "=", 
+        RowBox[{"MergeRules", "[", 
+         RowBox[{"options", ",", "opts"}], "]"}]}], ";", 
+       "\[IndentingNewLine]", 
+       RowBox[{"prms", "=", 
+        RowBox[{"{", "\[IndentingNewLine]", 
+         RowBox[{
+          RowBox[{"\"\<dims\>\"", "\[Rule]", 
+           RowBox[{"{", 
+            RowBox[{"n", ",", "n", ",", 
+             RowBox[{"\"\<nDir\>\"", "/.", "opts"}]}], "}"}]}], ",", 
+          "\[IndentingNewLine]", 
+          RowBox[{"\"\<gridScale\>\"", "\[Rule]", 
+           RowBox[{"1.", "/", "n"}]}], ",", "\[IndentingNewLine]", 
+          RowBox[{"\"\<model\>\"", "\[Rule]", "\"\<ReedsShepp2\>\""}], ",", 
+          "\[IndentingNewLine]", 
+          RowBox[{"\"\<speed\>\"", "\[Rule]", " ", 
+           RowBox[{"Map", "[", 
+            RowBox[{
+             RowBox[{
+              RowBox[{"Max", "[", 
+               RowBox[{"1.", ",", 
+                RowBox[{"#", "^", "2"}]}], "]"}], "&"}], ",", "manSpeedSeg2", 
+             ",", 
+             RowBox[{"{", "2", "}"}]}], "]"}]}], ",", "\[IndentingNewLine]", 
+          RowBox[{"\"\<progressReportLandmarks\>\"", "\[Rule]", 
+           RowBox[{"{", "}"}]}], ",", "\[IndentingNewLine]", 
+          RowBox[{"\"\<seeds\>\"", "\[Rule]", "manSeedsSeg2"}], ",", 
+          "\[IndentingNewLine]", 
+          RowBox[{"\"\<tips\>\"", "\[Rule]", "manTipsSeg2"}], ",", 
+          "\[IndentingNewLine]", 
+          RowBox[{"\"\<eps\>\"", "\[Rule]", "0.1"}], ",", 
+          "\[IndentingNewLine]", 
+          RowBox[{"\"\<exportValues\>\"", "\[Rule]", "0"}]}], 
+         "\[IndentingNewLine]", "}"}]}], ";", "\[IndentingNewLine]", 
+       RowBox[{"prms", "=", 
+        RowBox[{"MergeRules", "[", 
+         RowBox[{"params", ",", "prms"}], "]"}]}], ";", "\[IndentingNewLine]", 
+       RowBox[{"{", 
+        RowBox[{"prms", ",", 
+         RowBox[{"RunExec", "[", 
+          RowBox[{"execCurvature2", ",", "prms"}], "]"}]}], "}"}]}]}], 
+     "\[IndentingNewLine]", "]"}]}], ";"}], 
+  "\[IndentingNewLine]"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{
+   RowBox[{"RunManSeg2", "[", "model_", "]"}], ":=", 
    RowBox[{"Module", "[", 
     RowBox[{
      RowBox[{"{", 
       RowBox[{
-       RowBox[{"n", "=", 
-        RowBox[{"Length", "@", "manSpeedSeg2"}]}], ",", "opts", ",", "prms", 
-       ",", "out"}], "}"}], ",", "\[IndentingNewLine]", 
+      "prms", ",", "out", ",", "geo", ",", "h", ",", "tips", ",", "seeds", 
+       ",", 
+       RowBox[{"r", "=", "0.1"}]}], "}"}], ",", "\[IndentingNewLine]", 
      RowBox[{
-      RowBox[{"opts", "=", 
+      RowBox[{
        RowBox[{"{", 
-        RowBox[{"\"\<nDir\>\"", "\[Rule]", "60"}], "}"}]}], ";", 
-      RowBox[{"opts", "=", 
-       RowBox[{"MergeRules", "[", 
-        RowBox[{"options", ",", "opts"}], "]"}]}], ";", "\[IndentingNewLine]", 
-      RowBox[{"prms", "=", 
-       RowBox[{"{", "\[IndentingNewLine]", 
+        RowBox[{"prms", ",", "out"}], "}"}], "=", 
+       RowBox[{"RunSegmentation2", "[", 
         RowBox[{
-         RowBox[{"\"\<dims\>\"", "\[Rule]", 
-          RowBox[{"{", 
-           RowBox[{"n", ",", "n", ",", 
-            RowBox[{"\"\<nDir\>\"", "/.", "opts"}]}], "}"}]}], ",", 
-         "\[IndentingNewLine]", 
-         RowBox[{"\"\<gridScale\>\"", "\[Rule]", 
-          RowBox[{"1.", "/", "n"}]}], ",", "\[IndentingNewLine]", 
-         RowBox[{"\"\<model\>\"", "\[Rule]", "\"\<ReedsShepp2\>\""}], ",", 
-         "\[IndentingNewLine]", 
-         RowBox[{"\"\<speed\>\"", "\[Rule]", " ", 
-          RowBox[{"Map", "[", 
-           RowBox[{
+         RowBox[{"{", "}"}], ",", "model"}], "]"}]}], ";", 
+      "\[IndentingNewLine]", 
+      RowBox[{"h", "=", 
+       RowBox[{"\"\<gridScale\>\"", "/.", "prms"}]}], ";", 
+      "\[IndentingNewLine]", 
+      RowBox[{"geo", "=", 
+       RowBox[{"\"\<geodesics\>\"", "/.", "out"}]}], ";", 
+      "\[IndentingNewLine]", 
+      RowBox[{"geo", "=", 
+       RowBox[{"Map", "[", 
+        RowBox[{
+         RowBox[{
+          RowBox[{"Drop", "[", 
+           RowBox[{"#", ",", 
+            RowBox[{"-", "1"}]}], "]"}], "&"}], ",", "geo", ",", 
+         RowBox[{"{", "2", "}"}]}], "]"}]}], ";", "\[IndentingNewLine]", 
+      RowBox[{"tips", "=", 
+       RowBox[{
+        RowBox[{
+         RowBox[{"{", 
+          RowBox[{
+           RowBox[{"{", 
+            RowBox[{"#1", ",", "#2"}], "}"}], ",", 
+           RowBox[{"{", 
             RowBox[{
-             RowBox[{"Max", "[", 
-              RowBox[{"1.", ",", 
-               RowBox[{"#", "^", "2"}]}], "]"}], "&"}], ",", "manSpeedSeg2", 
-            ",", 
-            RowBox[{"{", "2", "}"}]}], "]"}]}], ",", "\[IndentingNewLine]", 
-         RowBox[{"\"\<arrayOrdering\>\"", "\[Rule]", "\"\<Reversed\>\""}], 
-         ",", "\[IndentingNewLine]", 
-         RowBox[{"\"\<progressReportLandmarks\>\"", "\[Rule]", 
-          RowBox[{"{", "}"}]}], ",", "\[IndentingNewLine]", 
-         RowBox[{"\"\<seeds\>\"", "\[Rule]", "manSeedsSeg2"}], ",", 
-         "\[IndentingNewLine]", 
-         RowBox[{"\"\<tips\>\"", "\[Rule]", "manTipsSeg2"}], ",", 
-         "\[IndentingNewLine]", 
-         RowBox[{"\"\<eps\>\"", "\[Rule]", "0.1"}], ",", 
-         "\[IndentingNewLine]", 
-         RowBox[{"\"\<exportValues\>\"", "\[Rule]", "0"}]}], 
-        "\[IndentingNewLine]", "}"}]}], ";", "\[IndentingNewLine]", 
-      RowBox[{"prms", "=", 
-       RowBox[{"MergeRules", "[", 
-        RowBox[{"params", ",", "prms"}], "]"}]}], ";", "\[IndentingNewLine]", 
-      
+             RowBox[{"#1", "+", 
+              RowBox[{"r", " ", 
+               RowBox[{"Cos", "[", "#3", "]"}]}]}], ",", 
+             RowBox[{"#2", "+", 
+              RowBox[{"r", " ", 
+               RowBox[{"Sin", "[", "#3", "]"}]}]}]}], "}"}]}], "}"}], "&"}], "@@@", 
+        RowBox[{"(", 
+         RowBox[{"\"\<tips\>\"", "/.", "prms"}], ")"}]}]}], ";", 
+      "\[IndentingNewLine]", 
+      RowBox[{"seeds", "=", 
+       RowBox[{
+        RowBox[{
+         RowBox[{"{", 
+          RowBox[{
+           RowBox[{"{", 
+            RowBox[{"#1", ",", "#2"}], "}"}], ",", 
+           RowBox[{"{", 
+            RowBox[{
+             RowBox[{"#1", "+", 
+              RowBox[{"r", " ", 
+               RowBox[{"Cos", "[", "#3", "]"}]}]}], ",", 
+             RowBox[{"#2", "+", 
+              RowBox[{"r", " ", 
+               RowBox[{"Sin", "[", "#3", "]"}]}]}]}], "}"}]}], "}"}], "&"}], "@@@", 
+        RowBox[{"(", 
+         RowBox[{"\"\<seeds\>\"", "/.", "prms"}], ")"}]}]}], ";", 
+      "\[IndentingNewLine]", 
       RowBox[{"{", 
-       RowBox[{"prms", ",", 
-        RowBox[{"RunExec", "[", 
-         RowBox[{"execCurvature2", ",", "prms"}], "]"}]}], "}"}]}]}], 
+       RowBox[{
+        RowBox[{"TablePlot", "[", 
+         RowBox[{"manSpeedSeg2", ",", "\[IndentingNewLine]", 
+          RowBox[{"{", 
+           RowBox[{"Epilog", "\[Rule]", 
+            RowBox[{"{", 
+             RowBox[{
+              RowBox[{"(", 
+               RowBox[{
+                RowBox[{
+                 RowBox[{"{", 
+                  RowBox[{"Green", ",", 
+                   RowBox[{"Line", "[", "#", "]"}]}], "}"}], "&"}], "/@", 
+                RowBox[{"(", 
+                 RowBox[{"geo", "/", "h"}], ")"}]}], ")"}], ",", 
+              "\[IndentingNewLine]", 
+              RowBox[{"{", 
+               RowBox[{"Blue", ",", 
+                RowBox[{
+                 RowBox[{
+                  RowBox[{"Point", "[", 
+                   RowBox[{"First", "[", "#", "]"}], "]"}], "&"}], "/@", 
+                 RowBox[{"(", 
+                  RowBox[{"seeds", "/", "h"}], ")"}]}], ",", 
+                RowBox[{"Arrow", "/@", 
+                 RowBox[{"(", 
+                  RowBox[{"seeds", "/", "h"}], ")"}]}]}], "}"}], ",", 
+              "\[IndentingNewLine]", 
+              RowBox[{"{", 
+               RowBox[{"Red", ",", 
+                RowBox[{
+                 RowBox[{
+                  RowBox[{"Point", "[", 
+                   RowBox[{"First", "[", "#", "]"}], "]"}], "&"}], "/@", 
+                 RowBox[{"(", 
+                  RowBox[{"tips", "/", "h"}], ")"}]}], ",", 
+                RowBox[{"Arrow", "/@", 
+                 RowBox[{"(", 
+                  RowBox[{"tips", "/", "h"}], ")"}]}]}], "}"}]}], 
+             "\[IndentingNewLine]", "}"}]}], "}"}]}], "\[IndentingNewLine]", 
+         "]"}], ",", "\[IndentingNewLine]", 
+        RowBox[{"\"\<FMCPUTime\>\"", "/.", "out"}]}], "}"}]}]}], 
     "\[IndentingNewLine]", "]"}]}], ";"}]}], "Input",
  CellChangeTimes->{{3.696765898533414*^9, 3.696765930978533*^9}, {
    3.6967842296260853`*^9, 3.696784232537478*^9}, {3.69678432582306*^9, 
@@ -393,7 +506,12 @@ Cell[BoxData[{
    3.705383304892593*^9}, {3.705383392587205*^9, 3.705383393496916*^9}, {
    3.706008148300873*^9, 3.706008148867442*^9}, {3.706008294640957*^9, 
    3.7060083363880167`*^9}, 3.7060088716117268`*^9, {3.70600948253227*^9, 
-   3.7060094852406683`*^9}}],
+   3.7060094852406683`*^9}, 3.7201859700599422`*^9, {3.720186020423317*^9, 
+   3.720186026101975*^9}, {3.7201861211181507`*^9, 3.7201861236426973`*^9}, {
+   3.720186183618943*^9, 3.720186186712061*^9}, {3.720186217412353*^9, 
+   3.720186223123248*^9}, 3.7201862840427637`*^9, {3.7201863406931467`*^9, 
+   3.720186375812104*^9}, 3.720186414251545*^9, {3.720186695277446*^9, 
+   3.7201866990932703`*^9}, {3.7201867621375*^9, 3.7201867646414623`*^9}}],
 
 Cell[CellGroupData[{
 
@@ -599,7 +717,8 @@ Cell[BoxData[
    3.6967660464080343`*^9, 3.696766067743108*^9}, {3.696784202353319*^9, 
    3.696784211754249*^9}, 3.696784259831542*^9, 3.696793712391798*^9, {
    3.697224311326106*^9, 3.697224325246122*^9}, {3.697224566281341*^9, 
-   3.697224590443802*^9}, 3.706008571448222*^9}]
+   3.697224590443802*^9}, 3.706008571448222*^9, 3.7201857500095577`*^9, 
+   3.7201858064423027`*^9}]
 }, Open  ]],
 
 Cell[CellGroupData[{
@@ -697,19 +816,19 @@ Cell[BoxData[
       Log[10], 
       Log[400]}}, Typeset`size$$ = {300., {148., 152.}}, Typeset`update$$ = 0,
      Typeset`initDone$$, Typeset`skipInitDone$$ = 
-    True, $CellContext`\[Sigma]1$144381$$ = 0, $CellContext`s1$144382$$ = 
-    0, $CellContext`\[Sigma]2$144383$$ = 0, $CellContext`s2$144384$$ = 
-    0, $CellContext`n$144385$$ = 0}, 
+    True, $CellContext`\[Sigma]1$35324$$ = 0, $CellContext`s1$35325$$ = 
+    0, $CellContext`\[Sigma]2$35326$$ = 0, $CellContext`s2$35327$$ = 
+    0, $CellContext`n$35328$$ = 0}, 
     DynamicBox[Manipulate`ManipulateBoxes[
      1, StandardForm, 
       "Variables" :> {$CellContext`n$$ = Log[73], $CellContext`s1$$ = 
         4, $CellContext`s2$$ = 3, $CellContext`\[Sigma]1$$ = 
         0.03, $CellContext`\[Sigma]2$$ = 0.07}, "ControllerVariables" :> {
-        Hold[$CellContext`\[Sigma]1$$, $CellContext`\[Sigma]1$144381$$, 0], 
-        Hold[$CellContext`s1$$, $CellContext`s1$144382$$, 0], 
-        Hold[$CellContext`\[Sigma]2$$, $CellContext`\[Sigma]2$144383$$, 0], 
-        Hold[$CellContext`s2$$, $CellContext`s2$144384$$, 0], 
-        Hold[$CellContext`n$$, $CellContext`n$144385$$, 0]}, 
+        Hold[$CellContext`\[Sigma]1$$, $CellContext`\[Sigma]1$35324$$, 0], 
+        Hold[$CellContext`s1$$, $CellContext`s1$35325$$, 0], 
+        Hold[$CellContext`\[Sigma]2$$, $CellContext`\[Sigma]2$35326$$, 0], 
+        Hold[$CellContext`s2$$, $CellContext`s2$35327$$, 0], 
+        Hold[$CellContext`n$$, $CellContext`n$35328$$, 0]}, 
       "OtherVariables" :> {
        Typeset`show$$, Typeset`bookmarkList$$, Typeset`bookmarkMode$$, 
         Typeset`animator$$, Typeset`animvar$$, Typeset`name$$, 
@@ -752,7 +871,9 @@ $CellContext`TablePlot[$CellContext`manSpeedSeg2, {
    3.696793167216174*^9, 3.697224450751944*^9, {3.697224599358823*^9, 
    3.697224627820397*^9}, 3.705381794749769*^9, {3.7053829703347273`*^9, 
    3.705382988308831*^9}, 3.705383323994913*^9, 3.706007563490749*^9, 
-   3.706007795800744*^9, 3.706008280134047*^9, 3.706008577116166*^9}]
+   3.706007795800744*^9, 3.706008280134047*^9, 3.706008577116166*^9, 
+   3.720185753142068*^9, 3.720185799728026*^9, 3.720186138188766*^9, 
+   3.720186428667336*^9, 3.7201867733673067`*^9}]
 }, Open  ]],
 
 Cell[CellGroupData[{
@@ -1038,7 +1159,8 @@ Cell[BoxData[
    3.696790035616954*^9, {3.696790069822147*^9, 3.696790093109433*^9}, 
    3.696793444911866*^9, 3.69679376889673*^9, 3.697224462508832*^9, 
    3.697224653711348*^9, 3.6972247266329317`*^9, 3.697362551114892*^9, 
-   3.705383336452486*^9, 3.706008373550314*^9, 3.7060086844932947`*^9}]
+   3.705383336452486*^9, 3.706008373550314*^9, 3.7060086844932947`*^9, 
+   3.7201864365478687`*^9}]
 }, Open  ]],
 
 Cell[BoxData[""], "Input",
@@ -1671,7 +1793,7 @@ D3rWtpH+45VhWe/GZSTs0c4M+WBVxU9WiiVB+0MqEfAvE8FDSg==
 }, Open  ]]
 },
 WindowSize->{983, 723},
-WindowMargins->{{0, Automatic}, {Automatic, 0}},
+WindowMargins->{{Automatic, 54}, {Automatic, 0}},
 FrontEndVersion->"11.0 for Mac OS X x86 (32-bit, 64-bit Kernel) (September \
 21, 2016)",
 StyleDefinitions->"Default.nb"
@@ -1692,23 +1814,23 @@ Cell[579, 22, 174, 2, 92, "Title"],
 Cell[756, 26, 270, 5, 51, "Subtitle"],
 Cell[1029, 33, 2940, 52, 486, "Text"],
 Cell[3972, 87, 419, 9, 54, "Input"],
-Cell[4394, 98, 12633, 297, 1188, "Input"],
+Cell[4394, 98, 17200, 415, 1482, "Input"],
 Cell[CellGroupData[{
-Cell[17052, 399, 4201, 102, 285, "Input"],
-Cell[21256, 503, 5175, 98, 383, "Output"]
+Cell[21619, 517, 4201, 102, 285, "Input"],
+Cell[25823, 621, 5227, 99, 383, "Output"]
 }, Open  ]],
 Cell[CellGroupData[{
-Cell[26468, 606, 2825, 73, 159, "Input"],
-Cell[29296, 681, 3688, 73, 521, "Output"]
+Cell[31087, 725, 2825, 73, 159, "Input"],
+Cell[33915, 800, 3798, 75, 521, "Output"]
 }, Open  ]],
 Cell[CellGroupData[{
-Cell[33021, 759, 6538, 174, 243, "Input"],
-Cell[39562, 935, 5331, 105, 382, "Output"]
+Cell[37750, 880, 6538, 174, 243, "Input"],
+Cell[44291, 1056, 5359, 106, 382, "Output"]
 }, Open  ]],
-Cell[44908, 1043, 564, 8, 32, "Input"],
+Cell[49665, 1165, 564, 8, 32, "Input"],
 Cell[CellGroupData[{
-Cell[45497, 1055, 1992, 53, 138, "Input"],
-Cell[47492, 1110, 33906, 558, 374, "Output"]
+Cell[50254, 1177, 1992, 53, 138, "Input"],
+Cell[52249, 1232, 33906, 558, 374, "Output"]
 }, Open  ]]
 }, Open  ]]
 }

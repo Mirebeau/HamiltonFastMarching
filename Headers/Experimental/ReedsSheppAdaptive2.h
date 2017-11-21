@@ -242,6 +242,7 @@ struct StencilReedsSheppAdaptive2 : HamiltonFastMarching<TraitsReedsSheppAdaptiv
         std::vector<ScalarType> angles;
         ScalarType ADim(ScalarType) const;
         ScalarType ReDim(ScalarType) const;
+        
 
         ScalarType gridScale=1;
         typedef LinearAlgebra::Point<ScalarType, 2> OriginType; // Only used for operator << instead of std::array
@@ -250,6 +251,8 @@ struct StencilReedsSheppAdaptive2 : HamiltonFastMarching<TraitsReedsSheppAdaptiv
             return {(p[0]-origin[0])/gridScale,(p[1]-origin[1])/gridScale,ADim(p[2])};}
         virtual PointType ReDim(const PointType & p) const override {
             return {p[0]*gridScale+origin[0],p[1]*gridScale+origin[0],ReDim(p[2])};}
+        virtual VectorType ReDim(const VectorType & v) const override {
+            return {v[0]*gridScale,v[1]*gridScale,ReDim(v[2])};}
     } param;
     
     ScalarType xi=1;

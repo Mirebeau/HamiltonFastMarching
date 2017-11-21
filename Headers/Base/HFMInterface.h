@@ -31,7 +31,7 @@ template<typename TTraits> struct HFMInterface {
     HFMInterface(IO & _io, std::unique_ptr<StencilDataType> pStencil) :io(_io), stencil(*pStencil), _pStencil(std::move(pStencil)) {};
     virtual void Run();
 
-    template<typename E> std::unique_ptr<DataSource<E> > GetField(std::string s, bool=true);
+    template<typename E> std::unique_ptr<DataSource<E> > GetField(std::string s, bool=true); // bool field: allow time dependency
     template<typename E> std::unique_ptr<DataSource<E> > GetIntegralField(std::string s);
     void ExportGeodesics(std::string, const std::vector<PointType> &);
 protected:

@@ -10,26 +10,22 @@
 NotebookFileLineBreakTest
 NotebookFileLineBreakTest
 NotebookDataPosition[       157,          7]
-NotebookDataLength[     25353,        632]
-NotebookOptionsPosition[     24908,        612]
-NotebookOutlinePosition[     25265,        628]
-CellTagsIndexPosition[     25222,        625]
+NotebookDataLength[     25668,        635]
+NotebookOptionsPosition[     25221,        615]
+NotebookOutlinePosition[     25580,        631]
+CellTagsIndexPosition[     25537,        628]
 WindowFrame->Normal*)
 
 (* Beginning of Notebook Content *)
 Notebook[{
 
 Cell[CellGroupData[{
-Cell["\<\
-Fast Marching methods for curvature penalized shortest paths\
-\>", "Title",
+Cell["Fast Marching methods for curvature penalized shortest paths", "Title",
  CellChangeTimes->{{3.696671384756301*^9, 3.696671430795917*^9}, {
   3.696671461195407*^9, 3.696671461763341*^9}, {3.6967599927427*^9, 
   3.696760007329444*^9}}],
 
-Cell["\<\
-An interface for defining walls, seeds and tips.\
-\>", "Subtitle",
+Cell["An interface for defining walls, seeds and tips.", "Subtitle",
  CellChangeTimes->{{3.696671435623104*^9, 3.696671456549898*^9}, {
   3.69674449088338*^9, 3.6967444911818132`*^9}, {3.6967445879208384`*^9, 
   3.696744588737105*^9}, {3.696750974984147*^9, 3.6967509867724247`*^9}, {
@@ -224,7 +220,11 @@ Cell[BoxData[{
         RowBox[{"MergeRules", "[", 
          RowBox[{"options", ",", 
           RowBox[{"{", 
-           RowBox[{"\"\<nDir\>\"", "\[Rule]", "60"}], "}"}]}], "]"}]}], ";", 
+           RowBox[{
+            RowBox[{"\"\<nDir\>\"", "\[Rule]", "60"}], ",", 
+            RowBox[{
+            "\"\<FileHFM_executable\>\"", "\[Rule]", 
+             "\"\<FileHFM_AllBase\>\""}]}], "}"}]}], "]"}]}], ";", 
        "\[IndentingNewLine]", 
        RowBox[{"walls", "=", 
         RowBox[{"RasterObstacles", "[", "options", "]"}]}], ";", 
@@ -270,8 +270,9 @@ Cell[BoxData[{
        "\[IndentingNewLine]", 
        RowBox[{"out", "=", 
         RowBox[{"RunExec", "[", 
-         RowBox[{"\"\<FileHFM_Curvature2\>\"", ",", "prms"}], "]"}]}], ";", 
-       "\[IndentingNewLine]", 
+         RowBox[{
+          RowBox[{"\"\<FileHFM_executable\>\"", "/.", "opts"}], ",", "prms"}],
+          "]"}]}], ";", "\[IndentingNewLine]", 
        RowBox[{"{", 
         RowBox[{"prms", ",", "out"}], "}"}]}]}], "\[IndentingNewLine]", 
      "]"}]}], ";"}], "\[IndentingNewLine]"}], "\[IndentingNewLine]", 
@@ -607,13 +608,15 @@ Cell[BoxData[{
    3.6999662687818813`*^9}, {3.69996630900515*^9, 3.699966318122311*^9}, {
    3.6999663765383387`*^9, 3.699966436307438*^9}, 3.69996651155767*^9, {
    3.69996679599114*^9, 3.699966847764018*^9}, {3.699983000189371*^9, 
-   3.699983002475236*^9}}]
+   3.699983002475236*^9}, {3.720185400831444*^9, 3.720185464744219*^9}, {
+   3.720185528942474*^9, 3.720185565473506*^9}, {3.720185600108745*^9, 
+   3.720185609250939*^9}}]
 }, Open  ]]
 },
 WindowSize->{795, 855},
-WindowMargins->{{-17, Automatic}, {Automatic, 0}},
-FrontEndVersion->"9.0 for Mac OS X x86 (32-bit, 64-bit Kernel) (November 20, \
-2012)",
+WindowMargins->{{Automatic, 162}, {Automatic, 0}},
+FrontEndVersion->"11.0 for Mac OS X x86 (32-bit, 64-bit Kernel) (September \
+21, 2016)",
 StyleDefinitions->"Default.nb"
 ]
 (* End of Notebook Content *)
@@ -628,14 +631,13 @@ CellTagsIndex->{}
 (*NotebookFileOutline
 Notebook[{
 Cell[CellGroupData[{
-Cell[579, 22, 247, 5, 148, "Title"],
-Cell[829, 29, 342, 6, 51, "Subtitle"],
-Cell[1174, 37, 645, 14, 144, "Text"],
-Cell[1822, 53, 520, 12, 125, "Text"],
-Cell[2345, 67, 22547, 542, 1627, "Input"]
+Cell[579, 22, 239, 3, 148, "Title"],
+Cell[821, 27, 334, 4, 51, "Subtitle"],
+Cell[1158, 33, 645, 14, 144, "Text"],
+Cell[1806, 49, 520, 12, 125, "Text"],
+Cell[2329, 63, 22876, 549, 2104, "Input"]
 }, Open  ]]
 }
 ]
 *)
 
-(* End of internal cache information *)

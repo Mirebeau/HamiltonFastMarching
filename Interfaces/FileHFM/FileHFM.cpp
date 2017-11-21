@@ -17,7 +17,6 @@ int main(int argc, const char * argv[]) {
     
     try {
         IO io(inputPrefix,outputPrefix);
-        io.arrayOrdering=IO::ArrayOrdering::Reversed; // Adequate for Mathematica and Python.
         Run(io);
     } catch(const std::logic_error & e) {
         IO::WarnMsg() << "Exception caught. " << e.what();
