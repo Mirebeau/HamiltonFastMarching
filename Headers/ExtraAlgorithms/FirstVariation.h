@@ -5,7 +5,8 @@
 #ifndef FirstVariation_h
 #define FirstVariation_h
 
-// Forward and backward differentiation of the value with respect to variations of the speed function and of the seeds values.
+// Forward and backward differentiation of the value with respect to variations of the cost function
+// (which is the inverse of the speed function), and of the seeds values.
 // TODO : make this exact as well in the case of second order differences/time varying speed field.
 
 template<typename T> struct FirstVariation :
@@ -88,12 +89,13 @@ template<typename T> void FirstVariation<T>::Finally(HFMI*that){
         for(int i=0; i<lengths.size(); ++i){
             for(int k=0; k<lengths[i]; ++k, ++indIt, ++wIt){
                 PointType p = that->stencil.Param().ADim(*indIt);
-                if(that->pFM->dom.Periodize(p)[Dimension]) continue;
+                if(that->pFM->dom.Periodize(p)[Dimension]) {
+                    ExceptionMacro("Error : inspectSensitivity data points are out of range");}
                 iw.push_back({that->pFM->dom.IndexFromPoint(p),*wIt});
             }
             sensitivity.clear();
             auto sensitiveSeedIndices = BackwardVariation(iw,sensitivity);
-            MultArrayIO<>::Set(that,"valueSensitivity_"+std::to_string(i),sensitivity);
+            MultArrayIO<>::Set(that,"costSensitivity_"+std::to_string(i),sensitivity);
             
             std::vector<std::pair<PointType,ScalarType> > sensitiveSeeds;
             sensitiveSeeds.reserve(sensitiveSeedIndices.size());
@@ -104,9 +106,9 @@ template<typename T> void FirstVariation<T>::Finally(HFMI*that){
             iw.clear();
         }
     }
-    if(io.HasField("speedVariation") || io.HasField("seedValueVariation")){
+    if(io.HasField("costVariation") || io.HasField("seedValueVariation")){
         Array<MultiplierType,Dimension+1> fwdVar;
-        if(io.HasField("speedVariation")) fwdVar = MultArrayIO<>::Get(that,"speedVariation");
+        if(io.HasField("costVariation")) fwdVar = MultArrayIO<>::Get(that,"costVariation");
         Array<ScalarType,Dimension+1> valueVariations;
         if(io.HasField("seedValueVariation")){
             const auto seeds = io.template GetVector<PointType>("seeds");

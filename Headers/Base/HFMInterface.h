@@ -34,6 +34,7 @@ template<typename TTraits> struct HFMInterface {
     template<typename E> std::unique_ptr<DataSource<E> > GetField(std::string s, bool=true); // bool field: allow time dependency
     template<typename E> std::unique_ptr<DataSource<E> > GetIntegralField(std::string s);
     void ExportGeodesics(std::string, const std::vector<PointType> &);
+    template<typename E> struct DataSource_Inverse; // A data source which inverses the values of another data source.
 protected:
     template<bool b=HFM::hasMultiplier, typename Dummy=void> struct SpecializationsDefault;
     template<typename E> struct DataSource_Array;

@@ -10,7 +10,12 @@
 template<typename Traits> template<typename Dummy> void
 HamiltonFastMarching<Traits>::_StencilDataType<true,Dummy>::Setup(HFMI*that){
     dims = IndexType::CastCoordinates( that->io.template Get<PointType>("dims") );
-    pMultSource = that->template GetField<MultiplierType>("speed"); // Speed is an external alias for multiplier
+    if(that->io.HasField("speed") || that->io.HasField("speed_times"))
+        pMultSource = that->template GetField<MultiplierType>("speed"); // Speed is an external alias for multiplier
+    else {
+        typedef typename HFMI::template DataSource_Inverse<MultiplierType> SourceInvType;
+        pMultSource = std::unique_ptr<SourceInvType>(new SourceInvType(that->template GetField<MultiplierType>("cost") ) );
+    }
 }
 
 template<typename Traits> template<typename Dummy> void

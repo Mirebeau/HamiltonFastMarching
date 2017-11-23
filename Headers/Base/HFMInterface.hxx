@@ -107,6 +107,26 @@ HFMInterface<T>::SpecializationsDefault<false,Dummy> {
 
 // ------- Data sources ------
 template<typename T> template<typename E> struct
+HFMInterface<T>::DataSource_Inverse : DataSource<E> {
+    typedef DataSource<E> Superclass;
+    typedef typename Superclass::ReturnType ReturnType;
+    std::unique_ptr<Superclass> pSource;
+    DataSource_Inverse(std::unique_ptr<Superclass> p):pSource(std::move(p)){}
+    
+    template<bool,typename=void> struct Inv; // Better with C++17 'if constexpr'
+    template<typename Dummy> struct Inv<true,Dummy>{
+        ReturnType operator()(const ReturnType & t){return 1./t;}};
+    template<typename Dummy> struct Inv<false,Dummy> {
+        ReturnType operator()(const ReturnType & t){
+            ReturnType s; for(int i=0; i<t.size(); ++i) s[i]=1./t[i]; return s;}};
+
+    virtual ReturnType operator()(const IndexType & index) const {
+        return Inv<std::numeric_limits<ReturnType>::is_specialized>()((*pSource)(index));}
+    virtual bool CheckDims(const IndexType & dims) const {
+        if(!pSource) return false; return pSource->CheckDims(dims);}
+};
+
+template<typename T> template<typename E> struct
 HFMInterface<T>::DataSource_Value : DataSource<E> {
     typedef typename DataSource<E>::ReturnType ReturnType;
     E value;
