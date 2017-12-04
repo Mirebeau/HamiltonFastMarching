@@ -40,6 +40,10 @@ template<int VDim> struct TraitsBase {
     nForward=0, nSymmetric=0,
     nMax=1, nMaxForward=0, nMaxSymmetric=0;
     
+    /** */
+    static const DiscreteType
+    nStencilDependencies=0,
+    nBundleDimensions=0;
     
     /// A DataSource is a pure interface, multi-dimensional-array-like for providing pointwise data on a grid
     template<typename E> struct DataSource {
@@ -113,7 +117,7 @@ DiffType * Voronoi1Mat(DiffType * pDiff,
         pDiff->baseWeight = weight<tol ? 0. : weight;
         pDiff->offset.fill(0);
         for(int i=0; i<offset.size(); ++i)
-            pDiff->offset[VDimShift+i]=offset[i];
+            pDiff->offset[VDimShift+i]= offset[i];
         ++pDiff;
     }
     return pDiff;
@@ -121,10 +125,15 @@ DiffType * Voronoi1Mat(DiffType * pDiff,
 
 /** PDE discretization helper.
  This function leverages Voronoi's first reduction of quadratic forms to
- construct approximations <v,g>_+^2 = sum_i lambda_i <e_i,g>_+^2,
+ construct approximations <g,v>_+^2 = sum_i lambda_i <g, -e_i>_+^2,
  where _+ denotes positive part, lambda_i>=0, e_i is an offset.
- See : Jean-Marie Mirebeau, (preprint available on Arxiv)
- Fast Marching methods for Curvature Penalized Shortest Paths*/
+ 
+ This is used in the finite differences approximation
+ <grad u(x),v>_+^2 ~ sum_i lambda_i (g(x) - g(x+e_i))_+^2
+ 
+ See : Jean-Marie Mirebeau,
+ Fast Marching methods for Curvature Penalized Shortest Paths,
+ (preprint available on Arxiv) */
 template<typename ReductionType, int VDimShift=0, typename DiffType,
 typename VectorType = typename ReductionType::VectorType,
 typename ScalarType = typename ReductionType::ScalarType
@@ -149,7 +158,7 @@ DiffType * Voronoi1Vec(DiffType * pDiff,
         
         pDiff->offset.fill(0);
         for(int i=0; i<offset.size(); ++i) {
-            pDiff->offset[VDimShift+i]= scal>=0 ? offset[i] : -offset[i];}
+            pDiff->offset[VDimShift+i]= scal<=0 ? offset[i] : -offset[i];} // Note : <v,e_i> <= 0
         ++pDiff;
     }
     return pDiff;

@@ -62,7 +62,7 @@ struct StencilReedsShepp3
         xi=io.template Get<ScalarType>("xi",xi);
         dual = (bool) io.template Get<ScalarType>("dual",dual);
         projective= (bool) io.template Get<ScalarType>("projective",projective);
-        param.Setup(that,2*mathPi/dims.back());
+        param.Setup(that,2*mathPi/dims.back()); 
         
         if(projective && dims[4]!=4*dims[3])
             ExceptionMacro("ReedsShepp3 setup error : inconsistent bundle dimensions (projective : nPhi=4*nTheta).\n");

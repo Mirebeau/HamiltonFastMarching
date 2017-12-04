@@ -32,7 +32,7 @@ struct StencilIsotropicBox2
     typedef HamiltonFastMarching<TraitsIsotropicBox2<cond> > HFM;
     typedef typename HFM::StencilDataType Superclass;
     Redeclare4Types(FromSuperclass,IndexType,StencilType,ParamInterface,HFMI)
-    typedef typename HFM::template _StencilDataType<false>::ParamType ParamType;
+    typedef typename HFM::ParamDefault ParamType;
     ParamType param;
     virtual void SetStencil(const IndexType & index, StencilType & stencil) override {
         int i=0;
@@ -60,7 +60,9 @@ constexpr decltype(TraitsSphere2::stencilDependencies) TraitsSphere2::stencilDep
 constexpr decltype(TraitsSphere2::boundaryConditions) TraitsSphere2::boundaryConditions;
 
 struct StencilSphere2 : HamiltonFastMarching<TraitsSphere2>::StencilDataType {
-    typedef HamiltonFastMarching<TraitsSphere2>::StencilDataType Superclass;
+    typedef HamiltonFastMarching<TraitsSphere2> HFM;
+    typedef HFM::StencilDataType Superclass;
+    typedef typename HFM::ParamDefault ParamType;
     ParamType param;
     bool projective = false;
     virtual void SetStencil(const IndexType & index, StencilType & stencil) override {
@@ -110,7 +112,7 @@ struct StencilIsotropicBox3
     typedef HamiltonFastMarching<TraitsIsotropicBox3<cond> > HFM;
     typedef typename HFM::StencilDataType Superclass;
     Redeclare4Types(FromSuperclass,IndexType,StencilType,ParamInterface,HFMI)
-    typedef typename HFM::template _StencilDataType<false>::ParamType ParamType;
+    typedef typename HFM::ParamDefault ParamType;
     ParamType param;
     virtual void SetStencil(const IndexType & index, StencilType & stencil) override {
         int i=0;

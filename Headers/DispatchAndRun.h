@@ -11,7 +11,7 @@
 #include "Base/HFMInterface.h"
 
 #include "Specializations/Isotropic.h"
-#include "Specializations/Riemannian.h"
+#include "Specializations/Riemannian.h"/*
 #include "Specializations/Curvature2.h"
 #include "Specializations/Curvature3.h"
 
@@ -19,7 +19,7 @@
 #include "Experimental/PrescribedCurvature2.h"
 #include "Experimental/RiemannLifted.h"
 #include "Experimental/ReedsSheppAdaptive2.h"
-#include "Experimental/Quaternionic.h"
+#include "Experimental/Quaternionic.h"*/
 
 
 #define HFMSpecializationMacro(modelName) \

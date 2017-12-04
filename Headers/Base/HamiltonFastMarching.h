@@ -95,6 +95,11 @@ struct HamiltonFastMarching {
     DiscreteType MaxStencilWidth() const;
     std::unique_ptr<StencilDataType> pStencilData;
     
+    // Default domain parametrization (Currently used in all instantiations)
+    static const bool hasBundle = 0<Traits::nStencilDependencies && Traits::nStencilDependencies<Dimension;
+    template<bool b=hasBundle, typename Dummy=void> struct _ParamDefault;
+    typedef _ParamDefault<> ParamDefault;
+    
     // Extra algorithms may be inserted at different points
     enum Decision {kAccept=0, kContinue=1, kTerminate=2, kRecompute=1<<10};
     struct ExtraAlgorithmInterface;
@@ -184,7 +189,6 @@ struct HamiltonFastMarching<T>::_StencilDataType<true,Dummy>{
     IndexType dims; // Needs value
     virtual void SetStencil(IndexCRef, StencilType &) = 0; // Needs specialization
     std::unique_ptr<MultSourceType> pMultSource = nullptr; // Needs assignment
-    struct ParamType; // Suggested domain reparametrization. Unused here.
     
     struct RecomputeDataType {const StencilType & stencil;MultiplierType mult;};
     RecomputeDataType RecomputeData(IndexCRef); // Needed in some subclasses of HFM...
@@ -225,7 +229,6 @@ struct HamiltonFastMarching<T>::_StencilDataType<false,Dummy>{
 
     IndexType dims; // Needs value
     virtual void SetStencil(IndexCRef, StencilType &) = 0; // Needs specialization
-    struct ParamType; //Suggested domain reparametrization. Unused here.
     virtual void Setup(HFMI *);
     virtual const ParamInterface & Param() const = 0;
     struct RecomputeDataType {StencilType stencil; MultiplierType mult;}; // mult is dummy here
@@ -249,5 +252,6 @@ private:
 
 #include "HamiltonFastMarching.hxx"
 #include "HFM_StencilDataType.hxx"
+#include "HFM_ParamDefault.hxx"
 
 #endif /* HamiltonFastMarching_h */

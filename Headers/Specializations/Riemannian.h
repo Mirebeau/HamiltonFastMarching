@@ -14,8 +14,9 @@ constexpr const decltype(TraitsRiemann2::boundaryConditions) TraitsRiemann2::bou
 
 
 struct StencilRiemann2 : HamiltonFastMarching<TraitsRiemann2>::StencilDataType {
-    typedef HamiltonFastMarching<TraitsRiemann2>::StencilDataType Superclass;
-    ParamType param;
+    typedef HamiltonFastMarching<TraitsRiemann2> HFM;
+    typedef HFM::StencilDataType Superclass;
+    HFM::ParamDefault param;
     typedef Traits::BasisReduction<2> ReductionType;
     typedef ReductionType::SymmetricMatrixType SymmetricMatrixType;
     typedef SymmetricMatrixType MetricElementType;
@@ -42,8 +43,9 @@ struct TraitsRiemann3 : TraitsBase<3> {
 constexpr decltype(TraitsRiemann3::boundaryConditions) TraitsRiemann3::boundaryConditions;
 
 struct StencilRiemann3 : HamiltonFastMarching<TraitsRiemann3>::StencilDataType {
-    typedef HamiltonFastMarching<TraitsRiemann3>::StencilDataType Superclass;
-    ParamType param;
+    typedef HamiltonFastMarching<TraitsRiemann3> HFM;
+    typedef HFM::StencilDataType Superclass;
+    HFM::ParamDefault param;
     typedef Traits::BasisReduction<3> ReductionType;
     typedef ReductionType::SymmetricMatrixType SymmetricMatrixType;
     typedef SymmetricMatrixType MetricElementType;

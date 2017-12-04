@@ -343,7 +343,7 @@ Run_SetupSolver() {
             else seedValues.resize(seedPoints.size(),0.);
         }
         
-        if(HFM::hasMultiplier && io.HasField("seeds_Unoriented")){
+        if(HFM::hasBundle && io.HasField("seeds_Unoriented")){
             typedef typename SpecializationsDefault<>::UnorientedPointType UnorientedPointType;
             const auto _uPoints = io.GetVector<UnorientedPointType>("seeds_Unoriented");
             std::vector<PointType> uPoints; uPoints.reserve(_uPoints.size());
@@ -444,7 +444,7 @@ Run_ExtractGeodesics() {
         for(PointType & tip : tips) tip = stencil.Param().ADim(tip);
         ExportGeodesics("",tips);
     }
-    if(HFM::hasMultiplier && io.HasField("tips_Unoriented")){
+    if(HFM::hasBundle && io.HasField("tips_Unoriented")){
         typedef typename SpecializationsDefault<>::UnorientedPointType UnorientedPointType;
         const auto _indepTips = io.GetVector<UnorientedPointType>("tips_Unoriented");
         std::vector<PointType> indepTips; indepTips.reserve(_indepTips.size());
@@ -487,7 +487,7 @@ Run_ExportData() {
         flow.resize(pFM->values.size());
         for(DiscreteType i=0; i<flow.size(); ++i){
             flow[i] = pFM->GeodesicFlow(flow.Convert(i)).flow;
-            flow[i] = stencil.Param().ReDim(flow[i]);
+            flow[i] = - stencil.Param().ReDim(flow[i]); // Flows from seeds to tips.
         }
         io.SetArray<VectorType>("geodesicFlow", flow);
     }

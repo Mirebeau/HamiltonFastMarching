@@ -7,15 +7,17 @@
 
 // Forward and backward differentiation of the value with respect to variations of the cost function
 // (which is the inverse of the speed function), and of the seeds values.
+// TODO : Make this work if no multiplier.
 // TODO : make this exact as well in the case of second order differences/time varying speed field.
 
 template<typename T> struct FirstVariation :
 HamiltonFastMarching<T>::ExtraAlgorithmInterface {
     typedef HamiltonFastMarching<T> HFM;
-    Redeclare8Types(FromHFM,IndexType,ScalarType,MultiplierType,IndexCRef,HFMI,DifferenceType,ActiveNeighFlagType,DiscreteType)
+    Redeclare7Types(FromHFM,IndexType,ScalarType,IndexCRef,HFMI,DifferenceType,ActiveNeighFlagType,DiscreteType)
     Redeclare4Types(FromHFM,Traits,RecomputeType,DiscreteFlowType,PointType)
     Redeclare1Constant(FromHFM,Dimension)
     template<typename E, size_t n> using Array = typename HFM::template Array<E,n>;
+    typedef std::conditional<HFM::hasMultiplier, typename HFM::MultiplierType, ScalarType> MultType;
     
     ScalarType * pCurrentTime=nullptr;
     struct NeighborType {IndexType index; ScalarType weight;};
