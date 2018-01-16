@@ -99,8 +99,9 @@ struct TraitsReedsSheppSO3 : TraitsSO3 {
 
 struct StencilReedsSheppSO3
 : HamiltonFastMarching<TraitsReedsSheppSO3>::StencilDataType {
+    typedef HamiltonFastMarching<TraitsReedsSheppSO3> HFM;
     typedef HamiltonFastMarching<TraitsReedsSheppSO3>::StencilDataType Superclass;
-    ParamType param;
+    HFM::ParamDefault param;
     ScalarType eps=0.1, xi=1;
     typedef ScalarType MetricElementType;
     typedef Traits::DataSource<MetricElementType> MetricType;
@@ -149,8 +150,9 @@ struct TraitsReedsSheppForwardSO3 : TraitsSO3 {
 
 struct StencilReedsSheppForwardSO3
 : HamiltonFastMarching<TraitsReedsSheppForwardSO3>::StencilDataType {
-    typedef HamiltonFastMarching<TraitsReedsSheppForwardSO3>::StencilDataType Superclass;
-    ParamType param;
+    typedef HamiltonFastMarching<TraitsReedsSheppForwardSO3> HFM;
+    typedef HFM::StencilDataType Superclass;
+    HFM::ParamDefault param;
     ScalarType eps=0.1, xi=1; // xi is the typical curvature radius
     typedef ScalarType MetricElementType;
     typedef Traits::DataSource<MetricElementType> MetricType;

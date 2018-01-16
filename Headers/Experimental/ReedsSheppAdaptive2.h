@@ -42,9 +42,9 @@ constexpr const decltype(TraitsRiemannDiff2::stencilDependencies) TraitsRiemannD
 
 
 struct StencilRiemannDiff2 : HamiltonFastMarching<TraitsRiemannDiff2>::StencilDataType {
-    typedef HamiltonFastMarching<TraitsRiemannDiff2>::StencilDataType Superclass;
-    typedef HFM::_StencilDataType<false>::ParamType ParamType;
-    ParamType param;
+    typedef HamiltonFastMarching<TraitsRiemannDiff2> HFM;
+    typedef HFM::StencilDataType Superclass;
+    HFM::ParamDefault param;
     ScalarType minWeightRatio = 1e-4;
     
     typedef Traits::BasisReduction<2> ReductionType;
@@ -187,8 +187,9 @@ struct TraitsReedsSheppThreeSpeeds2 : TraitsR2S1 {
 };
 
 struct StencilReedsSheppThreeSpeeds2 : HamiltonFastMarching<TraitsReedsSheppThreeSpeeds2>::StencilDataType {
-    typedef HamiltonFastMarching<TraitsReedsSheppThreeSpeeds2>::StencilDataType Superclass;
-    ParamType param;
+    typedef HamiltonFastMarching<TraitsReedsSheppThreeSpeeds2> HFM;
+    typedef HFM::StencilDataType Superclass;
+    HFM::ParamDefault param;
     ScalarType eps=0.1, xi=1; // xi is the typical curvature radius
     virtual void SetStencil(const IndexType & index, StencilType & stencil) override {
         const ScalarType theta = param.dependScale*index[2];

@@ -134,7 +134,7 @@ WallObstructionTest<T>::Visible(IndexCRef base, OffsetCRef v, IndexCRef sum) con
         }
         IndexType posPer=pos;
         const ReverseFlag reversed = pFM->dom.Periodize(posPer);
-        assert(!reversed[Dimension]);
+        assert(!reversed[Dimension]); (void)reversed;
         wd=(DiscreteType)wallDist(posPer);
         if(vSum<=wd) return true;
         else if(wd==0) return false;

@@ -96,8 +96,8 @@ struct HamiltonFastMarching {
     std::unique_ptr<StencilDataType> pStencilData;
     
     // Default domain parametrization (Currently used in all instantiations)
-    static const bool hasBundle = 0<Traits::nStencilDependencies && Traits::nStencilDependencies<Dimension;
-    template<bool b=hasBundle, typename Dummy=void> struct _ParamDefault;
+    static const bool hasBundle = (0<Traits::nStencilDependencies) && (Traits::nStencilDependencies<Dimension);
+    template<int b=int(hasBundle), typename Dummy=void> struct _ParamDefault;
     typedef _ParamDefault<> ParamDefault;
     
     // Extra algorithms may be inserted at different points

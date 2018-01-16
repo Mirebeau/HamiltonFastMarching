@@ -149,7 +149,8 @@ GeodesicDiscrete(std::vector<PointType> & geodesic) const {
                 (dom.MayReverse(i) && reversed[i]) ?
                 -offsetWeight.offset[i] : offsetWeight.offset[i];}
             IndexType perInd = ind;
-            const auto reversed = dom.Periodize(perInd); assert(!reversed[Dimension]);
+            const auto reversed = dom.Periodize(perInd);
+            assert(!reversed[Dimension]); (void)reversed;
             const ScalarType val = fm.values(perInd);
             const auto it = geo.find({val,ind});
             if(it==geo.end()){

@@ -20,8 +20,9 @@ HamiltonFastMarching<T>::ExtraAlgorithmInterface {
     
     std::set<IndexType> stopWhenAnyAccepted;
     std::set<IndexType> stopWhenAllAccepted;
-    ScalarType stopAtDistance = Traits::Infinity(), latestDistance;
+    ScalarType stopAtDistance = Traits::Infinity(), latestDistance; // TODO : Return point and geodesic that triggered stop ?
     size_t nAccepted=0, nMaxAccepted=std::numeric_limits<size_t>::max();
+    bool showProgress = false;
     std::vector<ScalarType> progressReportLandmarks={0.01,0.02,0.05,0.1,0.2,0.4,0.6,0.8};
 protected:
     virtual int PostProcess(IndexCRef) override;
@@ -39,6 +40,8 @@ CommonStoppingCriteria<T>::ImplementIn(HFM * _pFM) {
        nMaxAccepted==std::numeric_limits<size_t>::max() &&
        progressReportLandmarks.empty())
         return false;
+
+    _pFM->extras.postProcess.push_back(this);
     pFM = _pFM;
     for(auto it=progressReportLandmarks.rbegin(); it!=progressReportLandmarks.rend(); ++it)
         nAcceptedLandmarks.push_back(pFM->values.size()* *it);
@@ -52,7 +55,7 @@ CommonStoppingCriteria<T>::PostProcess(IndexCRef acceptedIndex){
     if(nAccepted>=nMaxAccepted)
         return Decision::kTerminate;
     
-    if(!nAcceptedLandmarks.empty() && nAccepted==nAcceptedLandmarks.back()){
+    if(showProgress && !nAcceptedLandmarks.empty() && nAccepted==nAcceptedLandmarks.back()){
         Msg() << "Accepted " << std::round(1000.*nAccepted/pFM->values.size())/10.
         << "% of domain points.\n";
         nAcceptedLandmarks.pop_back();
@@ -106,8 +109,11 @@ CommonStoppingCriteria<T>::Setup(HFMI*that){
     
     // Other parameters
     
+    showProgress = io.template Get<ScalarType>("showProgress",showProgress);
     if(io.HasField("progressReportLandmarks")){
-        progressReportLandmarks = io.template GetVector<ScalarType>("progressReportLandmarks");}
+        progressReportLandmarks = io.template GetVector<ScalarType>("progressReportLandmarks");
+        showProgress = !progressReportLandmarks.empty();
+    }
     
 };
 

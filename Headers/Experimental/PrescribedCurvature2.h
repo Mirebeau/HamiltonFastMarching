@@ -15,9 +15,7 @@
     F(x,x',x'') = C( xi (x''-kappa) )/speed,
  where speed (speed function), xi (curvature penalization intensity), kappa (prescribed curvature), are globally defined fields depending on x and x'.
  
- Time dependency, and Automatic differentiation, of the model parameters speed,xi,kappa, is presently not available. 
- //TODO : It is feasible for the speed function, but some architectural changes would be needed.
- 
+ Time dependency is not supported for speed, xi and kappa. Automatic differentiation is supported for speed, but not for xi and kappa. 
  */
 
 
@@ -30,9 +28,14 @@ struct TraitsR2S1NonShared : TraitsBase<3> {
     typedef Difference<0> DifferenceType;
     constexpr static std::array<Boundary, Dimension> boundaryConditions =
     {{Boundary::Closed, Boundary::Closed, Boundary::Periodic}};
+    
+    // Stencils actually depend on all coordinates. This is to get proper domain parametrization.
+    static const DiscreteType nStencilDependencies=1;
+    constexpr static std::array<DiscreteType, nStencilDependencies> stencilDependencies = {{2}};
 };
 
 constexpr decltype(TraitsR2S1NonShared::boundaryConditions) TraitsR2S1NonShared::boundaryConditions;
+constexpr decltype(TraitsR2S1NonShared::stencilDependencies) TraitsR2S1NonShared::stencilDependencies;
 
 // ----------- 2D Reeds-Shepp Extended model ---------
 struct TraitsReedsSheppExt2 : TraitsR2S1NonShared {
@@ -41,9 +44,9 @@ struct TraitsReedsSheppExt2 : TraitsR2S1NonShared {
 
 struct StencilReedsSheppExt2
 : HamiltonFastMarching<TraitsReedsSheppExt2>::StencilDataType {
-    typedef HamiltonFastMarching<TraitsReedsSheppExt2>::StencilDataType Superclass;
-    typedef HamiltonFastMarching<TraitsR2S1>::StencilDataType::ParamType ParamType;
-    ParamType param;
+    typedef HamiltonFastMarching<TraitsReedsSheppExt2> HFM;
+    typedef HFM::StencilDataType Superclass;
+    HFM::ParamDefault param;
     ScalarType eps=0.1;
     typedef Traits::DataSource<ScalarType> ScalarFieldType;
     std::unique_ptr<ScalarFieldType> pSpeed, pXi, pKappa;
@@ -67,9 +70,11 @@ struct StencilReedsSheppExt2
     virtual void Setup(HFMI *that) override {
         Superclass::Setup(that);
         eps=that->io.template Get<ScalarType>("eps",eps);
-        pSpeed = that->GetField<ScalarType>("speed");
-        pXi = that->GetField<ScalarType>("xi");
-        pKappa = that->GetField<ScalarType>("kappa");
+        typedef typename HFMI::template DataSource_Inverse<ScalarType> SourceInvType;
+        if(that->io.HasField("speed")) pSpeed = that->template GetField<ScalarType>("speed",false);
+        else pSpeed = std::unique_ptr<SourceInvType>(new SourceInvType(that->template GetField<ScalarType>("cost",false) ) );
+        pXi = that->GetField<ScalarType>("xi",false);
+        pKappa = that->GetField<ScalarType>("kappa",false);
         param.Setup(that->io,2*mathPi/dims.back());}
 };
 
@@ -81,9 +86,9 @@ struct TraitsReedsSheppForwardExt2 : TraitsR2S1NonShared {
 
 struct StencilReedsSheppForwardExt2
 : HamiltonFastMarching<TraitsReedsSheppForwardExt2>::StencilDataType {
-    typedef HamiltonFastMarching<TraitsReedsSheppForwardExt2>::StencilDataType Superclass;
-    typedef HamiltonFastMarching<TraitsR2S1>::StencilDataType::ParamType ParamType;
-    ParamType param;
+    typedef HamiltonFastMarching<TraitsReedsSheppForwardExt2> HFM;
+    typedef HFM::StencilDataType Superclass;
+    HFM::ParamDefault param;
     ScalarType eps=0.1;
     typedef Traits::DataSource<ScalarType> ScalarFieldType;
     std::unique_ptr<ScalarFieldType> pSpeed, pXi, pKappa;
@@ -107,7 +112,9 @@ struct StencilReedsSheppForwardExt2
     virtual void Setup(HFMI *that) override {
         Superclass::Setup(that);
         eps=that->io.template Get<ScalarType>("eps",eps);
-        pSpeed = that->GetField<ScalarType>("speed");
+        typedef typename HFMI::template DataSource_Inverse<ScalarType> SourceInvType;
+        if(that->io.HasField("speed")) pSpeed = that->template GetField<ScalarType>("speed",false);
+        else pSpeed = std::unique_ptr<SourceInvType>(new SourceInvType(that->template GetField<ScalarType>("cost",false) ) );
         pXi = that->GetField<ScalarType>("xi");
         pKappa = that->GetField<ScalarType>("kappa");
         param.Setup(that->io,2*mathPi/dims.back());}
@@ -122,9 +129,9 @@ struct TraitsDubinsExt2 : TraitsR2S1NonShared {
 
 struct StencilDubinsExt2
 : HamiltonFastMarching<TraitsDubinsExt2>::StencilDataType {
+    typedef HamiltonFastMarching<TraitsDubinsExt2> HFM;
     typedef HamiltonFastMarching<TraitsDubinsExt2>::StencilDataType Superclass;
-    typedef HamiltonFastMarching<TraitsR2S1>::StencilDataType::ParamType ParamType;
-    ParamType param;
+    HFM::ParamDefault param;
     ScalarType eps=0.1;
     typedef Traits::DataSource<ScalarType> ScalarFieldType;
     std::unique_ptr<ScalarFieldType> pSpeed, pXi, pKappa;
@@ -148,7 +155,9 @@ struct StencilDubinsExt2
     virtual void Setup(HFMI *that) override {
         Superclass::Setup(that);
         eps=that->io.template Get<ScalarType>("eps",eps);
-        pSpeed = that->GetField<ScalarType>("speed");
+        typedef typename HFMI::template DataSource_Inverse<ScalarType> SourceInvType;
+        if(that->io.HasField("speed")) pSpeed = that->template GetField<ScalarType>("speed",false);
+        else pSpeed = std::unique_ptr<SourceInvType>(new SourceInvType(that->template GetField<ScalarType>("cost",false) ) );
         pXi = that->GetField<ScalarType>("xi");
         pKappa = that->GetField<ScalarType>("kappa");
         param.Setup(that->io,2*mathPi/dims.back());}
@@ -165,11 +174,11 @@ struct TraitsElasticaExt2 : TraitsR2S1NonShared {
 template<int nFejer>
 struct StencilElasticaExt2
 : HamiltonFastMarching<TraitsElasticaExt2<nFejer> >::StencilDataType {
-    typedef typename HamiltonFastMarching<TraitsElasticaExt2<nFejer> >::StencilDataType Superclass;
+    typedef HamiltonFastMarching<TraitsElasticaExt2<nFejer> > HFM;
+    typedef typename HFM::StencilDataType Superclass;
     Redeclare7Types(FromSuperclass,Traits,ScalarType,IndexCRef,VectorType,StencilType,ParamInterface,HFMI)
     Redeclare1Constant(FromTraits,mathPi)
-    typedef HamiltonFastMarching<TraitsR2S1>::StencilDataType::ParamType ParamType;
-    ParamType param;
+    typename HFM::ParamDefault param;
     ScalarType eps=0.1;
     typedef typename Traits::template DataSource<ScalarType> ScalarFieldType;
     std::unique_ptr<ScalarFieldType> pSpeed, pXi, pKappa;
@@ -195,7 +204,9 @@ struct StencilElasticaExt2
     virtual void Setup(HFMI *that) override {
         Superclass::Setup(that);
         eps=that->io.template Get<ScalarType>("eps",eps);
-        pSpeed = that->template GetField<ScalarType>("speed");
+        typedef typename HFMI::template DataSource_Inverse<ScalarType> SourceInvType;
+        if(that->io.HasField("speed")) pSpeed = that->template GetField<ScalarType>("speed",false);
+        else pSpeed = std::unique_ptr<SourceInvType>(new SourceInvType(that->template GetField<ScalarType>("cost",false) ) );
         pXi = that->template GetField<ScalarType>("xi");
         pKappa = that->template GetField<ScalarType>("kappa");
         param.Setup(that->io,2*mathPi/this->dims.back());}

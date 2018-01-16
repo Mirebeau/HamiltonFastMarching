@@ -71,6 +71,10 @@ HFMInterface<T>::SpecializationsDefault<true,Dummy> {
             if(k==Traits::nStencilDependencies) break;
         }
     }
+    static void PadAdimEquiv(HFMI*that, UnorientedPointType p, std::vector<PointType> & equiv){
+        equiv.clear();
+        EquivalentPoints(that, that->stencil.Param().ADim( PadUnoriented(p) ), equiv);
+    }
 };
 
 template<typename T> template<typename Dummy> struct
@@ -99,9 +103,10 @@ HFMInterface<T>::SpecializationsDefault<false,Dummy> {
         else if(nDims==Dimension) { return ResultType(new DataSource_Array<E>(io.template GetArray<ScalarType, Dimension>(name).template Cast<E>()));}
         else {ExceptionMacro("Field " << name << " has incorrect depth.");}
     }
-    static void EquivalentPoints(HFMI*,PointType, std::vector<PointType> &){assert(false);};
     typedef PointType UnorientedPointType;
     static UnorientedPointType PadUnoriented(const PointType & p){return p;}
+    static void EquivalentPoints(HFMI*, PointType, std::vector<PointType> &){assert(false);};
+    static void PadAdimEquiv(HFMI*, UnorientedPointType, std::vector<PointType> &){assert(false);}
 };
 
 
@@ -345,19 +350,16 @@ Run_SetupSolver() {
         
         if(HFM::hasBundle && io.HasField("seeds_Unoriented")){
             typedef typename SpecializationsDefault<>::UnorientedPointType UnorientedPointType;
-            const auto _uPoints = io.GetVector<UnorientedPointType>("seeds_Unoriented");
-            std::vector<PointType> uPoints; uPoints.reserve(_uPoints.size());
-            for(const auto & p : _uPoints) uPoints.push_back(SpecializationsDefault<>::PadUnoriented(p));
-                
+            const auto uPoints = io.GetVector<UnorientedPointType>("seeds_Unoriented");
+            
             std::vector<ScalarType> uValues;
             if(io.HasField("seedValues_Unoriented")) uValues = io.GetVector<ScalarType>("seedValues_Unoriented");
             else uValues.resize(uPoints.size(),0.);
             if(uValues.size()!=uPoints.size()) ExceptionMacro("Error : Inconsistent size of seedValues_Unoriented.");
-            
+
             std::vector<PointType> equiv;
             for(int i=0; i<uPoints.size(); ++i){
-                equiv.clear();
-                SpecializationsDefault<>::EquivalentPoints(this,stencil.Param().ADim(uPoints[i]),equiv);
+                SpecializationsDefault<>::PadAdimEquiv(this,uPoints[i],equiv);
                 seedPoints.insert(seedPoints.end(),equiv.begin(),equiv.end());
                 seedValues.resize(seedValues.size()+equiv.size(),uValues[i]);
             }
@@ -446,25 +448,22 @@ Run_ExtractGeodesics() {
     }
     if(HFM::hasBundle && io.HasField("tips_Unoriented")){
         typedef typename SpecializationsDefault<>::UnorientedPointType UnorientedPointType;
-        const auto _indepTips = io.GetVector<UnorientedPointType>("tips_Unoriented");
-        std::vector<PointType> indepTips; indepTips.reserve(_indepTips.size());
-        for(const auto & p : _indepTips) indepTips.push_back(SpecializationsDefault<>::PadUnoriented(p));
-            
+        const auto indepTips = io.GetVector<UnorientedPointType>("tips_Unoriented");
+        
         std::vector<PointType> tips;
         std::vector<PointType> equiv;
-        for(const PointType & indepTip : indepTips){
-            PointType p = stencil.Param().ADim(indepTip);
-            equiv.clear();
-            SpecializationsDefault<>::EquivalentPoints(this,p,equiv);
+        for(const UnorientedPointType & indepTip : indepTips){
+            SpecializationsDefault<>::PadAdimEquiv(this,indepTip,equiv);
             ScalarType valMin=Traits::Infinity();
+            PointType pMin=equiv.front();
             for(const PointType & q : equiv){
                 PointType r=q;
                 if(pFM->dom.Periodize(r)[Dimension]) continue; // Out of range
-                ScalarType val =pFM->values(pFM->dom.IndexFromPoint(r));
+                const ScalarType val =pFM->values(pFM->dom.IndexFromPoint(r));
                 if(valMin<val) continue; // Too large value
-                p=q; valMin=val;
+                pMin=q; valMin=val;
             }
-            tips.push_back(p);
+            tips.push_back(pMin);
         }
         ExportGeodesics("Unoriented", tips);
     }

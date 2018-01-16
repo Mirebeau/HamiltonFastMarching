@@ -7,7 +7,6 @@
 
 // Forward and backward differentiation of the value with respect to variations of the cost function
 // (which is the inverse of the speed function), and of the seeds values.
-// TODO : Make this work if no multiplier.
 // TODO : make this exact as well in the case of second order differences/time varying speed field.
 
 template<typename T> struct FirstVariation :
@@ -17,15 +16,15 @@ HamiltonFastMarching<T>::ExtraAlgorithmInterface {
     Redeclare4Types(FromHFM,Traits,RecomputeType,DiscreteFlowType,PointType)
     Redeclare1Constant(FromHFM,Dimension)
     template<typename E, size_t n> using Array = typename HFM::template Array<E,n>;
-    typedef std::conditional<HFM::hasMultiplier, typename HFM::MultiplierType, ScalarType> MultType;
+    typedef typename std::conditional<HFM::hasMultiplier, typename HFM::MultiplierType, ScalarType>::type MultType;
     
     ScalarType * pCurrentTime=nullptr;
     struct NeighborType {IndexType index; ScalarType weight;};
     typedef CappedVector<NeighborType, HFM::nActiveNeigh> ActiveNeighborsType;
-    MultiplierType ValueVariation(IndexCRef, ActiveNeighborsType &) const; // Elementary differentiation
+    MultType ValueVariation(IndexCRef, ActiveNeighborsType &) const; // Elementary differentiation
     std::vector<std::pair<IndexType,ScalarType> >
-    BackwardVariation(const std::vector<std::pair<IndexType,ScalarType> > &, Array<MultiplierType, Dimension> &) const;
-    void ForwardVariation(const Array<MultiplierType, Dimension+1> &, Array<ScalarType, Dimension+1> &) const;
+    BackwardVariation(const std::vector<std::pair<IndexType,ScalarType> > &, Array<MultType, Dimension> &) const;
+    void ForwardVariation(const Array<MultType, Dimension+1> &, Array<ScalarType, Dimension+1> &) const;
     
     virtual void Finally(HFMI*) override;
     virtual bool ImplementIn(HFM*_pFM) override {pFM=_pFM; return true;}
@@ -40,11 +39,11 @@ protected:
         result[Dimension]=k;
         return result;
     };
-    template<bool b=HFM::hasMultiplier, typename Dummy=void> struct MultArrayIO;
+//    template<bool b=HFM::hasMultiplier, typename Dummy=void> struct MultArrayIO;
 };
 
 // --------- Export -------
-
+/*
 template<typename T> template<typename Dummy>
 struct FirstVariation<T>::MultArrayIO<true,Dummy> {
     typedef typename FirstVariation<T>::HFM HFM;
@@ -66,6 +65,7 @@ struct FirstVariation<T>::MultArrayIO<false,Dummy> {
     static void Set(HFMI*that,std::string name,const Array<MultiplierType,Dimension> & a){}
     static Array<MultiplierType,Dimension+1> Get(HFMI*that,std::string name){return Array<MultiplierType,Dimension+1>();}
 };
+*/
 
 template<typename T> void FirstVariation<T>::Finally(HFMI*that){
     auto & io = that->io;
@@ -87,7 +87,7 @@ template<typename T> void FirstVariation<T>::Finally(HFMI*that){
         
         std::vector<std::pair<IndexType, ScalarType> > iw;
         auto indIt=inds.begin(); auto wIt=weights.begin();
-        Array<MultiplierType,Dimension> sensitivity;
+        Array<MultType,Dimension> sensitivity;
         for(int i=0; i<lengths.size(); ++i){
             for(int k=0; k<lengths[i]; ++k, ++indIt, ++wIt){
                 PointType p = that->stencil.Param().ADim(*indIt);
@@ -97,7 +97,9 @@ template<typename T> void FirstVariation<T>::Finally(HFMI*that){
             }
             sensitivity.clear();
             auto sensitiveSeedIndices = BackwardVariation(iw,sensitivity);
-            MultArrayIO<>::Set(that,"costSensitivity_"+std::to_string(i),sensitivity);
+            io.SetArray("costSensitivity_"+std::to_string(i),sensitivity);
+//            MultArrayIO<>::Set(that,"costSensitivity_"+std::to_string(i),sensitivity);
+            
             
             std::vector<std::pair<PointType,ScalarType> > sensitiveSeeds;
             sensitiveSeeds.reserve(sensitiveSeedIndices.size());
@@ -109,8 +111,8 @@ template<typename T> void FirstVariation<T>::Finally(HFMI*that){
         }
     }
     if(io.HasField("costVariation") || io.HasField("seedValueVariation")){
-        Array<MultiplierType,Dimension+1> fwdVar;
-        if(io.HasField("costVariation")) fwdVar = MultArrayIO<>::Get(that,"costVariation");
+        Array<MultType,Dimension+1> fwdVar;
+        if(io.HasField("costVariation")) fwdVar = io.template GetArray<MultType,Dimension+1>("costVariation");
         Array<ScalarType,Dimension+1> valueVariations;
         if(io.HasField("seedValueVariation")){
             const auto seeds = io.template GetVector<PointType>("seeds");
@@ -138,10 +140,8 @@ template<typename TTraits> template<size_t VMultSize, typename Dummy>
 struct FirstVariation<TTraits>::_DiffHelper {
     typedef HamiltonFastMarching<TTraits> HFM;
     Redeclare3Types(FromHFM,ScalarType,DifferenceType,MultiplierType);
-    static MultiplierType NullMultiplier(){return MultiplierType::Constant(0);}
+    static MultiplierType NullMult(){return MultiplierType::Constant(0);}
     static ScalarType & Elem(MultiplierType & m, const DifferenceType & diff){return m[diff.multIndex];}
-    //    static void Normalize(MultiplierType & m, ScalarType r, const MultiplierType & m0){
-    //        for(int i=0; i<VMultSize; ++i) m[i]*=r*m0[i];}
     static MultiplierType Times(ScalarType a, MultiplierType m){
         MultiplierType r; for(int i=0; i<VMultSize; ++i) r[i]=a*m[i]; return r;}
     static MultiplierType Times(const MultiplierType & m0, const MultiplierType & m1){
@@ -150,38 +150,37 @@ struct FirstVariation<TTraits>::_DiffHelper {
         ScalarType r=0; for(int i=0; i<VMultSize; ++i) r+=m0[i]*m1[i]; return r;}
 };
 
+
 template<typename TTraits> template<typename Dummy>
 struct FirstVariation<TTraits>::_DiffHelper<1,Dummy> {
     typedef HamiltonFastMarching<TTraits> HFM;
-    Redeclare3Types(FromHFM,ScalarType,DifferenceType,MultiplierType);
-    static MultiplierType NullMultiplier(){return 0;}
-    static ScalarType & Elem(MultiplierType & m, const DifferenceType & diff){return m;}
-    static MultiplierType Times(ScalarType a, MultiplierType m){return a*m;}
-    //    static MultiplierType Times(MultiplierType m0, MultiplierType m1){return m0*m1;} // Same signature as above.
-    static ScalarType Scal(MultiplierType m0, MultiplierType m1){return m0*m1;}
+    Redeclare2Types(FromHFM,ScalarType,DifferenceType);
+    static ScalarType NullMult(){return 0;}
+    static ScalarType & Elem(ScalarType & m, const DifferenceType & diff){return m;}
+    static ScalarType Times(ScalarType a, ScalarType m){return a*m;}
+    static ScalarType Scal(ScalarType m0, ScalarType m1){return m0*m1;}
 };
 
 template<typename TTraits> template<typename Dummy>
 struct FirstVariation<TTraits>::_DiffHelper<0,Dummy> {
     typedef HamiltonFastMarching<TTraits> HFM;
     Redeclare3Types(FromHFM,ScalarType,DifferenceType,MultiplierType);
-    static MultiplierType NullMultiplier(){return MultiplierType();}
-    static ScalarType & Elem(MultiplierType & m, const DifferenceType & diff){
-        static ScalarType dummyScalar=0; return dummyScalar;}
-    static MultiplierType Times(ScalarType, MultiplierType){return MultiplierType();}
-    static MultiplierType Times(MultiplierType, MultiplierType){return MultiplierType();}
-    static ScalarType Scal(const MultiplierType & m0, const MultiplierType & m1){return 0;}
+    static ScalarType NullMult(){return 0;}
+    static ScalarType & Elem(ScalarType & m, const DifferenceType & diff){return m;}
+    static ScalarType Times(ScalarType a, ScalarType m){return a*m;}
+    static ScalarType Times(MultiplierType a, ScalarType m){return m;}
+    static ScalarType Scal(ScalarType m0, ScalarType m1){return m0*m1;}
 };
 
 // ----------- Differentiation at a single point -----------
 
 template<typename T> auto FirstVariation<T>::
-ValueVariation(IndexCRef index, ActiveNeighborsType & neighbors) const ->MultiplierType {
+ValueVariation(IndexCRef index, ActiveNeighborsType & neighbors) const ->MultType {
     assert(neighbors.empty());
     const auto & values = pFM->values;
     const ScalarType value = values(index);
     
-    MultiplierType var = DiffHelper::NullMultiplier();
+    MultType var = DiffHelper::NullMult();
     ScalarType weightSum=0;
     const auto & data = pFM->pStencilData->RecomputeData(index);
     const ActiveNeighFlagType active = pFM->activeNeighs(index);
@@ -190,7 +189,7 @@ ValueVariation(IndexCRef index, ActiveNeighborsType & neighbors) const ->Multipl
         IndexType neighIndex=index;
         for(int i=0; i<Dimension; ++i) neighIndex[i]+=s*diff.offset[i];
         const auto reversed = pFM->dom.Periodize(neighIndex);
-        assert(!reversed[Dimension]);
+        assert(!reversed[Dimension]); (void)reversed;
         const ScalarType neighValue = values(neighIndex);
         const ScalarType valueDiff = std::max(0., value-neighValue);
         const ScalarType w = diff.Weight(data.mult)*valueDiff;
@@ -245,12 +244,12 @@ ValueVariation(IndexCRef index, ActiveNeighborsType & neighbors) const ->Multipl
 // ---------- Reverse auto diff ------------
 
 template<typename T> auto FirstVariation<T>::
-BackwardVariation(const std::vector<std::pair<IndexType,ScalarType> > & base, Array<MultiplierType, Dimension> & result) const
+BackwardVariation(const std::vector<std::pair<IndexType,ScalarType> > & base, Array<MultType, Dimension> & result) const
 -> std::vector<std::pair<IndexType,ScalarType> > {
     std::vector<std::pair<IndexType,ScalarType> > sensitiveSeeds;
     const Array<ScalarType, Dimension> & values = pFM->values;
     if(result.empty()){result.dims = values.dims;
-        result.resize(values.size(),DiffHelper::NullMultiplier());}
+        result.resize(values.size(),DiffHelper::NullMult());}
     if(result.dims!=values.dims || result.size()!=values.size()){
         ExceptionMacro("BackwardVariation error : inconsistent input size");}
     
@@ -274,7 +273,7 @@ BackwardVariation(const std::vector<std::pair<IndexType,ScalarType> > & base, Ar
         if(pCurrentTime!=nullptr) *pCurrentTime=value;
         
         ActiveNeighborsType neighbors;
-        MultiplierType var = ValueVariation(index, neighbors);
+        MultType var = ValueVariation(index, neighbors);
         // Possible improvement : value(index) and value(neighbor.index) are currently accessed twice
         if(neighbors.empty()){sensitiveSeeds.push_back({index,weight});} // At seed
         
@@ -293,15 +292,15 @@ BackwardVariation(const std::vector<std::pair<IndexType,ScalarType> > & base, Ar
 // --------- Forward auto-diff ----------
 
 template<typename T> void FirstVariation<T>::
-ForwardVariation(const Array<MultiplierType,Dimension+1> & _multVar, Array<ScalarType, Dimension+1> & result) const {
+ForwardVariation(const Array<MultType,Dimension+1> & _multVar, Array<ScalarType, Dimension+1> & result) const {
     const DiscreteType nVar = std::max(_multVar.dims[Dimension],result.dims[Dimension]);
     const IndexType dims = pFM->values.dims;
     const DeepIndexType deepDims = DeepIndex(dims,nVar);
     const DiscreteType deepSize = deepDims.ProductOfCoordinates();
     
-    Array<MultiplierType,Dimension+1> __multVar;
-    const Array<MultiplierType, Dimension+1> & multVar = _multVar.empty() ? __multVar : _multVar;
-    if(multVar.empty()){__multVar.dims = deepDims; __multVar.resize(deepSize,DiffHelper::NullMultiplier());}
+    Array<MultType,Dimension+1> __multVar;
+    const Array<MultType, Dimension+1> & multVar = _multVar.empty() ? __multVar : _multVar;
+    if(multVar.empty()){__multVar.dims = deepDims; __multVar.resize(deepSize,DiffHelper::NullMult());}
     if(result.empty()){result.dims = deepDims; result.resize(deepSize,0);}
     if(result.dims != deepDims || multVar.dims!=deepDims || result.size()!=deepSize || multVar.size()!=deepSize)
         ExceptionMacro("Forward variation error : inconsistent input sizes");
@@ -319,7 +318,7 @@ ForwardVariation(const Array<MultiplierType,Dimension+1> & _multVar, Array<Scala
         if(pCurrentTime!=nullptr) *pCurrentTime=vI.first;
         
         ActiveNeighborsType neighbors;
-        MultiplierType var = ValueVariation(index, neighbors);
+        MultType var = ValueVariation(index, neighbors);
         
         for(int k=0; k<nVar; ++k){
             const DeepIndexType dIndex = DeepIndex(index,k);

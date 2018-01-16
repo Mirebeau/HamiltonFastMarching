@@ -11,16 +11,17 @@
 #include "Base/HFMInterface.h"
 
 #include "Specializations/Isotropic.h"
-#include "Specializations/Riemannian.h"/*
+#include "Specializations/Riemannian.h"
 #include "Specializations/Curvature2.h"
 #include "Specializations/Curvature3.h"
+
 
 #include "Experimental/HalfDisk.h"
 #include "Experimental/PrescribedCurvature2.h"
 #include "Experimental/RiemannLifted.h"
 #include "Experimental/ReedsSheppAdaptive2.h"
-#include "Experimental/Quaternionic.h"*/
-
+#include "Experimental/Quaternionic.h"
+#include "Experimental/Differentiable.h"
 
 #define HFMSpecializationMacro(modelName) \
 {typedef HFMInterface<Traits ## modelName> HFMI; typedef Stencil ## modelName StencilDataType;\
@@ -68,8 +69,12 @@ void Run(IO & io){
 #endif
     
 #ifdef Isotropic
-    HFMSpecializationMacro(IsotropicBox2<Boundary::Closed>);
-    HFMSpecializationMacro(IsotropicBox3<Boundary::Closed>);
+    HFMSpecializationMacro(Isotropic2)
+    HFMSpecializationMacro(Diagonal2)
+    HFMSpecializationMacro(Isotropic3)
+    HFMSpecializationMacro(Diagonal3)
+//    HFMSpecializationMacro(IsotropicBox2<Boundary::Closed>);
+//    HFMSpecializationMacro(IsotropicBox3<Boundary::Closed>);
 #endif
     
 
@@ -91,6 +96,9 @@ void Run(IO & io){
     
     // Differentiation with riemannian metrics
     HFMSpecializationMacro(RiemannDiff2)
+    
+    // Continuous differentiation of isotropic metrics
+    HFMSpecializationMacro(IsotropicDiff2)
     
     // Lifted riemannian metrics
     HFMSpecializationMacro(RiemannLifted2<Boundary::Closed>)

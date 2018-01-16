@@ -31,20 +31,44 @@ protected:
 template<typename T> void VoronoiDiagram<T>::
 Setup(HFMI * that){
     auto & io = that->io;
-    if(!io.HasField("seedFlags")) return;
-    const auto seedFlags = io.template GetVector<ScalarType>("seedFlags");
-    const auto seeds = io.template GetVector<PointType>("seeds");
-    if(seedFlags.size()!=seeds.size()){
-        ExceptionMacro("Error : Number of seeds (" <<seeds.size()<<
-                       ") distinct from the number of seedFlags(" <<seedFlags.size() << ").\n");}
+    if(!(io.HasField("seedFlags") || (HFM::hasBundle && io.HasField("seedFlags_Unoriented")))) return;
     voronoiFlags.dims = that->stencil.dims;
     voronoiFlags.resize(voronoiFlags.dims.ProductOfCoordinates(),-1);
-    for(int i=0; i<seeds.size(); ++i){
-        voronoiFlags(that->pFM->dom.IndexFromPoint(that->stencil.Param().ADim(seeds[i]))) = seedFlags[i];
+    
+    if(io.HasField("seedFlags")){
+        const auto seedFlags = io.template GetVector<ScalarType>("seedFlags");
+        const auto seeds = io.template GetVector<PointType>("seeds");
+        if(seedFlags.size()!=seeds.size()){
+            ExceptionMacro("Error : Number of seeds (" <<seeds.size()<<
+                           ") is distinct from the number of seedFlags(" <<seedFlags.size() << ").\n");}
+        for(int i=0; i<seeds.size(); ++i){
+            IndexType index = that->pFM->dom.IndexFromPoint(that->stencil.Param().ADim(seeds[i]));
+            if(that->pFM->dom.Periodize(index)[Dimension]) ExceptionMacro("Error : seed " << seeds[i] << " is out of range.\n");
+            voronoiFlags(index) = seedFlags[i];
+        }
     }
+    
+    if(HFM::hasBundle && io.HasField("seedFlags_Unoriented")) {
+        typedef typename HFMI::template SpecializationsDefault<> HFMIS;
+        const auto uSeedFlags = io.template GetVector<ScalarType>("seedFlags_Unoriented");
+        const auto uSeeds = io.template GetVector<typename HFMIS::UnorientedPointType>("seeds_Unoriented");
+        if(uSeeds.size()!=uSeedFlags.size()){
+            ExceptionMacro("Error : Number of unoriented seeds (" <<uSeeds.size()<<
+                           ") is distinct from the number of unoriented seedFlags(" <<uSeedFlags.size() << ").\n");}
+        std::vector<PointType> equiv;
+        for(int i=0; i<uSeeds.size(); ++i){
+            HFMIS::PadAdimEquiv(that,uSeeds[i],equiv);
+            for(const PointType & p : equiv){
+                IndexType index = that->pFM->dom.IndexFromPoint(p);
+                if(that->pFM->dom.Periodize(index)[Dimension]) ExceptionMacro("Error : unoriented seed, of index " << i << ", is out of range.\n");
+                voronoiFlags(index) = uSeedFlags[i];
+            }
+        }
+    }
+    
     const std::string s = io.GetString("voronoiStoppingCriterion","None");
     if(s=="RegionsMeeting") stoppingCriterion=StoppingCriterionEnum::kVoronoiRegionsMeeting;
-    else if(HFM::hasMultiplier && s=="OppositesMeeting") stoppingCriterion=StoppingCriterionEnum::kVoronoiOppositesMeeting;
+    else if(HFM::hasBundle && s=="OppositesMeeting") stoppingCriterion=StoppingCriterionEnum::kVoronoiOppositesMeeting;
     else if(s!="None") ExceptionMacro("Voronoi diagram error : unrecognized stopping criterion");
 }
 
@@ -102,17 +126,33 @@ PostProcessWithRecompute(IndexCRef index, const RecomputeType &, const DiscreteF
         if(fl.weight<=maxWeight) continue;
         maxWeight=fl.weight;
         IndexType neigh = index; for(int i=0; i<Dimension; ++i) neigh[i]+=fl.offset[i];
-        const auto reversed = pFM->dom.Periodize(neigh); assert(!reversed[Dimension]);
+        const auto reversed = pFM->dom.Periodize(neigh);
+        assert(!reversed[Dimension]); (void)reversed;
         indexFlag = voronoiFlags(neigh);
     }
     
     if(stoppingCriterion==StoppingCriterionEnum::kVoronoiRegionsMeeting){ // Note: this would not work for a Dijkstra
+        for(DiscreteType i=0; i<Dimension; ++i){ // Look for a neighbor with a distinct index
+            for(DiscreteType eps=-1; eps<=1; ++eps){
+                IndexType neigh=index;
+                neigh[i]+=eps;
+                const auto reversed = pFM->dom.Periodize(neigh);
+                if(reversed[Dimension]) continue;
+                const ShortType flag = voronoiFlags(neigh);
+                if(flag==-1 || flag==indexFlag) continue;
+                stoppingIndex0=index;
+                stoppingIndex1=neigh;
+                return Decision::kTerminate;
+            }
+        }
+        /*
         ShortType candidateFlag=-1;
         IndexType candidateIndex;
         for(const DiscreteFlowElement & fl : flow){
             if(fl.weight==0) continue;
             IndexType neigh = index; for(int i=0; i<Dimension; ++i) neigh[i]+=fl.offset[i];
-            const auto reversed = pFM->dom.Periodize(neigh); assert(!reversed[Dimension]);
+            const auto reversed = pFM->dom.Periodize(neigh);
+            assert(!reversed[Dimension]); (void)reversed;
             ShortType flag = voronoiFlags(neigh);
             if(candidateFlag==-1) {candidateFlag=flag;candidateIndex=neigh;}
             if(flag!=candidateFlag){
@@ -120,8 +160,9 @@ PostProcessWithRecompute(IndexCRef index, const RecomputeType &, const DiscreteF
                 stoppingIndex1=neigh;
                 return Decision::kTerminate;
             }
-        }
+        }*/
     }
+    
     if(stoppingCriterion==StoppingCriterionEnum::kVoronoiOppositesMeeting){ // Note : only applies to R^n x S^d domains, d in {1,2}
         const IndexType oppositeIndex = OppositeIndex<>()(index,pFM->pStencilData->dims);
         const ShortType oppositeFlag = voronoiFlags(oppositeIndex);

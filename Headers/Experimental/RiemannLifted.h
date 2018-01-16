@@ -9,21 +9,26 @@
 #include "Base/HamiltonFastMarching.h"
 #include "LinearAlgebra/VectorPairType.h"
 
-//template<typename HFM> struct ParamLifted : typename
-
 template<Boundary cond>
 struct TraitsRiemannLifted2 : TraitsBase<3> {
     typedef Difference<0> DifferenceType;
     typedef const std::array<Boundary,Dimension> BoundCondType;
     constexpr static BoundCondType boundaryConditions = {{Boundary::Closed, Boundary::Closed, cond}};
     static const DiscreteType nSymmetric=3+1;
+    
+    // Stencils actually depend on all coordinates. This is to get proper domain parametrization.
+    static const DiscreteType nStencilDependencies=1;
+    typedef const std::array<DiscreteType, nStencilDependencies> StencilDepType;
+    constexpr static StencilDepType stencilDependencies = {{2}};
 };
 template<Boundary cond> constexpr typename TraitsRiemannLifted2<cond>::BoundCondType TraitsRiemannLifted2<cond>::boundaryConditions;
+template<Boundary cond> constexpr typename TraitsRiemannLifted2<cond>::StencilDepType TraitsRiemannLifted2<cond>::stencilDependencies;
 
 
 template<Boundary cond>
 struct StencilRiemannLifted2 : HamiltonFastMarching<TraitsRiemannLifted2<cond> >::StencilDataType {
-    typedef typename HamiltonFastMarching<TraitsRiemannLifted2<cond> >::StencilDataType Superclass;
+    typedef HamiltonFastMarching<TraitsRiemannLifted2<cond> > HFM;
+    typedef typename HFM::StencilDataType Superclass;
     Redeclare7Types(FromSuperclass,Traits,IndexType,StencilType,ParamInterface,HFMI,ScalarType,DiscreteType);
     typedef typename Traits::template BasisReduction<2> ReductionType;
     typedef typename ReductionType::SymmetricMatrixType Sym;
@@ -31,14 +36,7 @@ struct StencilRiemannLifted2 : HamiltonFastMarching<TraitsRiemannLifted2<cond> >
     typedef typename Traits::template DataSource<MetricElementType> MetricType;
     std::unique_ptr<MetricType> pDualMetric;
     
-    // Traits used to get a specific scale for the last coordinate
-    struct DummyTraits : Traits {
-        typedef typename Traits::template Difference<1> DifferenceType;
-        static const DiscreteType nStencilDependencies = 1;
-        typedef const std::array<DiscreteType, nStencilDependencies> StencilDepType;
-        constexpr static StencilDepType stencilDependencies = {{2}};};
-    typedef typename HamiltonFastMarching<DummyTraits>::StencilDataType::ParamType ParamType;
-    ParamType param;
+    typename HFM::ParamDefault param;
     
     virtual void SetStencil(const IndexType & index, StencilType & stencil) override {
         const MetricElementType & met = (*pDualMetric)(index);
@@ -55,16 +53,18 @@ struct StencilRiemannLifted2 : HamiltonFastMarching<TraitsRiemannLifted2<cond> >
         pDualMetric=that->template GetField<MetricElementType>("dualMetric");        
     }
 };
-template<Boundary cond> constexpr typename StencilRiemannLifted2<cond>::DummyTraits::StencilDepType
-StencilRiemannLifted2<cond>::DummyTraits::stencilDependencies;
-
 
 struct TraitsRiemannLifted3 : TraitsBase<4> {
     typedef Difference<0> DifferenceType;
     constexpr static std::array<Boundary,Dimension> boundaryConditions = {{Boundary::Closed, Boundary::Closed, Boundary::Closed, Boundary::Closed}};
     static const DiscreteType nSymmetric=6+1;
+    
+    // Stencils actually depend on all coordinates. This is to get proper domain parametrization.
+    static const DiscreteType nStencilDependencies=1;
+    constexpr static std::array<DiscreteType, nStencilDependencies> stencilDependencies = {{2}};
 };
 constexpr decltype(TraitsRiemannLifted3::boundaryConditions) TraitsRiemannLifted3::boundaryConditions;
+constexpr decltype(TraitsRiemannLifted3::stencilDependencies) TraitsRiemannLifted3::stencilDependencies;
 
 
 struct StencilRiemannLifted3 : HamiltonFastMarching<TraitsRiemannLifted3>::StencilDataType {
@@ -75,12 +75,13 @@ struct StencilRiemannLifted3 : HamiltonFastMarching<TraitsRiemannLifted3>::Stenc
     typedef Traits::DataSource<MetricElementType> MetricType;
     std::unique_ptr<MetricType> pDualMetric;
     
+    typename HFM::ParamDefault param;
     // Traits used to get a specific scale for the last coordinate
-    struct DummyTraits : Traits {
+/*    struct DummyTraits : Traits {
         typedef Difference<1> DifferenceType; static const DiscreteType nStencilDependencies = 1;
         constexpr static std::array<DiscreteType, nStencilDependencies> stencilDependencies = {{3}};};
     typedef HamiltonFastMarching<DummyTraits>::StencilDataType::ParamType ParamType;
-    ParamType param;
+    ParamType param;*/
     
     virtual void SetStencil(const IndexType & index, StencilType & stencil) override {
         const MetricElementType & met = (*pDualMetric)(index);
@@ -95,7 +96,7 @@ struct StencilRiemannLifted3 : HamiltonFastMarching<TraitsRiemannLifted3>::Stenc
         param.Setup(that->io,bundleScale);
         pDualMetric=that->template GetField<MetricElementType>("dualMetric");}
 };
-constexpr decltype(StencilRiemannLifted3::DummyTraits::stencilDependencies) StencilRiemannLifted3::DummyTraits::stencilDependencies;
+//constexpr decltype(StencilRiemannLifted3::DummyTraits::stencilDependencies) StencilRiemannLifted3::DummyTraits::stencilDependencies;
 
 
 #endif /* RiemannLifted_h */

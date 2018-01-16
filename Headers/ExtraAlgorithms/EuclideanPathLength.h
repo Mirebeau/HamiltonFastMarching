@@ -46,8 +46,8 @@ Finally(HFMI*that){
     if(io.template Get<ScalarType>("exportEuclideanLengths",1)) {
         io.SetArray("euclideanLengths",euclideanLengths);}
     if(stoppingIndex!=IndexType::Constant(-1)){
-        io.template Set<PointType>("euclideanLength_stoppingIndex",that->stencil.Param().ReDim(pFM->dom.PointFromIndex(stoppingIndex)));
-        if(io.template Get<ScalarType>("euclideanLength_exportGeodesicFromStoppingIndex",1.)){
+        io.template Set<PointType>("euclideanLength_stoppingPoint",that->stencil.Param().ReDim(pFM->dom.PointFromIndex(stoppingIndex)));
+        if(io.template Get<ScalarType>("euclideanLength_exportGeodesicFromStoppingPoint",1.)){
             that->ExportGeodesics("euclideanLength",{that->pFM->dom.PointFromIndex(stoppingIndex)});}
     }
 }
@@ -72,7 +72,8 @@ PostProcessWithRecompute(IndexCRef index, const RecomputeType &, const DiscreteF
         weightSum+=fl.weight;
         flowSum+=fl.weight * VectorType::CastCoordinates(fl.offset);
         IndexType neigh = index; for(int i=0; i<Dimension; ++i) neigh[i]+=fl.offset[i];
-        const auto reversed = pFM->dom.Periodize(neigh); assert(!reversed[Dimension]);
+        const auto reversed = pFM->dom.Periodize(neigh);
+        assert(!reversed[Dimension]); (void)reversed;
         lengthSum+=fl.weight * euclideanLengths(neigh);
     }
     if(weightSum>0){

@@ -1,10 +1,6 @@
-//
-//  HalfDisk.h
-//  FileHFM
-//
-//  Created by Jean-Marie Mirebeau on 10/07/2017.
-//
-//
+// HamiltonFastMarching - A Fast-Marching solver with adaptive stencils.
+// Copyright (C) 2017 Jean-Marie Mirebeau, University Paris-Sud, CNRS, University Paris-Saclay.
+// Licence GPU GPL v3 or later, see <http://www.gnu.org/licenses/>. Distributed WITHOUT ANY WARRANTY.
 
 #ifndef HalfDisk_h
 #define HalfDisk_h
@@ -40,9 +36,11 @@ struct TraitsHalfDisk2 : TraitsBase<2> {
 constexpr decltype(TraitsHalfDisk2::boundaryConditions) TraitsHalfDisk2::boundaryConditions;
 
 struct StencilHalfDisk2 : HamiltonFastMarching<TraitsHalfDisk2>::StencilDataType {
-    typedef HamiltonFastMarching<TraitsHalfDisk2>::StencilDataType Superclass;
-    ParamType param;
+    typedef HamiltonFastMarching<TraitsHalfDisk2> HFM;
+    typedef HFM::StencilDataType Superclass;
+    HFM::ParamDefault param;
     ScalarType eps = 0.2, epsForward = 0.3;
+    
     typedef Traits::BasisReduction<2> ReductionType;
     typedef LinearAlgebra::VectorPair<VectorType, ScalarType> MetricElementType;
     typedef Traits::DataSource<MetricElementType> MetricType;
@@ -86,8 +84,9 @@ struct TraitsHalfDisk3 : TraitsBase<3> {
 constexpr decltype(TraitsHalfDisk3::boundaryConditions) TraitsHalfDisk3::boundaryConditions;
 
 struct StencilHalfDisk3 : HamiltonFastMarching<TraitsHalfDisk3>::StencilDataType {
-    typedef HamiltonFastMarching<TraitsHalfDisk3>::StencilDataType Superclass;
-    ParamType param;
+    typedef HamiltonFastMarching<TraitsHalfDisk3> HFM;
+    typedef HFM::StencilDataType Superclass;
+    HFM::ParamDefault param;
     ScalarType eps = 0.2, epsForward = 0.3;
     typedef Traits::BasisReduction<3> ReductionType;
     typedef LinearAlgebra::VectorPair<VectorType, ScalarType> MetricElementType;
@@ -131,8 +130,9 @@ struct TraitsHalfDisk3p1 : TraitsBase<4> {
 constexpr decltype(TraitsHalfDisk3p1::boundaryConditions) TraitsHalfDisk3p1::boundaryConditions;
 
 struct StencilHalfDisk3p1 : HamiltonFastMarching<TraitsHalfDisk3p1>::StencilDataType {
-    typedef HamiltonFastMarching<TraitsHalfDisk3p1>::StencilDataType Superclass;
-    ParamType param;
+    typedef HamiltonFastMarching<TraitsHalfDisk3p1> HFM;
+    typedef HFM::StencilDataType Superclass;
+    HFM::ParamDefault param;
     ScalarType eps = 0.2, epsForward = 0.3;
     typedef Traits::BasisReduction<3> ReductionType;
     typedef ReductionType::VectorType Vector3;

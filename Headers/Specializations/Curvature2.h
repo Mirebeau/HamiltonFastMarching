@@ -30,8 +30,9 @@ struct TraitsReedsShepp2 : TraitsR2S1 {
 
 struct StencilReedsShepp2
 : HamiltonFastMarching<TraitsReedsShepp2>::StencilDataType {
-    typedef HamiltonFastMarching<TraitsReedsShepp2>::StencilDataType Superclass;
-    ParamType param;
+    typedef HamiltonFastMarching<TraitsReedsShepp2> HFM;
+    typedef HFM::StencilDataType Superclass;
+    HFM::ParamDefault param;
     ScalarType eps=0.1, xi=1; // xi is the typical curvature radius
     bool projective=false;
     virtual void SetStencil(const IndexType & index, StencilType & stencil) override {
@@ -61,8 +62,9 @@ struct TraitsReedsSheppForward2 : TraitsR2S1 {
 
 struct StencilReedsSheppForward2
 : HamiltonFastMarching<TraitsReedsSheppForward2>::StencilDataType {
-    typedef HamiltonFastMarching<TraitsReedsSheppForward2>::StencilDataType Superclass;
-    ParamType param;
+    typedef HamiltonFastMarching<TraitsReedsSheppForward2> HFM;
+    typedef HFM::StencilDataType Superclass;
+    HFM::ParamDefault param;
     ScalarType eps=0.1, xi=1; // xi is the typical curvature radius
     
     virtual void SetStencil(const IndexType & index, StencilType & stencil) override {
@@ -93,8 +95,9 @@ struct TraitsDubins2 : TraitsR2S1 {
 
 struct StencilDubins2
 : HamiltonFastMarching<TraitsDubins2>::StencilDataType {
-    typedef HamiltonFastMarching<TraitsDubins2>::StencilDataType Superclass;
-    ParamType param;
+    typedef HamiltonFastMarching<TraitsDubins2> HFM;
+    typedef HFM::StencilDataType Superclass;
+    HFM::ParamDefault param;
     ScalarType eps=0.1, xi=1.;
     
     virtual void SetStencil(const IndexType & index, StencilType & stencil) override {
@@ -127,11 +130,12 @@ struct TraitsElastica2 : TraitsR2S1 {
 template<int nFejer>
 struct StencilElastica2
 : HamiltonFastMarching<TraitsElastica2<nFejer> >::StencilDataType {
-    typedef typename HamiltonFastMarching<TraitsElastica2<nFejer> >::StencilDataType Superclass;
-    Redeclare8Types(FromSuperclass,Traits,ScalarType,IndexType,VectorType,StencilType,ParamType,ParamInterface,HFMI)
+    typedef HamiltonFastMarching<TraitsElastica2<nFejer> > HFM;
+    typedef typename HFM::StencilDataType Superclass;
+    Redeclare7Types(FromSuperclass,Traits,ScalarType,IndexType,VectorType,StencilType,ParamInterface,HFMI)
     Redeclare1Constant(FromTraits,mathPi)
     
-    ParamType param;
+    typename HFM::ParamDefault param;
     ScalarType eps=0.1, xi=1.;
     static const std::array<ScalarType,nFejer> fejerWeights;
     

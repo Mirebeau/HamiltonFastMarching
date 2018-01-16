@@ -10,10 +10,10 @@
 NotebookFileLineBreakTest
 NotebookFileLineBreakTest
 NotebookDataPosition[       157,          7]
-NotebookDataLength[     23085,        580]
-NotebookOptionsPosition[     22367,        551]
-NotebookOutlinePosition[     22726,        567]
-CellTagsIndexPosition[     22683,        564]
+NotebookDataLength[     23165,        582]
+NotebookOptionsPosition[     22447,        553]
+NotebookOutlinePosition[     22806,        569]
+CellTagsIndexPosition[     22763,        566]
 WindowFrame->Normal*)
 
 (* Beginning of Notebook Content *)
@@ -82,7 +82,8 @@ Cell[BoxData[
                RowBox[{"2", " ", "nGeo"}], ")"}], "^", "2"}]}], "*)"}], 
            "\[IndentingNewLine]", 
            RowBox[{"\"\<thetaGeo\>\"", "\[Rule]", 
-            RowBox[{"Pi", "/", "4."}]}], ",", " ", 
+            RowBox[{"5", 
+             RowBox[{"Pi", "/", "4."}]}]}], ",", " ", 
            RowBox[{"(*", 
             RowBox[{
             "orientation", " ", "of", " ", "the", " ", "geodesic", " ", 
@@ -203,7 +204,7 @@ Cell[BoxData[
            RowBox[{"\"\<seeds\>\"", "\[Rule]", 
             RowBox[{"{", 
              RowBox[{"{", 
-              RowBox[{"0", ",", "0", ",", "0"}], "}"}], "}"}]}], ",", " ", 
+              RowBox[{"0", ",", "0", ",", "Pi"}], "}"}], "}"}]}], ",", " ", 
            RowBox[{"(*", 
             RowBox[{"x", ",", "y", ",", 
              RowBox[{"\[Theta]", " ", "coordinates"}]}], "*)"}], 
@@ -471,7 +472,8 @@ Cell[BoxData[
    3.699822978079652*^9, 3.6998230060029716`*^9}, {3.699962504141141*^9, 
    3.699962531631562*^9}, 3.701772588553811*^9, {3.701773068386405*^9, 
    3.7017731008402023`*^9}, {3.7049914897222443`*^9, 3.704991499344905*^9}, {
-   3.7201874159796352`*^9, 3.720187431155006*^9}}],
+   3.7201874159796352`*^9, 3.720187431155006*^9}, {3.722758013011786*^9, 
+   3.722758020830415*^9}}],
 
 Cell["\<\
 Available models:
@@ -568,18 +570,18 @@ CellTagsIndex->{}
 Notebook[{
 Cell[CellGroupData[{
 Cell[579, 22, 117, 1, 92, "Title"],
-Cell[699, 25, 18830, 448, 1503, "Input"],
-Cell[19532, 475, 458, 10, 106, "Text"],
-Cell[19993, 487, 899, 16, 125, "Text"],
+Cell[699, 25, 18910, 450, 1537, "Input"],
+Cell[19612, 477, 458, 10, 106, "Text"],
+Cell[20073, 489, 899, 16, 125, "Text"],
 Cell[CellGroupData[{
-Cell[20917, 507, 162, 2, 44, "Subsection"],
-Cell[21082, 511, 158, 3, 30, "Text"],
-Cell[21243, 516, 353, 9, 125, "Text"]
+Cell[20997, 509, 162, 2, 44, "Subsection"],
+Cell[21162, 513, 158, 3, 30, "Text"],
+Cell[21323, 518, 353, 9, 125, "Text"]
 }, Open  ]],
 Cell[CellGroupData[{
-Cell[21633, 530, 174, 2, 44, "Subsection"],
-Cell[21810, 534, 188, 2, 30, "Text"],
-Cell[22001, 538, 338, 9, 125, "Text"]
+Cell[21713, 532, 174, 2, 44, "Subsection"],
+Cell[21890, 536, 188, 2, 30, "Text"],
+Cell[22081, 540, 338, 9, 125, "Text"]
 }, Open  ]]
 }, Open  ]]
 }

@@ -2,6 +2,10 @@
 // Copyright (C) 2017 Jean-Marie Mirebeau, University Paris-Sud, CNRS, University Paris-Saclay.
 // Licence GPU GPL v3 or later, see <http://www.gnu.org/licenses/>. Distributed WITHOUT ANY WARRANTY.
 
+#include "CommonTraits.h"
+#include "Base/HFMInterface.h"
+
+
 // ------------- 2D Riemannian metrics ------------
 struct TraitsRiemann2 : TraitsBase<2> {
     typedef Difference<0> DifferenceType;

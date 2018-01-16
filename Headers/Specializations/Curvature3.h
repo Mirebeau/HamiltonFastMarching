@@ -5,6 +5,9 @@
 #ifndef Curvature3_h
 #define Curvature3_h
 
+#include "CommonTraits.h"
+#include "Base/HFMInterface.h"
+
 // ------------- R3S2 Traits ---------------
 
 struct TraitsR3S2 : TraitsBase<5> {
@@ -28,8 +31,9 @@ struct TraitsReedsShepp3 : TraitsR3S2 {
 
 struct StencilReedsShepp3
 : HamiltonFastMarching<TraitsReedsShepp3>::StencilDataType {
-    typedef HamiltonFastMarching<TraitsReedsShepp3>::StencilDataType Superclass;
-    ParamType param;
+    typedef HamiltonFastMarching<TraitsReedsShepp3> HFM;
+    typedef HFM::StencilDataType Superclass;
+    HFM::ParamDefault param;
     ScalarType eps=0.1, xi=1;
     bool projective=false, dual=false;
     
@@ -79,8 +83,9 @@ struct TraitsReedsSheppForward3 : TraitsR3S2 {
 
 struct StencilReedsSheppForward3
 : HamiltonFastMarching<TraitsReedsSheppForward3>::StencilDataType {
-    typedef HamiltonFastMarching<TraitsReedsSheppForward3>::StencilDataType Superclass;
-    ParamType param;
+    typedef HamiltonFastMarching<TraitsReedsSheppForward3> HFM;
+    typedef HFM::StencilDataType Superclass;
+    HFM::ParamDefault param;
     ScalarType eps=0.1, xi=1;
     
     virtual void SetStencil(const IndexType & index, StencilType & stencil) override {
