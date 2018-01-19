@@ -10,8 +10,11 @@
 
 // --- Default domain parametrization ----
 
-template<typename Traits> template<typename Dummy> struct
-HamiltonFastMarching<Traits>::_ParamDefault<1,Dummy> : HFM::ParamInterface {
+template<typename TTraits> template<typename Dummy> struct
+HamiltonFastMarching<TTraits>::_ParamDefault<1,Dummy> : HFM::ParamInterface {
+    typedef HamiltonFastMarching<TTraits> HFM;
+    Redeclare6Types(FromHFM,PointType,VectorType,ScalarType,DiscreteType,HFMI,Traits);
+    Redeclare1Constant(FromHFM,Dimension)
     PointType origin = PointType::Constant(0);
     // Two distinct scales, for "physical" and "bundle" parts respectively.
     ScalarType gridScale=1, dependScale=1;
@@ -37,8 +40,10 @@ HamiltonFastMarching<Traits>::_ParamDefault<1,Dummy> : HFM::ParamInterface {
     void Setup(HFMI * that, ScalarType _dependScale) {Setup(that->io,_dependScale);}
 };
 
-template<typename Traits> template<typename Dummy> struct
-HamiltonFastMarching<Traits>::_ParamDefault<0,Dummy> : HFM::ParamInterface {
+template<typename TTraits> template<typename Dummy> struct
+HamiltonFastMarching<TTraits>::_ParamDefault<0,Dummy> : HFM::ParamInterface {
+    typedef HamiltonFastMarching<TTraits> HFM;
+    Redeclare5Types(FromHFM,PointType,VectorType,ScalarType,HFMI,Traits);
     PointType origin = PointType::Constant(0);
     ScalarType gridScale=1;
     virtual PointType ADim(const PointType & p) const override {
@@ -53,8 +58,12 @@ HamiltonFastMarching<Traits>::_ParamDefault<0,Dummy> : HFM::ParamInterface {
     }
 };
 
-template<typename Traits> template<typename Dummy> struct
-HamiltonFastMarching<Traits>::_ParamDefault<2,Dummy> : HFM::ParamInterface {
+template<typename TTraits> template<typename Dummy> struct
+HamiltonFastMarching<TTraits>::_ParamDefault<2,Dummy> : HFM::ParamInterface {
+    typedef HamiltonFastMarching<TTraits> HFM;
+    Redeclare5Types(FromHFM,PointType,VectorType,ScalarType,HFMI,Traits);
+    Redeclare1Constant(FromHFM,Dimension)
+
     PointType origin = PointType::Constant(0);
     PointType gridScales = PointType::Constant(1);
     

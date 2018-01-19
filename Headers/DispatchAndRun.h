@@ -114,11 +114,6 @@ void Run(IO & io){
     // Variants of Reeds-Shepp, with adaptive angular resolution, distinct foward/backward/angular speeds
     HFMSpecializationMacro(ReedsSheppAdaptive2)
     HFMSpecializationMacro(ReedsSheppThreeSpeeds2)
-    
-    // Checking boundary conditions
-    HFMSpecializationMacro(IsotropicBox2<Boundary::Periodic>);
-    HFMSpecializationMacro(IsotropicBox2<Boundary::Sphere2_0>);
-    HFMSpecializationMacro(Sphere2);
 #endif
     
 #ifdef Experimental1
