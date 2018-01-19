@@ -17,7 +17,7 @@ template<int VDim> struct TraitsBase {
     typedef int DiscreteType; /// Used for array indexing and multi-index components.
     typedef int_least8_t ShortType;
     static constexpr ScalarType Infinity() {return std::numeric_limits<ScalarType>::infinity();}
-    static constexpr ScalarType mathPi = M_PI;
+    static constexpr ScalarType mathPi =  3.141592653589793238462643383279502884L;
     
     typedef LinearAlgebra::Point<ScalarType, Dimension> PointType;
     typedef LinearAlgebra::Vector<ScalarType, Dimension> VectorType;
