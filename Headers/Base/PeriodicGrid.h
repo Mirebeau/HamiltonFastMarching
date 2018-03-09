@@ -24,6 +24,10 @@ enum class Boundary {
 //    Sphere, SphereLast
 };
 
+struct Boundary_AllClosed {
+    Boundary operator[](size_t) const {return Boundary::Closed;}
+};
+
 /* 2D sphere boundary conditions
  Meant for parametrization
  (t0,t1)->(cos(t0), sin(t0)cos(t1),sin(t0)sin(t1))

@@ -15,7 +15,8 @@ struct TraitsIsotropic2 : TraitsBase<2> {
     static const DiscreteType nStencilDependencies=0;
     constexpr static std::array<DiscreteType, nStencilDependencies> stencilDependencies = {{}};
     static const DiscreteType nSymmetric = Dimension;
-    constexpr static const std::array<Boundary, Dimension>  boundaryConditions = {{Boundary::Closed, Boundary::Closed}};
+    constexpr static const Boundary_AllClosed boundaryConditions{};
+//    constexpr static const std::array<Boundary, Dimension>  boundaryConditions = {{Boundary::Closed, Boundary::Closed}};
 };
 // Linker wants the following line for some obscure reason.
 constexpr const decltype(TraitsIsotropic2::stencilDependencies) TraitsIsotropic2::stencilDependencies;

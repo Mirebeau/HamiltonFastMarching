@@ -74,8 +74,8 @@
 #include "Experimental/Differentiable.h"
 #elif PPCAT(Riemannian45_,ModelName)
 #include "Experimental/Riemannian45.h"
-#elif PPCAT(HalfDisk_,ModelName)
-#include "Experimental/HalfDisk.h"
+#elif PPCAT(AsymmetricQuadratic_,ModelName)
+#include "Experimental/AsymmetricQuadratic.h"
 #elif PPCAT(RiemannLifted_,ModelName)
 #include "Experimental/RiemannLifted.h"
 #elif PPCAT(RollingBall_,ModelName)

@@ -29,7 +29,7 @@ struct TraitsR2S1NonShared : TraitsBase<3> {
     constexpr static std::array<Boundary, Dimension> boundaryConditions =
     {{Boundary::Closed, Boundary::Closed, Boundary::Periodic}};
     
-    // Stencils actually depend on all coordinates. This is to get proper domain parametrization.
+    // Stencils actually depend on all coordinates (no multiplier). This is to get proper domain parametrization.
     static const DiscreteType nStencilDependencies=1;
     constexpr static std::array<DiscreteType, nStencilDependencies> stencilDependencies = {{2}};
 };

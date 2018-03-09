@@ -26,15 +26,21 @@ struct StencilRiemann2 : HamiltonFastMarching<TraitsRiemann2>::StencilDataType {
     typedef SymmetricMatrixType MetricElementType;
     typedef Traits::DataSource<MetricElementType> MetricType;
     std::unique_ptr<MetricType> pDualMetric;
+    std::unique_ptr<MetricType> pMetric;
     
     virtual void SetStencil(const IndexType & index, StencilType & stencil) override {
-        Voronoi1Mat<ReductionType>(&stencil.symmetric[0],(*pDualMetric)(index));
-        for(auto & diff : stencil.symmetric)
-            diff.baseWeight/=square(param.gridScale);
+        Voronoi1Mat<ReductionType>(&stencil.symmetric[0],
+                                   pDualMetric ? (*pDualMetric)(index) : (*pMetric)(index).Inverse() );
+        const ScalarType hm2 = 1/square(param.gridScale);
+        for(auto & diff : stencil.symmetric) diff.baseWeight*=hm2;
     }
     virtual const ParamInterface & Param() const override {return param;}
-    virtual void Setup(HFMI *that) override {Superclass::Setup(that); param.Setup(that);
-        pDualMetric = that->GetField<MetricElementType>("dualMetric");}
+    virtual void Setup(HFMI *that) override {
+        Superclass::Setup(that);
+        param.Setup(that);
+        if(that->io.HasField("dualMetric")) pDualMetric = that->GetField<MetricElementType>("dualMetric");
+        else pMetric = that->GetField<MetricElementType>("metric");
+    }
 };
 
 // --------------- 3D Riemannian metrics ------------
@@ -57,11 +63,15 @@ struct StencilRiemann3 : HamiltonFastMarching<TraitsRiemann3>::StencilDataType {
     std::unique_ptr<MetricType> pDualMetric;
     
     virtual void SetStencil(const IndexType & index, StencilType & stencil) override {
-        Voronoi1Mat<ReductionType>(&stencil.symmetric[0],(*pDualMetric)(index));
-        for(auto & diff : stencil.symmetric)
-            diff.baseWeight/=square(param.gridScale);
+        Voronoi1Mat<ReductionType>(&stencil.symmetric[0],
+                                   pDualMetric ? (*pDualMetric)(index) : (*pMetric)(index).Inverse() );
+        const ScalarType hm2 = 1/square(param.gridScale);
+        for(auto & diff : stencil.symmetric) diff.baseWeight*=hm2;
     }
     virtual const ParamInterface & Param() const override {return param;}
-    virtual void Setup(HFMI *that) override {Superclass::Setup(that); param.Setup(that);
-        pDualMetric = that->GetField<MetricElementType>("dualMetric");}
-};
+    virtual void Setup(HFMI *that) override {
+        Superclass::Setup(that);
+        param.Setup(that);
+        if(that->io.HasField("dualMetric")) pDualMetric = that->GetField<MetricElementType>("dualMetric");
+        else pMetric = that->GetField<MetricElementType>("metric");
+    }};
