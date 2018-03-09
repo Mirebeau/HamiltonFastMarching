@@ -10,10 +10,10 @@
 NotebookFileLineBreakTest
 NotebookFileLineBreakTest
 NotebookDataPosition[       158,          7]
-NotebookDataLength[     12778,        314]
-NotebookOptionsPosition[     12445,        298]
-NotebookOutlinePosition[     12803,        314]
-CellTagsIndexPosition[     12760,        311]
+NotebookDataLength[     12651,        310]
+NotebookOptionsPosition[     12318,        294]
+NotebookOutlinePosition[     12676,        310]
+CellTagsIndexPosition[     12633,        307]
 WindowFrame->Normal*)
 
 (* Beginning of Notebook Content *)
@@ -28,21 +28,17 @@ Cell[BoxData[
      RowBox[{"M", ".", " ", "Mirebeau"}]}]}]}], "*)"}]], "Input",
  CellChangeTimes->{{3.7015957794547167`*^9, 3.7015957949132137`*^9}}],
 
-Cell[BoxData[{
+Cell[BoxData[
  RowBox[{
   RowBox[{
   "hfmBinDirectory", "=", 
-   "\"\</Users/mirebeau/bin/2017/MathematicaHFM/Debug\>\""}], ";"}], "\n", 
- RowBox[{
-  RowBox[{
-   RowBox[{"hfmLibraryPath", "=", 
-    RowBox[{"FileNameJoin", "[", 
-     RowBox[{"{", 
-      RowBox[{"hfmBinDirectory", ",", "\"\<libMathematicaHFM_AllBase\>\""}], 
-      "}"}], "]"}]}], ";"}], " "}]}], "Input",
+   "\"\</Users/mirebeau/bin/2018/MathematicaHFM/Release\>\""}], 
+  ";"}]], "Input",
  CellChangeTimes->{{3.701578517740206*^9, 3.701578561505766*^9}, {
   3.70157884291381*^9, 3.701578854825486*^9}, {3.70157939152558*^9, 
-  3.7015793936128798`*^9}, {3.701597166934952*^9, 3.701597168395871*^9}}],
+  3.7015793936128798`*^9}, {3.701597166934952*^9, 3.701597168395871*^9}, {
+  3.7295415867521563`*^9, 3.729541591397217*^9}, {3.729541663697796*^9, 
+  3.729541664529293*^9}}],
 
 Cell[BoxData[
  RowBox[{
@@ -314,8 +310,8 @@ CellTagsIndex->{}
 (*NotebookFileOutline
 Notebook[{
 Cell[558, 20, 299, 8, 32, "Input"],
-Cell[860, 30, 582, 14, 54, "Input"],
-Cell[1445, 46, 10996, 250, 1348, "Input"]
+Cell[860, 30, 455, 10, 32, "Input"],
+Cell[1318, 42, 10996, 250, 1348, "Input"]
 }
 ]
 *)

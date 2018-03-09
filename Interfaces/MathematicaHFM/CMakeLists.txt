@@ -3,61 +3,7 @@ set (CMAKE_CXX_STANDARD 14)
 
 project(MathematicaHFM)
 
-#set a few machine dependent paths
-set(JMM_CPPLibs_dir "${CMAKE_CURRENT_SOURCE_DIR}/../../../JMM_CPPLibs-master" CACHE FILEPATH "JMM_CPPLibs directory")
-
-#paths required for compilation of Lifted Fast Marching
-set(LinearAlgebra_dir 		"${JMM_CPPLibs_dir}/LinearAlgebra")
-set(Output_dir 				"${JMM_CPPLibs_dir}/Output")
-set(DataStructures_dir 		"${JMM_CPPLibs_dir}/DataStructures")
-
-
-set(DummyBinDir "${CMAKE_CURRENT_BINARY_DIR}/Dummy")
-
-#LiftedFastMarching headers
-add_subdirectory(${LinearAlgebra_dir} "${DummyBinDir}/LinearAlgebra")
-add_subdirectory(${Output_dir} "${DummyBinDir}/Output")
-add_subdirectory(${DataStructures_dir} 	"${DummyBinDir}/DataStructures")
-add_subdirectory("../../Headers" "${DummyBinDir}/HFMHeaders")
-
-set(DataStructures_Headers
-	${DataStructures_Headers}
-	${DataStructures_dir}/DataStructures/CappedVector.h
-	${DataStructures_dir}/DataStructures/ShallowMap.h
-	${DataStructures_dir}/DataStructures/RedeclareTypesMacro.h
-)
-
-set(LinearAlgebra_Headers 
-	${LinearAlgebra_Headers} 
-	${LinearAlgebra_dir}/LinearAlgebra/ArrayType.h
-	${LinearAlgebra_dir}/LinearAlgebra/BasisReduction.h	
-)
-
-set(Output_Headers 
-	${Output_Headers} 
-	"${Output_dir}/Output/BaseIO.h"
-	"${Output_dir}/Output/BaseIO.hxx"
-	"${Output_dir}/Output/IO.h"
-	"${Output_dir}/Output/IO.hxx"
-	"${Output_dir}/Output/ExceptionMacro.h"
-	"${Output_dir}/Output/MathematicaIO.h"
-	"${Output_dir}/Output/MathematicaIO.hxx"
-	"${Output_dir}/Output/MathematicaIOExternC.h"
-)
-
-set(Project_Headers 
-	${Base_Headers}
-	${Base_Implementation_Headers}
-	${Specializations_Headers}
-	${Experimental_Headers}
-	${ExtraAlgorithms_Headers}
-	${Root_Headers}
-
-	${DataStructures_Headers}
-	${LinearAlgebra_Headers}
-	${Output_Headers}
-)
-
+include(${CMAKE_CURRENT_SOURCE_DIR}/../common.cmake)
 include_directories(${PROJECT_DIR} ${CMAKE_CURRENT_SOURCE_DIR})
 
 ######################## Additional lines for Wolfram Library link
@@ -92,46 +38,24 @@ endif()
 
 
 # ################## Include the new library link project
-option(Executable_AllBase "Executable_AllBase" TRUE)
-if(Executable_AllBase)
-add_library(MathematicaHFM_AllBase SHARED "MathematicaHFM.cpp" ${Project_Headers})
-target_link_libraries(MathematicaHFM_AllBase -Wl, -lstdc++ -lpthread -Wl, ${Mathematica_Libraries})
-target_compile_definitions(MathematicaHFM_AllBase PRIVATE AllBaseModels)
+
+# Single model executables
+
+foreach(model ${ModelNames})
+add_library(MathematicaHFM_${model} SHARED "MathematicaHFM.cpp")
+target_link_libraries(MathematicaHFM_${model} -Wl, -lstdc++ -lpthread -Wl, ${Mathematica_Libraries})
+target_compile_definitions(MathematicaHFM_${model} PRIVATE ModelName=${model})
+endforeach(model)
+
+
+# Optional custom executable
+
+if(CustomExecutable)
+add_library(MathematicaHFM_Custom SHARED "MathematicaHFM.cpp" ${Project_Headers})
+target_link_libraries(MathematicaHFM_Custom -Wl, -lstdc++ -lpthread -Wl, ${Mathematica_Libraries})
+target_compile_definitions(MathematicaHFM_Custom PRIVATE Custom)
 endif()
 
-option(Executable_RiemannExtra "Executable_RiemannExtra")
-if(Executable_RiemannExtra)
-add_library(MathematicaHFM_RiemannExtra SHARED "MathematicaHFM.cpp")
-target_link_libraries(MathematicaHFM_RiemannExtra -Wl, -lstdc++ -lpthread -Wl, ${Mathematica_Libraries})
-target_compile_definitions(MathematicaHFM_RiemannExtra PRIVATE RiemannExtra)
-endif()
-
-option(Executable_PrescribedCurvature2 "Executable_PrescribedCurvature2")
-if(Executable_PrescribedCurvature2)
-add_library(MathematicaHFM_PrescribedCurvature2 SHARED "MathematicaHFM.cpp")
-target_link_libraries(MathematicaHFM_PrescribedCurvature2 -Wl, -lstdc++ -lpthread -Wl, ${Mathematica_Libraries})
-target_compile_definitions(MathematicaHFM_PrescribedCurvature2 PRIVATE PrescribedCurvature2)
-endif()
-
-option(Executable_Isotropic "Executable_Isotropic")
-if(Executable_Isotropic)
-add_library(MathematicaHFM_Isotropic SHARED "MathematicaHFM.cpp")
-target_link_libraries(MathematicaHFM_Isotropic -Wl, -lstdc++ -lpthread -Wl, ${Mathematica_Libraries})
-target_compile_definitions(MathematicaHFM_Isotropic PRIVATE Isotropic)
-endif()
 
 # Note from JMM to Erik Bekkers: For OSX compilation, I had to delete all static bindings
 #target_link_libraries(MathematicaHFM -static-libgcc -static-libstdc++ -Wl,-Bstatic -lstdc++ -lpthread -Wl,-Bdynamic)
-
-
-
-# Headers IDE layout
-source_group("DataStructures" FILES ${DataStructures_Headers})
-source_group("LinearAlgebra" FILES ${LinearAlgebra_Headers})
-source_group("Output" FILES ${Output_Headers})
-
-source_group("Base" FILES ${Base_Headers})
-source_group("Base\\Implementation" FILES ${Base_Implementation_Headers})
-source_group("Specializations" FILES ${Specializations_Headers})
-source_group("Experimental" FILES ${Experimental_Headers})
-source_group("ExtraAlgorithms" FILES ${ExtraAlgorithms_Headers})

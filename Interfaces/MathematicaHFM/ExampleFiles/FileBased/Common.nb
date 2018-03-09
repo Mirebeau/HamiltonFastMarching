@@ -10,10 +10,10 @@
 NotebookFileLineBreakTest
 NotebookFileLineBreakTest
 NotebookDataPosition[       157,          7]
-NotebookDataLength[     23753,        613]
-NotebookOptionsPosition[     23348,        594]
-NotebookOutlinePosition[     23707,        610]
-CellTagsIndexPosition[     23664,        607]
+NotebookDataLength[     23804,        614]
+NotebookOptionsPosition[     23399,        595]
+NotebookOutlinePosition[     23758,        611]
+CellTagsIndexPosition[     23715,        608]
 WindowFrame->Normal*)
 
 (* Beginning of Notebook Content *)
@@ -45,9 +45,10 @@ Cell[BoxData[
   RowBox[{
    RowBox[{
    "binDirectoryHFM", " ", "=", " ", 
-    "\"\</Users/mirebeau/bin/2017/FileHFM/Release\>\""}], ";"}]}]], "Input",
+    "\"\</Users/mirebeau/bin/2018/FileHFM/Release\>\""}], ";"}]}]], "Input",
  CellChangeTimes->{{3.699386983914554*^9, 3.699386986480248*^9}, {
-  3.7017725659010487`*^9, 3.701772568283402*^9}}],
+  3.7017725659010487`*^9, 3.701772568283402*^9}, {3.729539345011047*^9, 
+  3.7295393462929087`*^9}}],
 
 Cell[BoxData[{
  RowBox[{
@@ -612,8 +613,8 @@ Notebook[{
 Cell[CellGroupData[{
 Cell[579, 22, 177, 2, 148, "Title"],
 Cell[759, 26, 425, 8, 49, "Text"],
-Cell[1187, 36, 480, 13, 54, "Input"],
-Cell[1670, 51, 21662, 540, 2112, "Input"]
+Cell[1187, 36, 531, 14, 54, "Input"],
+Cell[1721, 52, 21662, 540, 2170, "Input"]
 }, Open  ]]
 }
 ]

@@ -42,6 +42,7 @@ MayReverse(DiscreteType i) {
 
 template<typename T> PeriodicGrid<T>::
 PeriodicGrid(IndexCRef dims){
+    const std::string err = "PeriodicGrid error : ";
     arr.dims=dims;
     const auto & bc=Traits::boundaryConditions;
     for(int i=0; i<Dimension; ++i){
@@ -71,6 +72,11 @@ PeriodicGrid(IndexCRef dims){
             case Boundary::Sphere2_1:{
                 if(i<=0 || bc[i-1]!=Boundary::Sphere2_0)
                     ExceptionMacro("PeriodicGrid error : Sphere2_1 must be preceded by Sphere2_0");
+                if(dims[i]%2 != 0) ExceptionMacro(err << "Hi there");
+                break;}
+            case Boundary::Sphere2_Hopf:{
+                if(i<=1 || bc[i-1]!=Boundary::Sphere2_1)
+                    ExceptionMacro("PeriodicGrid error : Sphere2_Hopf must be preceded by Sphere2_1");
                 break;}
             case Boundary::Sphere3_1:{
                 if(i<=0 || bc[i-1]!=Boundary::Sphere3_0)
@@ -112,6 +118,7 @@ Periodize(IndexType & point) const -> ReverseFlag {
             case Boundary::Sphere2_1:
             case Boundary::Sphere3_1:
             case Boundary::Sphere3_2:
+            case Boundary::Sphere2_Hopf:
                 point[i] = PosMod(point[i], dims[i]);
                 break;
                 
@@ -126,6 +133,9 @@ Periodize(IndexType & point) const -> ReverseFlag {
                         point[i+1]=point[i+1]+dims[i+1];
                     } else if(T::boundaryConditions[i+1]==Boundary::Sphere2_1) {
                         point[i+1]=point[i+1]+dims[i+1]/2;
+                        if(i<=Dimension-3 && T::boundaryConditions[i+2]==Boundary::Sphere2_Hopf){
+                            point[i+2]=point[i+2]+dims[i+2]/2;
+                        }
                     } else {assert(false);}
                 }
                 assert(0<=point[i] && point[i]<dims[i]);
@@ -175,6 +185,7 @@ Periodize(PointType & point) const -> ReverseFlag {
             case Boundary::Sphere2_1:
             case Boundary::Sphere3_1:
             case Boundary::Sphere3_2:
+            case Boundary::Sphere2_Hopf:
                 point[i] = fPosMod(point[i],(ScalarType)dims[i]);
                 break;
                 
@@ -189,6 +200,9 @@ Periodize(PointType & point) const -> ReverseFlag {
                     } else if(T::boundaryConditions[i+1]==Boundary::Sphere2_1) {
                         assert(dims[i+1]%2==0);
                         point[i+1]=point[i+1]+dims[i+1]/2;
+                        if(i<=Dimension-3 && T::boundaryConditions[i+2]==Boundary::Sphere2_Hopf){
+                            point[i+2]=point[i+2]+dims[i+2]/2;
+                        }
                     } else {assert(false);}
                 }
                 assert(0<=point[i] && point[i]<dims[i]);

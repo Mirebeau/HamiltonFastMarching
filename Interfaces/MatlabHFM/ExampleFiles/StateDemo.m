@@ -19,7 +19,6 @@ n=20;h=1/n;
 [x,y]=meshgrid(0:1/n:2,0:1/n:1); 
 
 params.dims=size(x')';
-params.model='IsotropicBox2<Boundary::Closed>';
 params.speed=1+(x>1);
 params.seeds = [0.2,0.8;0.5,0.7];
 params.exportValues=1;
@@ -30,7 +29,7 @@ params.stopAtEuclideanLength=1;
 
 params.seedFlags=[1;2];
 
-out=MatlabHFM_Isotropic(params);
+out=MatlabHFM_Isotropic2(params);
 
 imagesc(out.values); title('Seed distance value');
 pause;

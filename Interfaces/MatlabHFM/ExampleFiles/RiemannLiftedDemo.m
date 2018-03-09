@@ -12,7 +12,7 @@ if true
     
     % We choose a (2+1)D model, where the first two dimensions are 
     % equipped with a Riemannian metric, and the last dimension is periodic.
-    input.model = 'RiemannLifted2<Boundary::Periodic>';
+    modelName = 'RiemannLifted2_Periodic';
     % If you want a non-periodic last dimension, then select 'RiemannLifted2<Boundary::Closed>'
     
      
@@ -45,9 +45,9 @@ if true
     input.tips = [x,y,(pi/3)*ones(size(x))]'; % where the geodesics end. [x;y;theta]
 
 %    input.tips = [0.2,0.7,0.8;0.6,0.2,0.5;pi/3,pi/2,-pi];
-    input.exportValues=1;
-    input.pointToIndex = input.seeds;
-    output = MatlabHFM_RiemannExtra(input);
+    input.exportValues=1; 
+%    input.pointToIndex = input.seeds;
+    output = eval(['MatlabHFM_' modelName '(input)']);
     
     clf;
     imagesc(min(output.values,[],3))
@@ -55,6 +55,5 @@ if true
     for i=1:size(geodesics,2) %geodesics joining the "tips"
         rescaledGeodesic=RescaledCoords(geodesics{i}(1:2,:),input.origin,[input.gridScale;input.gridScale]);
         line(rescaledGeodesic(1,:),rescaledGeodesic(2,:));
-    end;
-    pause;
+    end
 end

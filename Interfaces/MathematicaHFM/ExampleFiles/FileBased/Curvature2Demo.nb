@@ -10,10 +10,10 @@
 NotebookFileLineBreakTest
 NotebookFileLineBreakTest
 NotebookDataPosition[       157,          7]
-NotebookDataLength[     23165,        582]
-NotebookOptionsPosition[     22447,        553]
-NotebookOutlinePosition[     22806,        569]
-CellTagsIndexPosition[     22763,        566]
+NotebookDataLength[     23734,        591]
+NotebookOptionsPosition[     23012,        562]
+NotebookOutlinePosition[     23372,        578]
+CellTagsIndexPosition[     23329,        575]
 WindowFrame->Normal*)
 
 (* Beginning of Notebook Content *)
@@ -34,8 +34,8 @@ Cell[BoxData[
       RowBox[{
       "prms", ",", "opts", ",", "n", ",", "nGeo", ",", "tips", ",", "out", 
        ",", "geo", ",", "r", ",", 
-       RowBox[{"\[Delta]", "=", "0.1"}], ",", "stencil", ",", "dims"}], "}"}],
-      ",", "\[IndentingNewLine]", 
+       RowBox[{"\[Delta]", "=", "0.1"}], ",", "stencil", ",", "dims", ",", 
+       "executable"}], "}"}], ",", "\[IndentingNewLine]", 
      RowBox[{"(*", 
       RowBox[{"Setting", " ", "up", " ", "default", " ", "options"}], "*)"}], 
      "\[IndentingNewLine]", 
@@ -45,12 +45,6 @@ Cell[BoxData[
         RowBox[{"options", ",", 
          RowBox[{"{", "\[IndentingNewLine]", 
           RowBox[{
-           RowBox[{
-           "\"\<executable\>\"", "\[Rule]", "\"\<FileHFM_AllBase\>\""}], ",", 
-           " ", 
-           RowBox[{"(*", 
-            RowBox[{"FileHFM_Curvature2", " ", "also", " ", "fits"}], "*)"}], 
-           "\[IndentingNewLine]", 
            RowBox[{"\"\<r\>\"", "\[Rule]", " ", "1.4"}], ",", " ", 
            RowBox[{"(*", 
             RowBox[{"Domain", " ", 
@@ -238,12 +232,16 @@ Cell[BoxData[
               " ", "Mathematica"}]}], "*)"}], "\[IndentingNewLine]", 
            RowBox[{"\"\<progressReportLandmarks\>\"", "\[Rule]", 
             RowBox[{"{", "}"}]}]}], "\[IndentingNewLine]", "}"}]}], "]"}]}], 
-      ";", "\[IndentingNewLine]", "\[IndentingNewLine]", 
+      ";", "\[IndentingNewLine]", 
+      RowBox[{"executable", "=", 
+       RowBox[{"\"\<FileHFM_\>\"", "<>", 
+        RowBox[{"(", 
+         RowBox[{"\"\<modelName\>\"", "/.", "options"}], ")"}]}]}], ";", 
+      "\[IndentingNewLine]", 
       RowBox[{"out", "=", 
        RowBox[{"RunExec", "[", 
-        RowBox[{
-         RowBox[{"\"\<executable\>\"", "/.", "opts"}], ",", "prms"}], "]"}]}],
-       ";", "\[IndentingNewLine]", 
+        RowBox[{"executable", ",", "prms"}], "]"}]}], ";", 
+      "\[IndentingNewLine]", 
       RowBox[{"If", "[", 
        RowBox[{
         RowBox[{"\"\<verbose\>\"", "/.", "opts"}], ",", 
@@ -473,37 +471,44 @@ Cell[BoxData[
    3.699962531631562*^9}, 3.701772588553811*^9, {3.701773068386405*^9, 
    3.7017731008402023`*^9}, {3.7049914897222443`*^9, 3.704991499344905*^9}, {
    3.7201874159796352`*^9, 3.720187431155006*^9}, {3.722758013011786*^9, 
-   3.722758020830415*^9}}],
+   3.722758020830415*^9}, {3.729539463034257*^9, 3.72953951558571*^9}, {
+   3.7295396246247663`*^9, 3.729539627390719*^9}}],
 
 Cell["\<\
 Available models:
 -ReedsShepp2 has a reverse gear, and curvature penalization Sqrt[1+ xi^2 \
 kappa^2].
 -ReedsSheppForward2 is similar, but without the reverse gear.
--Elastica2<5> is the Euler/Mumford elastica model, with curvature \
-penalization 1+ xi^2 kappa^2
+-Elastica2 is the Euler/Mumford elastica model, with curvature penalization \
+1+ xi^2 kappa^2
 -Dubins2 constrains the curvature radius: xi kappa<=1\
 \>", "Text",
  CellChangeTimes->{{3.6994644775843487`*^9, 3.6994645795114527`*^9}, {
-  3.699464645208975*^9, 3.699464746557311*^9}}],
+  3.699464645208975*^9, 3.699464746557311*^9}, {3.7295396011898193`*^9, 
+  3.729539601674405*^9}}],
 
 Cell["\<\
 Try each of the following commands, in another notebook: 
 
-RunFree[{\"r\"->1.2},{\"model\"->\"ReedsShepp2\" ,\"xi\"->0.2}];
-RunFree[{\"r\"->1.2},{\"model\"->\"ReedsSheppForward2\" ,\"xi\"->0.2}];
-RunFree[{\[OpenCurlyDoubleQuote]r\[CloseCurlyDoubleQuote]\[Rule]1.7},{\
-\[OpenCurlyDoubleQuote]model\[CloseCurlyDoubleQuote]\[Rule]\
-\[CloseCurlyDoubleQuote]Elastica2<5>\[CloseCurlyDoubleQuote] ,\
+RunFree[{\"r\"->1.2, \
+\[OpenCurlyDoubleQuote]modelName\[CloseCurlyDoubleQuote]->\
+\[CloseCurlyDoubleQuote]ReedsShepp2\[CloseCurlyDoubleQuote] },{\"xi\"->0.2}];
+RunFree[{\"r\"->1.2, \
+\[OpenCurlyDoubleQuote]modelName\[CloseCurlyDoubleQuote]->\
+\[CloseCurlyDoubleQuote]ReedsSheppForward2\[CloseCurlyDoubleQuote]},{\"xi\"->\
+0.2}];
+RunFree[{\[OpenCurlyDoubleQuote]r\[CloseCurlyDoubleQuote]\[Rule]1.7, \
+\[OpenCurlyDoubleQuote]modelName\[CloseCurlyDoubleQuote]\[Rule]\
+\[CloseCurlyDoubleQuote]Elastica2\[CloseCurlyDoubleQuote]},{\
 \[CloseCurlyDoubleQuote]xi\[CloseCurlyDoubleQuote]\[Rule]0.2}];
-RunFree[{\[OpenCurlyDoubleQuote]r\[CloseCurlyDoubleQuote]\[Rule]2},{\
-\[OpenCurlyDoubleQuote]model\[CloseCurlyDoubleQuote]\[Rule]\
-\[CloseCurlyDoubleQuote]Dubins2\[CloseCurlyDoubleQuote] ,\
+RunFree[{\[OpenCurlyDoubleQuote]r\[CloseCurlyDoubleQuote]\[Rule]2, \
+\[OpenCurlyDoubleQuote]modelName\[CloseCurlyDoubleQuote]\[Rule]\
+\[CloseCurlyDoubleQuote]Dubins2\[CloseCurlyDoubleQuote]},{\
 \[CloseCurlyDoubleQuote]xi\[CloseCurlyDoubleQuote]\[Rule]0.2}];\
 \>", "Text",
  CellChangeTimes->{{3.699805869279044*^9, 3.699805976980335*^9}, {
   3.6998060633121567`*^9, 3.69980608706948*^9}, {3.704991513034175*^9, 
-  3.704991515056425*^9}}],
+  3.704991515056425*^9}, {3.7295395256300488`*^9, 3.729539587314172*^9}}],
 
 Cell[CellGroupData[{
 
@@ -520,12 +525,14 @@ Cell["\<\
 Try the following command, in another notebook :
 
 Module[{r = 1.7, k}, k = Round[100 r];
- RunFree[{\"r\" -> r}, {\"model\" -> \"Elastica2<5>\" , \"xi\" -> 0.2,
+ RunFree[{\"r\" -> r, \
+\[OpenCurlyDoubleQuote]modelName\[CloseCurlyDoubleQuote] -> \
+\[OpenCurlyDoubleQuote]Elastica2\[CloseCurlyDoubleQuote]}, {\"xi\" -> 0.2,
    \"walls\" -> Array[Boole[#1 == Round[3/4 k] && #2 >= k/4] &, {k, k}]}]
  ];\
 \>", "Text",
  CellChangeTimes->{{3.6998061514512053`*^9, 3.69980615554704*^9}, 
-   3.70499151983974*^9}]
+   3.70499151983974*^9, {3.729539708588093*^9, 3.729539717948832*^9}}]
 }, Open  ]],
 
 Cell[CellGroupData[{
@@ -542,17 +549,19 @@ Cell["\<\
 Try the following command, in another notebook :
 
 Module[{r = 1.8, k}, k = Round[100 r];
- RunFree[{\"r\" -> r}, {\"model\" -> \"Elastica2<5>\" , \"xi\" -> 0.2,
+ RunFree[{\"r\" -> r, \
+\[OpenCurlyDoubleQuote]modelName\[CloseCurlyDoubleQuote] -> \
+\[OpenCurlyDoubleQuote]Elastica2\[CloseCurlyDoubleQuote]}, {\"xi\" -> 0.2,
    \"speed\" -> Array[If[#2 <= k/2, 1.5, 1] &, {k, k}]}]
  ];\
 \>", "Text",
  CellChangeTimes->{{3.6998062132270317`*^9, 3.699806252964492*^9}, 
-   3.704991521607607*^9}]
+   3.704991521607607*^9, {3.729539722406189*^9, 3.729539732996126*^9}}]
 }, Open  ]]
 }, Open  ]]
 },
 WindowSize->{867, 754},
-WindowMargins->{{Automatic, -50}, {Automatic, 0}},
+WindowMargins->{{Automatic, 209}, {Automatic, 17}},
 FrontEndVersion->"11.0 for Mac OS X x86 (32-bit, 64-bit Kernel) (September \
 21, 2016)",
 StyleDefinitions->"Default.nb"
@@ -570,18 +579,18 @@ CellTagsIndex->{}
 Notebook[{
 Cell[CellGroupData[{
 Cell[579, 22, 117, 1, 92, "Title"],
-Cell[699, 25, 18910, 450, 1537, "Input"],
-Cell[19612, 477, 458, 10, 106, "Text"],
-Cell[20073, 489, 899, 16, 125, "Text"],
+Cell[699, 25, 18909, 449, 1482, "Input"],
+Cell[19611, 476, 506, 11, 106, "Text"],
+Cell[20120, 489, 1145, 21, 125, "Text"],
 Cell[CellGroupData[{
-Cell[20997, 509, 162, 2, 44, "Subsection"],
-Cell[21162, 513, 158, 3, 30, "Text"],
-Cell[21323, 518, 353, 9, 125, "Text"]
+Cell[21290, 514, 162, 2, 44, "Subsection"],
+Cell[21455, 518, 158, 3, 30, "Text"],
+Cell[21616, 523, 489, 11, 125, "Text"]
 }, Open  ]],
 Cell[CellGroupData[{
-Cell[21713, 532, 174, 2, 44, "Subsection"],
-Cell[21890, 536, 188, 2, 30, "Text"],
-Cell[22081, 540, 338, 9, 125, "Text"]
+Cell[22142, 539, 174, 2, 44, "Subsection"],
+Cell[22319, 543, 188, 2, 30, "Text"],
+Cell[22510, 547, 474, 11, 125, "Text"]
 }, Open  ]]
 }, Open  ]]
 }

@@ -16,7 +16,7 @@ if true %Some geodesics, around the origin, without obstacles.
     arrPos = (input.gridScale/2):input.gridScale:(1-input.gridScale/2);
     [x,y,theta]=meshgrid(arrPos,arrPos,(0:(nTheta-1))*(2*pi/nTheta));
     
-    input.model = 'DubinsExt2'; %Alternatively : 'ReedsSheppExt2','ReedsSheppForwardExt2', 'ElasticaExt2<5>', 'DubinsExt2'
+    modelName = 'DubinsExt2'; %Alternatively : 'ReedsSheppExt2','ReedsSheppForwardExt2', 'ElasticaExt2', 'DubinsExt2'
     input.eps=0.1;%Relaxation parameter
 
     % The three folloinwg fields may be uniform over the domain, or state dependent. E.g. =1, or =ones(n,n,nTheta).
@@ -38,7 +38,7 @@ if true %Some geodesics, around the origin, without obstacles.
     input.exportValues=1; % distance table, of size [n,n,numberOfDirections]
     
     input.pointToIndex=input.seeds;
-    output=MatlabHFM_PrescribedCurvature2(input);
+    output=eval(['MatlabHFM_' modelName '(input)']);
     
     clf;
     imagesc(min(output.values,[],3))
@@ -47,5 +47,4 @@ if true %Some geodesics, around the origin, without obstacles.
         rescaledGeodesic=RescaledCoords(geodesics{i}(1:2,:),input.origin,[input.gridScale;input.gridScale]);
         line(rescaledGeodesic(1,:),rescaledGeodesic(2,:));
     end
-    pause;
 end

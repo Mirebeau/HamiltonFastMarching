@@ -55,14 +55,14 @@ template<int VDim> struct TraitsBase {
     };
 };
 
-    template<int VDim> template<size_t VMultSize, typename Dummy> struct TraitsBase<VDim>::Difference {
+template<int VDim> template<size_t VMultSize, typename Dummy> struct TraitsBase<VDim>::Difference {
     typedef TraitsBase<VDim> T; typedef T::ScalarType ScalarType; typedef T::OffsetType OffsetType;
     typedef T::ShortType ShortType;
         ScalarType baseWeight; OffsetType offset; ShortType multIndex; static constexpr size_t multSize=VMultSize;
         typedef LinearAlgebra::Point<ScalarType, multSize> MultiplierType;
         ScalarType Weight(const MultiplierType & mult) const {return baseWeight*square(mult[multIndex]);}
 //        PrintSelfMacro(Difference);
-    };
+};
 
 template<int VDim> template<typename Dummy> struct TraitsBase<VDim>::Difference<1,Dummy> {
     typedef TraitsBase<VDim> T; typedef T::ScalarType ScalarType; typedef T::OffsetType OffsetType;
@@ -108,15 +108,19 @@ typename ScalarType = typename ReductionType::ScalarType>
 DiffType * Voronoi1Mat(DiffType * pDiff,
                        const SymmetricMatrixType & d,
                        ScalarType tol=1000*std::numeric_limits<ScalarType>::epsilon()){
+    const ScalarType atol = tol*d.Trace(); // Absolute tolerance
+    
     // Get the tensor decomposition.
     const auto & decomp = ReductionType::TensorDecomposition(d);
     // Fill in the scheme, omitting excessively low values
-    for(const auto & offsetWeight : decomp){
-        const auto & offset = offsetWeight.first;
-        const ScalarType & weight = offsetWeight.second;
-        pDiff->baseWeight = weight<tol ? 0. : weight;
+    auto offsetIt = decomp.offsets.begin();
+    auto weightIt = decomp.weights.begin();
+    for(; weightIt!=decomp.weights.end(); ++weightIt, ++offsetIt){
+        const ScalarType weight = *weightIt;
+        const auto & offset = *offsetIt;
+        pDiff->baseWeight = weight<atol ? 0. : weight;
         pDiff->offset.fill(0);
-        for(int i=0; i<offset.size(); ++i)
+        for(int i=0; i< offset.size(); ++i)
             pDiff->offset[VDimShift+i]= offset[i];
         ++pDiff;
     }
@@ -141,6 +145,8 @@ typename ScalarType = typename ReductionType::ScalarType
 DiffType * Voronoi1Vec(DiffType * pDiff,
                        const VectorType & v, ScalarType eps,
                        ScalarType tol=1000*std::numeric_limits<ScalarType>::epsilon()){
+    const ScalarType atol = v.SquaredNorm()*tol; // Absolute tolerance
+    
     // Build tensor
     typedef typename ReductionType::SymmetricMatrixType SymmetricMatrixType;
     const SymmetricMatrixType d =
@@ -148,13 +154,15 @@ DiffType * Voronoi1Vec(DiffType * pDiff,
     +v.SquaredNorm()*SymmetricMatrixType::Identity()*square(eps);
     // Get decomposition
     const auto & decomp = ReductionType::TensorDecomposition(d);
+    auto offsetIt = decomp.offsets.begin();
+    auto weightIt = decomp.weights.begin();
     // Fill in the scheme, omitting excessively low values, with reorientation
-    for(const auto & offsetWeight : decomp){
-        const auto & offset = offsetWeight.first;
-        const ScalarType & weight = offsetWeight.second;
-        
+    for(; weightIt!=decomp.weights.end(); ++weightIt, ++offsetIt){
+        const ScalarType weight = *weightIt;
+        const auto & offset = *offsetIt;
+
         const ScalarType scal = v.ScalarProduct(VectorType::CastCoordinates(offset));
-        pDiff->baseWeight = (weight<tol || std::abs(scal)<tol) ? 0. : weight;
+        pDiff->baseWeight = (weight<atol || std::abs(scal)<atol) ? 0. : weight;
         
         pDiff->offset.fill(0);
         for(int i=0; i<offset.size(); ++i) {

@@ -6,9 +6,6 @@ clear input;
 nx=81;ny=83; %Taking different dimensions to make sure axes are not inverted...
 nGeo=8;
 
-% 'Trivial' means that we work on plain R^d, without a bundle-like component.
-input.model = 'Riemann2';
-
 % We do use Matlab's convention of ordering the axes as y, x, z.
 % Internally, the first two array coordinates are transposed.
 % This feature can be turned off by setting input.transposeFirstTwoCoordinates=False
@@ -37,7 +34,7 @@ x=reshape(x,[numel(x),1]); y=reshape(y,[numel(y),1]);
 input.tips = [x,y]'; % where the geodesics end. This will select the angle t for which the geodesic is the shortest.
 input.exportValues=1; % distance table, of size [n,n] (minimum of the previous one over directions)
 
-output=MatlabHFM_Riemann(input);
+output=MatlabHFM_Riemann2(input);
 
 clf;
 imagesc(output.values)
@@ -46,4 +43,3 @@ for i=1:size(geodesics,2) %geodesics joining the "tips"
     rescaledGeodesic=RescaledCoords(geodesics{i},input.origin,[input.gridScale;input.gridScale]);
     line(rescaledGeodesic(1,:),rescaledGeodesic(2,:));
 end
-pause;

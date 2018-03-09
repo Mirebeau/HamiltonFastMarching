@@ -40,7 +40,20 @@ HFMInterface<T>::SpecializationsDefault<true,Dummy> {
         else if(nDims==DimDep) {    return ResultType(new DataSource_Dep<E>(io.template GetArray<ScalarType, DimDep>(name).template Cast<E>()));}
         else {ExceptionMacro("Field " << name << " has incorrect depth.");}
     }
-    typedef std::array<ScalarType,DimIndep==0 ? 1 : DimIndep> UnorientedPointType;
+    static const DiscreteType UnorientedDim = DimIndep==0 ? 1 : DimIndep; // Avoid zero-dimensional
+    typedef std::array<ScalarType, UnorientedDim> UnorientedPointType;
+    typedef std::array<DiscreteType, UnorientedDim> UnorientedIndexType;
+    static UnorientedIndexType StripUnoriented(const IndexType & p){
+        UnorientedIndexType q;
+        auto depIt = Traits::stencilDependencies.begin();
+        auto qIt = q.begin();
+        for(int i=0; i<Dimension; ++i){
+            if(depIt!=Traits::stencilDependencies.end() && i==*depIt) ++depIt;
+            else { *qIt = p[i]; ++qIt;}
+        }
+        return q;
+    }
+
     static PointType PadUnoriented(const UnorientedPointType & p){
         PointType q=PointType::Constant(0);
         auto depIt = Traits::stencilDependencies.begin();
@@ -75,6 +88,7 @@ HFMInterface<T>::SpecializationsDefault<true,Dummy> {
         equiv.clear();
         EquivalentPoints(that, that->stencil.Param().ADim( PadUnoriented(p) ), equiv);
     }
+    
 };
 
 template<typename T> template<typename Dummy> struct
@@ -103,7 +117,10 @@ HFMInterface<T>::SpecializationsDefault<false,Dummy> {
         else if(nDims==Dimension) { return ResultType(new DataSource_Array<E>(io.template GetArray<ScalarType, Dimension>(name).template Cast<E>()));}
         else {ExceptionMacro("Field " << name << " has incorrect depth.");}
     }
+    // Dummy functions 
     typedef PointType UnorientedPointType;
+    typedef IndexType UnorientedIndexType;
+    static UnorientedIndexType StripUnoriented(const IndexType & p){return p;}
     static UnorientedPointType PadUnoriented(const PointType & p){return p;}
     static void EquivalentPoints(HFMI*, PointType, std::vector<PointType> &){assert(false);};
     static void PadAdimEquiv(HFMI*, UnorientedPointType, std::vector<PointType> &){assert(false);}

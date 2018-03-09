@@ -12,8 +12,8 @@ import sys
 if len(sys.argv) >=2:
     sys.path.insert(0,sys.argv[1])
 
-import PythonHFM_AllBase
-hfm = PythonHFM_AllBase.HFMIO()
+import PythonHFM_Isotropic2 # Two dimensional isotropic
+hfm = PythonHFM_Isotropic2.HFMIO()
 
 # Demonstrating basic input output
 
@@ -38,7 +38,6 @@ hfm.SetArray("dims",np.array([2*n,n]).astype(float))
 x,y=np.meshgrid(np.linspace(0,2,2*n),np.linspace(0,1,n))
 hfm.SetArray("speed",np.exp(-(x**2+y**2)))
 
-hfm.SetString("model","IsotropicBox2<Boundary::Closed>")
 hfm.SetScalar("gridScale",1./n)
 hfm.SetArray("seeds",np.array([[0.5,0.5]]))
 hfm.SetScalar("exportValues",1)

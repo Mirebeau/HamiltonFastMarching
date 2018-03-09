@@ -10,10 +10,10 @@
 NotebookFileLineBreakTest
 NotebookFileLineBreakTest
 NotebookDataPosition[       157,          7]
-NotebookDataLength[     27604,        562]
-NotebookOptionsPosition[     26805,        531]
-NotebookOutlinePosition[     27164,        547]
-CellTagsIndexPosition[     27121,        544]
+NotebookDataLength[     27770,        569]
+NotebookOptionsPosition[     26971,        538]
+NotebookOutlinePosition[     27330,        554]
+CellTagsIndexPosition[     27287,        551]
 WindowFrame->Normal*)
 
 (* Beginning of Notebook Content *)
@@ -77,10 +77,6 @@ Cell[BoxData[
           " ", "to", " ", "any", " ", 
           RowBox[{"model", "."}]}], "*)"}], "\[IndentingNewLine]", 
         RowBox[{
-         RowBox[{
-         "\"\<model\>\"", "\[Rule]", 
-          "\"\<IsotropicBox2<Boundary::Closed>\>\""}], ",", 
-         "\[IndentingNewLine]", 
          RowBox[{"\"\<dims\>\"", "\[Rule]", "dims"}], ",", 
          "\[IndentingNewLine]", 
          RowBox[{"\"\<gridScale\>\"", "\[Rule]", "h"}], ",", 
@@ -144,7 +140,8 @@ Cell[BoxData[
        ";", "\[IndentingNewLine]", "\[IndentingNewLine]", 
       RowBox[{"out", "=", 
        RowBox[{"RunExec", "[", 
-        RowBox[{"\"\<FileHFM_AllBase\>\"", ",", "prms"}], "]"}]}], ";", " ", 
+        RowBox[{"\"\<FileHFM_Isotropic2\>\"", ",", "prms"}], "]"}]}], ";", 
+      " ", 
       RowBox[{"(*", 
        RowBox[{"FileHFM_Isotropic", " ", "also", " ", "fits"}], "*)"}], 
       "\[IndentingNewLine]", 
@@ -207,27 +204,30 @@ metric) equals euclidean length\>\"", "]"}], "\[IndentingNewLine]",
    3.69938279302201*^9}, {3.69938282624128*^9, 3.699382850936058*^9}, {
    3.699382994793545*^9, 3.699382996190102*^9}, {3.6998168713310957`*^9, 
    3.699816877545764*^9}, {3.720187255888266*^9, 3.720187257451576*^9}, {
-   3.720187368634012*^9, 3.7201873803832293`*^9}}],
+   3.720187368634012*^9, 3.7201873803832293`*^9}, {3.729540808989717*^9, 
+   3.729540819739024*^9}}],
 
 Cell[CellGroupData[{
 
 Cell[BoxData["\<\"Field verbosity defaults to 1\\nField arrayOrdering \
 defaults to RowMajor\\nField origin defaults to {0,0}\\nField sndOrder \
-defaults to 0\\nField voronoiStoppingCriterion defaults to None\\nFast \
-marching solver completed in 0.000312 s.\\nField exportActiveNeighs defaults \
-to 0\\nField exportGeodesicFlow defaults to 0\\nField exportEuclideanLengths \
-defaults to 1\\nField euclideanLength_exportGeodesicFromStoppingIndex \
-defaults to 1\\nField geodesicSolver defaults to Discrete\\nField \
-geodesicStep defaults to 0.25\\nField geodesicWeightThreshold defaults to \
-0.0001\\nField geodesicVolumeBound defaults to 4.225\\nField \
-exportVoronoiFlags defaults to 1\"\>"], "Print",
+defaults to 0\\nField showProgress defaults to 0\\nField \
+voronoiStoppingCriterion defaults to None\\nFast marching solver completed in \
+0.000244 s.\\nField exportActiveNeighs defaults to 0\\nField \
+exportGeodesicFlow defaults to 0\\nField exportEuclideanLengths defaults to 1\
+\\nField euclideanLength_exportGeodesicFromStoppingPoint defaults to \
+1\\nField geodesicSolver defaults to Discrete\\nField geodesicStep defaults \
+to 0.25\\nField geodesicWeightThreshold defaults to 0.0001\\nField \
+geodesicVolumeBound defaults to 4.225\\nField exportVoronoiFlags defaults to \
+1\"\>"], "Print",
  CellChangeTimes->{{3.6993556263890877`*^9, 3.699355727495241*^9}, 
    3.699355764937627*^9, 3.6993558057765417`*^9, 3.69937977346548*^9, {
    3.699381868869339*^9, 3.699381886761387*^9}, 3.6993821327620773`*^9, {
    3.69938220597718*^9, 3.699382218305005*^9}, {3.6993822576136017`*^9, 
    3.6993822669799423`*^9}, 3.699382363791168*^9, 3.6993824602555723`*^9, {
    3.699382608426169*^9, 3.699382625794599*^9}, 3.699382660019725*^9, 
-   3.6998168797762413`*^9, 3.720187225098418*^9, 3.7201872582480793`*^9}],
+   3.6998168797762413`*^9, 3.720187225098418*^9, 3.7201872582480793`*^9, 
+   3.729540820543305*^9}],
 
 Cell[BoxData[
  GraphicsBox[RasterBox[CompressedData["
@@ -320,7 +320,8 @@ p963QTdakhFAvW+DrtKShp3U+zboyuvMe0W9b4Ouakr/APW+DbpNaWqF1Ps2
    3.69938220597718*^9, 3.699382218305005*^9}, {3.6993822576136017`*^9, 
    3.6993822669799423`*^9}, 3.699382363791168*^9, 3.6993824602555723`*^9, {
    3.699382608426169*^9, 3.699382625794599*^9}, 3.699382660019725*^9, 
-   3.6998168797762413`*^9, 3.720187225098418*^9, 3.7201872583523607`*^9}],
+   3.6998168797762413`*^9, 3.720187225098418*^9, 3.7201872582480793`*^9, 
+   3.7295408206019917`*^9}],
 
 Cell[BoxData[
  GraphicsBox[RasterBox[CompressedData["
@@ -402,7 +403,8 @@ bdk6jPvn/wK8GgyB
    3.69938220597718*^9, 3.699382218305005*^9}, {3.6993822576136017`*^9, 
    3.6993822669799423`*^9}, 3.699382363791168*^9, 3.6993824602555723`*^9, {
    3.699382608426169*^9, 3.699382625794599*^9}, 3.699382660019725*^9, 
-   3.6998168797762413`*^9, 3.720187225098418*^9, 3.720187258414407*^9}],
+   3.6998168797762413`*^9, 3.720187225098418*^9, 3.7201872582480793`*^9, 
+   3.7295408206589127`*^9}],
 
 Cell[BoxData[
  GraphicsBox[RasterBox[CompressedData["
@@ -425,7 +427,8 @@ utfNtdDdLq6F7nbxV+h+2lnQO1r/3wO9p/+vLWdD7+n/a8vZ0Hv+8wUqUxLO
    3.69938220597718*^9, 3.699382218305005*^9}, {3.6993822576136017`*^9, 
    3.6993822669799423`*^9}, 3.699382363791168*^9, 3.6993824602555723`*^9, {
    3.699382608426169*^9, 3.699382625794599*^9}, 3.699382660019725*^9, 
-   3.6998168797762413`*^9, 3.720187225098418*^9, 3.7201872584689217`*^9}],
+   3.6998168797762413`*^9, 3.720187225098418*^9, 3.7201872582480793`*^9, 
+   3.729540820709877*^9}],
 
 Cell[BoxData["\<\"Voronoi flag and euclidean length are set to -1 on \
 non-visited regions\"\>"], "Print",
@@ -435,7 +438,8 @@ non-visited regions\"\>"], "Print",
    3.69938220597718*^9, 3.699382218305005*^9}, {3.6993822576136017`*^9, 
    3.6993822669799423`*^9}, 3.699382363791168*^9, 3.6993824602555723`*^9, {
    3.699382608426169*^9, 3.699382625794599*^9}, 3.699382660019725*^9, 
-   3.6998168797762413`*^9, 3.720187225098418*^9, 3.7201872584863863`*^9}],
+   3.6998168797762413`*^9, 3.720187225098418*^9, 3.7201872582480793`*^9, 
+   3.7295408207224894`*^9}],
 
 Cell[BoxData[
  InterpretationBox[
@@ -451,7 +455,8 @@ Cell[BoxData[
    3.69938220597718*^9, 3.699382218305005*^9}, {3.6993822576136017`*^9, 
    3.6993822669799423`*^9}, 3.699382363791168*^9, 3.6993824602555723`*^9, {
    3.699382608426169*^9, 3.699382625794599*^9}, 3.699382660019725*^9, 
-   3.6998168797762413`*^9, 3.720187225098418*^9, 3.720187258491967*^9}],
+   3.6998168797762413`*^9, 3.720187225098418*^9, 3.7201872582480793`*^9, 
+   3.72954082072613*^9}],
 
 Cell[BoxData["\<\"On the left part of the domain, geodesic length (w.r.t the \
 metric) equals euclidean length\"\>"], "Print",
@@ -461,7 +466,8 @@ metric) equals euclidean length\"\>"], "Print",
    3.69938220597718*^9, 3.699382218305005*^9}, {3.6993822576136017`*^9, 
    3.6993822669799423`*^9}, 3.699382363791168*^9, 3.6993824602555723`*^9, {
    3.699382608426169*^9, 3.699382625794599*^9}, 3.699382660019725*^9, 
-   3.6998168797762413`*^9, 3.720187225098418*^9, 3.720187258496472*^9}],
+   3.6998168797762413`*^9, 3.720187225098418*^9, 3.7201872582480793`*^9, 
+   3.729540820729693*^9}],
 
 Cell[BoxData[
  GraphicsBox[RasterBox[CompressedData["
@@ -524,7 +530,8 @@ d1/AO9fc2KAsroqWj69+/hfvdE31
    3.69938220597718*^9, 3.699382218305005*^9}, {3.6993822576136017`*^9, 
    3.6993822669799423`*^9}, 3.699382363791168*^9, 3.6993824602555723`*^9, {
    3.699382608426169*^9, 3.699382625794599*^9}, 3.699382660019725*^9, 
-   3.6998168797762413`*^9, 3.720187225098418*^9, 3.7201872585178947`*^9}]
+   3.6998168797762413`*^9, 3.720187225098418*^9, 3.7201872582480793`*^9, 
+   3.729540820751642*^9}]
 }, Open  ]]
 }, Open  ]]
 }, Open  ]]
@@ -551,16 +558,16 @@ Cell[579, 22, 179, 2, 92, "Title"],
 Cell[761, 26, 146, 1, 29, "Subsubtitle"],
 Cell[910, 29, 469, 9, 87, "Text"],
 Cell[CellGroupData[{
-Cell[1404, 42, 7437, 167, 810, "Input"],
+Cell[1404, 42, 7347, 165, 789, "Input"],
 Cell[CellGroupData[{
-Cell[8866, 213, 1211, 16, 291, "Print"],
-Cell[10080, 231, 5390, 91, 210, "Print"],
-Cell[15473, 324, 4721, 80, 212, "Print"],
-Cell[20197, 406, 1087, 21, 212, "Print"],
-Cell[21287, 429, 614, 8, 24, "Print"],
-Cell[21904, 439, 723, 14, 24, "Print"],
-Cell[22630, 455, 632, 8, 24, "Print"],
-Cell[23265, 465, 3500, 61, 196, "Print"]
+Cell[8776, 211, 1274, 18, 310, "Print"],
+Cell[10053, 231, 5418, 92, 210, "Print"],
+Cell[15474, 325, 4751, 81, 212, "Print"],
+Cell[20228, 408, 1113, 22, 212, "Print"],
+Cell[21344, 432, 642, 9, 24, "Print"],
+Cell[21989, 443, 750, 15, 24, "Print"],
+Cell[22742, 460, 660, 9, 24, "Print"],
+Cell[23405, 471, 3526, 62, 196, "Print"]
 }, Open  ]]
 }, Open  ]]
 }, Open  ]]

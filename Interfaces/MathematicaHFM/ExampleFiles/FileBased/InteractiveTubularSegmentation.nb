@@ -10,10 +10,10 @@
 NotebookFileLineBreakTest
 NotebookFileLineBreakTest
 NotebookDataPosition[       157,          7]
-NotebookDataLength[     87148,       1831]
-NotebookOptionsPosition[     86183,       1794]
-NotebookOutlinePosition[     86541,       1810]
-CellTagsIndexPosition[     86498,       1807]
+NotebookDataLength[     91181,       1892]
+NotebookOptionsPosition[     90165,       1854]
+NotebookOutlinePosition[     90523,       1870]
+CellTagsIndexPosition[     90480,       1867]
 WindowFrame->Normal*)
 
 (* Beginning of Notebook Content *)
@@ -62,17 +62,17 @@ in a manipulate interface.
 Once these parameters are set, in another notebook, please evaluate one or \
 several of the following lines, in Separate cells. The real number is the \
 front propagation CPU time:
-RunManSeg2[{\[OpenCurlyDoubleQuote]model\[CloseCurlyDoubleQuote]\[Rule]\
+RunManSeg2[{\[OpenCurlyDoubleQuote]modelName\[CloseCurlyDoubleQuote]\[Rule]\
 \[CloseCurlyDoubleQuote]ReedsShepp2\[CloseCurlyDoubleQuote],\
 \[CloseCurlyDoubleQuote]xi\[CloseCurlyDoubleQuote]\[Rule]#}]&/@{0.2,0.8}
-RunManSeg2[{\[OpenCurlyDoubleQuote]model\[CloseCurlyDoubleQuote]\[Rule]\
+RunManSeg2[{\[OpenCurlyDoubleQuote]modelName\[CloseCurlyDoubleQuote]\[Rule]\
 \[CloseCurlyDoubleQuote]ReedsSheppForward2\[CloseCurlyDoubleQuote],\
 \[CloseCurlyDoubleQuote]xi\[CloseCurlyDoubleQuote]\[Rule]#}]&/@{0.2,0.8}
-RunManSeg2[{\[OpenCurlyDoubleQuote]model\[CloseCurlyDoubleQuote]\[Rule]\
-\[CloseCurlyDoubleQuote]Elastica2<5>\[CloseCurlyDoubleQuote],\
+RunManSeg2[{\[OpenCurlyDoubleQuote]modelName\[CloseCurlyDoubleQuote]\[Rule]\
+\[CloseCurlyDoubleQuote]Elastica2\[CloseCurlyDoubleQuote],\
 \[CloseCurlyDoubleQuote]xi\[CloseCurlyDoubleQuote]\[Rule]#}]&/@{0.2,0.6,1.5} \
 (*Good from 0.55 to 1.25*)
-RunManSeg2[{\[OpenCurlyDoubleQuote]model\[CloseCurlyDoubleQuote]\[Rule]\
+RunManSeg2[{\[OpenCurlyDoubleQuote]modelName\[CloseCurlyDoubleQuote]\[Rule]\
 \[CloseCurlyDoubleQuote]Dubins2\[CloseCurlyDoubleQuote],\
 \[CloseCurlyDoubleQuote]xi\[CloseCurlyDoubleQuote]\[Rule]#}]&/@{0.2,0.35,0.5} \
 (*Good from 0.25 to 0.38*)\
@@ -83,18 +83,7 @@ RunManSeg2[{\[OpenCurlyDoubleQuote]model\[CloseCurlyDoubleQuote]\[Rule]\
   3.706009518780363*^9, 3.7060096772168217`*^9}, {3.70600971275718*^9, 
   3.706009749003461*^9}, {3.706009878934664*^9, 3.706010125632773*^9}, {
   3.706010280560875*^9, 3.7060102906941977`*^9}, {3.706010389478244*^9, 
-  3.706010404235704*^9}}],
-
-Cell[BoxData[{
- RowBox[{
-  RowBox[{"execIso", "=", "\"\<FileHFM_AllBase\>\""}], 
-  ";"}], "\[IndentingNewLine]", 
- RowBox[{
-  RowBox[{"execCurvature2", "=", "\"\<FileHFM_AllBase\>\""}], ";"}]}], "Input",\
-
- CellChangeTimes->{{3.6972650974564323`*^9, 3.697265107294414*^9}, {
-  3.705383083881488*^9, 3.705383092215275*^9}, {3.706009499902918*^9, 
-  3.706009507685381*^9}, {3.7060097781259623`*^9, 3.706009780491159*^9}}],
+  3.706010404235704*^9}, {3.729540133558009*^9, 3.72954014450886*^9}}],
 
 Cell[BoxData[{
  RowBox[{
@@ -203,10 +192,6 @@ Cell[BoxData[{
             RowBox[{"n", ",", "n"}], "}"}]}], ",", "\[IndentingNewLine]", 
           RowBox[{"\"\<gridScale\>\"", "\[Rule]", 
            RowBox[{"1.", "/", "n"}]}], ",", "\[IndentingNewLine]", 
-          RowBox[{
-          "\"\<model\>\"", "\[Rule]", 
-           "\"\<IsotropicBox2<Boundary::Closed>\>\""}], ",", 
-          "\[IndentingNewLine]", 
           RowBox[{"\"\<seeds\>\"", "\[Rule]", "pts"}], ",", 
           "\[IndentingNewLine]", 
           RowBox[{"\"\<exportValues\>\"", "\[Rule]", "1"}], ",", 
@@ -217,8 +202,8 @@ Cell[BoxData[{
          "}"}]}], ";", "\[IndentingNewLine]", 
        RowBox[{"Return", "[", 
         RowBox[{"RunExec", "[", 
-         RowBox[{"execIso", ",", "params"}], "]"}], "]"}], ";"}]}], 
-     "\[IndentingNewLine]", "]"}]}], ";"}], 
+         RowBox[{"\"\<FileHFM_Isotropic2\>\"", ",", "params"}], "]"}], "]"}], 
+       ";"}]}], "\[IndentingNewLine]", "]"}]}], ";"}], 
   "\[IndentingNewLine]"}], "\[IndentingNewLine]", 
  RowBox[{
   RowBox[{
@@ -307,7 +292,13 @@ Cell[BoxData[{
        RowBox[{
         RowBox[{"n", "=", 
          RowBox[{"Length", "@", "manSpeedSeg2"}]}], ",", "opts", ",", "prms", 
-        ",", "out"}], "}"}], ",", "\[IndentingNewLine]", 
+        ",", "out", ",", "executable", ",", "\[IndentingNewLine]", 
+        RowBox[{"reverse", "=", 
+         RowBox[{
+          RowBox[{"{", 
+           RowBox[{"#1", ",", "#2", ",", 
+            RowBox[{"#3", "+", "Pi"}]}], "}"}], "&"}]}]}], "}"}], ",", 
+      "\[IndentingNewLine]", 
       RowBox[{
        RowBox[{"opts", "=", 
         RowBox[{"{", 
@@ -326,8 +317,6 @@ Cell[BoxData[{
           "\[IndentingNewLine]", 
           RowBox[{"\"\<gridScale\>\"", "\[Rule]", 
            RowBox[{"1.", "/", "n"}]}], ",", "\[IndentingNewLine]", 
-          RowBox[{"\"\<model\>\"", "\[Rule]", "\"\<ReedsShepp2\>\""}], ",", 
-          "\[IndentingNewLine]", 
           RowBox[{"\"\<speed\>\"", "\[Rule]", " ", 
            RowBox[{"Map", "[", 
             RowBox[{
@@ -339,9 +328,11 @@ Cell[BoxData[{
              RowBox[{"{", "2", "}"}]}], "]"}]}], ",", "\[IndentingNewLine]", 
           RowBox[{"\"\<progressReportLandmarks\>\"", "\[Rule]", 
            RowBox[{"{", "}"}]}], ",", "\[IndentingNewLine]", 
-          RowBox[{"\"\<seeds\>\"", "\[Rule]", "manSeedsSeg2"}], ",", 
+          RowBox[{"\"\<seeds\>\"", "\[Rule]", 
+           RowBox[{"reverse", "@@@", "manSeedsSeg2"}]}], ",", 
           "\[IndentingNewLine]", 
-          RowBox[{"\"\<tips\>\"", "\[Rule]", "manTipsSeg2"}], ",", 
+          RowBox[{"\"\<tips\>\"", "\[Rule]", 
+           RowBox[{"reverse", "@@@", "manTipsSeg2"}]}], ",", 
           "\[IndentingNewLine]", 
           RowBox[{"\"\<eps\>\"", "\[Rule]", "0.1"}], ",", 
           "\[IndentingNewLine]", 
@@ -350,10 +341,15 @@ Cell[BoxData[{
        RowBox[{"prms", "=", 
         RowBox[{"MergeRules", "[", 
          RowBox[{"params", ",", "prms"}], "]"}]}], ";", "\[IndentingNewLine]", 
+       RowBox[{"executable", "=", 
+        RowBox[{"\"\<FileHFM_\>\"", "<>", 
+         RowBox[{"(", 
+          RowBox[{"\"\<modelName\>\"", "/.", "prms"}], ")"}]}]}], ";", 
+       "\[IndentingNewLine]", 
        RowBox[{"{", 
         RowBox[{"prms", ",", 
          RowBox[{"RunExec", "[", 
-          RowBox[{"execCurvature2", ",", "prms"}], "]"}]}], "}"}]}]}], 
+          RowBox[{"executable", ",", "prms"}], "]"}]}], "}"}]}]}], 
      "\[IndentingNewLine]", "]"}]}], ";"}], 
   "\[IndentingNewLine]"}], "\[IndentingNewLine]", 
  RowBox[{
@@ -511,7 +507,9 @@ Cell[BoxData[{
    3.720186183618943*^9, 3.720186186712061*^9}, {3.720186217412353*^9, 
    3.720186223123248*^9}, 3.7201862840427637`*^9, {3.7201863406931467`*^9, 
    3.720186375812104*^9}, 3.720186414251545*^9, {3.720186695277446*^9, 
-   3.7201866990932703`*^9}, {3.7201867621375*^9, 3.7201867646414623`*^9}}],
+   3.7201866990932703`*^9}, {3.7201867621375*^9, 3.7201867646414623`*^9}, {
+   3.729540169319807*^9, 3.729540239824479*^9}, {3.729540531933511*^9, 
+   3.729540572534634*^9}, {3.729540708489345*^9, 3.72954073739706*^9}}],
 
 Cell[CellGroupData[{
 
@@ -816,19 +814,19 @@ Cell[BoxData[
       Log[10], 
       Log[400]}}, Typeset`size$$ = {300., {148., 152.}}, Typeset`update$$ = 0,
      Typeset`initDone$$, Typeset`skipInitDone$$ = 
-    True, $CellContext`\[Sigma]1$35324$$ = 0, $CellContext`s1$35325$$ = 
-    0, $CellContext`\[Sigma]2$35326$$ = 0, $CellContext`s2$35327$$ = 
-    0, $CellContext`n$35328$$ = 0}, 
+    True, $CellContext`\[Sigma]1$19687$$ = 0, $CellContext`s1$19688$$ = 
+    0, $CellContext`\[Sigma]2$19689$$ = 0, $CellContext`s2$19690$$ = 
+    0, $CellContext`n$19691$$ = 0}, 
     DynamicBox[Manipulate`ManipulateBoxes[
      1, StandardForm, 
       "Variables" :> {$CellContext`n$$ = Log[73], $CellContext`s1$$ = 
         4, $CellContext`s2$$ = 3, $CellContext`\[Sigma]1$$ = 
         0.03, $CellContext`\[Sigma]2$$ = 0.07}, "ControllerVariables" :> {
-        Hold[$CellContext`\[Sigma]1$$, $CellContext`\[Sigma]1$35324$$, 0], 
-        Hold[$CellContext`s1$$, $CellContext`s1$35325$$, 0], 
-        Hold[$CellContext`\[Sigma]2$$, $CellContext`\[Sigma]2$35326$$, 0], 
-        Hold[$CellContext`s2$$, $CellContext`s2$35327$$, 0], 
-        Hold[$CellContext`n$$, $CellContext`n$35328$$, 0]}, 
+        Hold[$CellContext`\[Sigma]1$$, $CellContext`\[Sigma]1$19687$$, 0], 
+        Hold[$CellContext`s1$$, $CellContext`s1$19688$$, 0], 
+        Hold[$CellContext`\[Sigma]2$$, $CellContext`\[Sigma]2$19689$$, 0], 
+        Hold[$CellContext`s2$$, $CellContext`s2$19690$$, 0], 
+        Hold[$CellContext`n$$, $CellContext`n$19691$$, 0]}, 
       "OtherVariables" :> {
        Typeset`show$$, Typeset`bookmarkList$$, Typeset`bookmarkMode$$, 
         Typeset`animator$$, Typeset`animvar$$, Typeset`name$$, 
@@ -873,7 +871,7 @@ $CellContext`TablePlot[$CellContext`manSpeedSeg2, {
    3.705382988308831*^9}, 3.705383323994913*^9, 3.706007563490749*^9, 
    3.706007795800744*^9, 3.706008280134047*^9, 3.706008577116166*^9, 
    3.720185753142068*^9, 3.720185799728026*^9, 3.720186138188766*^9, 
-   3.720186428667336*^9, 3.7201867733673067`*^9}]
+   3.720186428667336*^9, 3.7201867733673067`*^9, 3.729540273064477*^9}]
 }, Open  ]],
 
 Cell[CellGroupData[{
@@ -1160,7 +1158,69 @@ Cell[BoxData[
    3.696793444911866*^9, 3.69679376889673*^9, 3.697224462508832*^9, 
    3.697224653711348*^9, 3.6972247266329317`*^9, 3.697362551114892*^9, 
    3.705383336452486*^9, 3.706008373550314*^9, 3.7060086844932947`*^9, 
-   3.7201864365478687`*^9}]
+   3.7201864365478687`*^9}],
+
+Cell[BoxData[
+ TemplateBox[{
+  "ListDensityPlot","arrayerr",
+   "\"\\!\\(\\*RowBox[{\\\"Transpose\\\", \\\"[\\\", \
+RowBox[{\\\"SpeedCurves\\\", \\\"[\\\", RowBox[{RowBox[{\\\"{\\\", \
+RowBox[{RowBox[{\\\"{\\\", RowBox[{RowBox[{\\\"{\\\", RowBox[{RowBox[{\\\"{\\\
+\", RowBox[{\\\"0.18`\\\", \\\",\\\", \\\"0.18`\\\"}], \\\"}\\\"}], \
+\\\",\\\", RowBox[{\\\"{\\\", RowBox[{\\\"0.55`\\\", \\\",\\\", \
+\\\"0.05`\\\"}], \\\"}\\\"}], \\\",\\\", RowBox[{\\\"{\\\", RowBox[{\\\"0.84`\
+\\\", \\\",\\\", \\\"0.28`\\\"}], \\\"}\\\"}], \\\",\\\", RowBox[{\\\"{\\\", \
+RowBox[{\\\"0.65`\\\", \\\",\\\", \\\"0.51`\\\"}], \\\"}\\\"}], \\\",\\\", \
+RowBox[{\\\"{\\\", RowBox[{\\\"0.23`\\\", \\\",\\\", \\\"0.49`\\\"}], \\\"}\\\
+\"}], \\\",\\\", RowBox[{\\\"{\\\", RowBox[{\\\"0.2`\\\", \\\",\\\", \
+\\\"0.78`\\\"}], \\\"}\\\"}], \\\",\\\", RowBox[{\\\"{\\\", RowBox[{\\\"0.38`\
+\\\", \\\",\\\", \\\"0.94`\\\"}], \\\"}\\\"}], \\\",\\\", RowBox[{\\\"{\\\", \
+RowBox[{\\\"0.82`\\\", \\\",\\\", \\\"0.87`\\\"}], \\\"}\\\"}], \\\",\\\", \
+RowBox[{\\\"{\\\", RowBox[{\\\"0.84`\\\", \\\",\\\", \\\"0.69`\\\"}], \\\"}\\\
+\"}]}], \\\"}\\\"}], \\\",\\\", \\\"0.03`\\\", \\\",\\\", \\\"4.`\\\"}], \
+\\\"}\\\"}], \\\",\\\", RowBox[{\\\"{\\\", RowBox[{RowBox[{\\\"{\\\", \
+RowBox[{RowBox[{\\\"{\\\", RowBox[{\\\"0.44`\\\", \\\",\\\", \
+RowBox[{\\\"-\\\", \\\"0.01`\\\"}]}], \\\"}\\\"}], \\\",\\\", RowBox[{\\\"{\\\
+\", RowBox[{\\\"0.44`\\\", \\\",\\\", \\\"0.34`\\\"}], \\\"}\\\"}], \
+\\\",\\\", RowBox[{\\\"{\\\", RowBox[{\\\"0.62`\\\", \\\",\\\", \
+\\\"0.68`\\\"}], \\\"}\\\"}], \\\",\\\", RowBox[{\\\"{\\\", RowBox[{\\\"0.67`\
+\\\", \\\",\\\", \\\"0.99`\\\"}], \\\"}\\\"}]}], \\\"}\\\"}], \\\",\\\", \
+\\\"0.07`\\\", \\\",\\\", \\\"3.`\\\"}], \\\"}\\\"}]}], \\\"}\\\"}], \
+\\\",\\\", \\\"73.`\\\"}], \\\"]\\\"}], \\\"]\\\"}]\\) must be a valid array.\
+\"",2,67,25,20658087282287953730,"Local"},
+  "MessageTemplate"]], "Message", "MSG",
+ CellChangeTimes->{3.7295402455641127`*^9}],
+
+Cell[BoxData[
+ TemplateBox[{
+  "ListDensityPlot","arrayerr",
+   "\"\\!\\(\\*RowBox[{\\\"Transpose\\\", \\\"[\\\", \
+RowBox[{\\\"SpeedCurves\\\", \\\"[\\\", RowBox[{RowBox[{\\\"{\\\", \
+RowBox[{RowBox[{\\\"{\\\", RowBox[{RowBox[{\\\"{\\\", RowBox[{RowBox[{\\\"{\\\
+\", RowBox[{\\\"0.18`\\\", \\\",\\\", \\\"0.18`\\\"}], \\\"}\\\"}], \
+\\\",\\\", RowBox[{\\\"{\\\", RowBox[{\\\"0.55`\\\", \\\",\\\", \
+\\\"0.05`\\\"}], \\\"}\\\"}], \\\",\\\", RowBox[{\\\"{\\\", RowBox[{\\\"0.84`\
+\\\", \\\",\\\", \\\"0.28`\\\"}], \\\"}\\\"}], \\\",\\\", RowBox[{\\\"{\\\", \
+RowBox[{\\\"0.65`\\\", \\\",\\\", \\\"0.51`\\\"}], \\\"}\\\"}], \\\",\\\", \
+RowBox[{\\\"{\\\", RowBox[{\\\"0.23`\\\", \\\",\\\", \\\"0.49`\\\"}], \\\"}\\\
+\"}], \\\",\\\", RowBox[{\\\"{\\\", RowBox[{\\\"0.2`\\\", \\\",\\\", \
+\\\"0.78`\\\"}], \\\"}\\\"}], \\\",\\\", RowBox[{\\\"{\\\", RowBox[{\\\"0.38`\
+\\\", \\\",\\\", \\\"0.94`\\\"}], \\\"}\\\"}], \\\",\\\", RowBox[{\\\"{\\\", \
+RowBox[{\\\"0.82`\\\", \\\",\\\", \\\"0.87`\\\"}], \\\"}\\\"}], \\\",\\\", \
+RowBox[{\\\"{\\\", RowBox[{\\\"0.84`\\\", \\\",\\\", \\\"0.69`\\\"}], \\\"}\\\
+\"}]}], \\\"}\\\"}], \\\",\\\", \\\"0.03`\\\", \\\",\\\", \\\"4.`\\\"}], \
+\\\"}\\\"}], \\\",\\\", RowBox[{\\\"{\\\", RowBox[{RowBox[{\\\"{\\\", \
+RowBox[{RowBox[{\\\"{\\\", RowBox[{\\\"0.44`\\\", \\\",\\\", \
+RowBox[{\\\"-\\\", \\\"0.01`\\\"}]}], \\\"}\\\"}], \\\",\\\", RowBox[{\\\"{\\\
+\", RowBox[{\\\"0.44`\\\", \\\",\\\", \\\"0.34`\\\"}], \\\"}\\\"}], \
+\\\",\\\", RowBox[{\\\"{\\\", RowBox[{\\\"0.62`\\\", \\\",\\\", \
+\\\"0.68`\\\"}], \\\"}\\\"}], \\\",\\\", RowBox[{\\\"{\\\", RowBox[{\\\"0.67`\
+\\\", \\\",\\\", \\\"0.99`\\\"}], \\\"}\\\"}]}], \\\"}\\\"}], \\\",\\\", \
+\\\"0.07`\\\", \\\",\\\", \\\"3.`\\\"}], \\\"}\\\"}]}], \\\"}\\\"}], \
+\\\",\\\", \\\"73.`\\\"}], \\\"]\\\"}], \\\"]\\\"}]\\) must be a valid array.\
+\"",2,67,26,20658087282287953730,"Local"},
+  "MessageTemplate"]], "Message", "MSG",
+ CellChangeTimes->{3.729540245677706*^9}]
 }, Open  ]],
 
 Cell[BoxData[""], "Input",
@@ -1812,25 +1872,26 @@ Notebook[{
 Cell[CellGroupData[{
 Cell[579, 22, 174, 2, 92, "Title"],
 Cell[756, 26, 270, 5, 51, "Subtitle"],
-Cell[1029, 33, 2940, 52, 486, "Text"],
-Cell[3972, 87, 419, 9, 54, "Input"],
-Cell[4394, 98, 17200, 415, 1482, "Input"],
+Cell[1029, 33, 2998, 52, 486, "Text"],
+Cell[4030, 87, 17610, 424, 1540, "Input"],
 Cell[CellGroupData[{
-Cell[21619, 517, 4201, 102, 285, "Input"],
-Cell[25823, 621, 5227, 99, 383, "Output"]
+Cell[21665, 515, 4201, 102, 285, "Input"],
+Cell[25869, 619, 5227, 99, 383, "Output"]
 }, Open  ]],
 Cell[CellGroupData[{
-Cell[31087, 725, 2825, 73, 159, "Input"],
-Cell[33915, 800, 3798, 75, 521, "Output"]
+Cell[31133, 723, 2825, 73, 159, "Input"],
+Cell[33961, 798, 3820, 75, 521, "Output"]
 }, Open  ]],
 Cell[CellGroupData[{
-Cell[37750, 880, 6538, 174, 243, "Input"],
-Cell[44291, 1056, 5359, 106, 382, "Output"]
+Cell[37818, 878, 6538, 174, 243, "Input"],
+Cell[44359, 1054, 5359, 106, 382, "Output"],
+Cell[49721, 1162, 1955, 29, 59, "Message"],
+Cell[51679, 1193, 1953, 29, 59, "Message"]
 }, Open  ]],
-Cell[49665, 1165, 564, 8, 32, "Input"],
+Cell[53647, 1225, 564, 8, 32, "Input"],
 Cell[CellGroupData[{
-Cell[50254, 1177, 1992, 53, 138, "Input"],
-Cell[52249, 1232, 33906, 558, 374, "Output"]
+Cell[54236, 1237, 1992, 53, 138, "Input"],
+Cell[56231, 1292, 33906, 558, 374, "Output"]
 }, Open  ]]
 }, Open  ]]
 }

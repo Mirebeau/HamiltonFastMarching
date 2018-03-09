@@ -19,7 +19,7 @@
 enum class Boundary {
     Closed,     // Bounded box
     Periodic,   // Standard periodicity
-    Sphere2_0, Sphere2_1, // 2D Sphere
+    Sphere2_0, Sphere2_1, Sphere2_Hopf, // 2D Sphere (with circle fibration)
     Sphere3_0, Sphere3_1, Sphere3_2, Proj3_1 // 3D Sphere or 3D Projective space
 //    Sphere, SphereLast
 };

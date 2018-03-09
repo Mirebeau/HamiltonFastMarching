@@ -10,10 +10,10 @@
 NotebookFileLineBreakTest
 NotebookFileLineBreakTest
 NotebookDataPosition[       157,          7]
-NotebookDataLength[     25668,        635]
-NotebookOptionsPosition[     25221,        615]
-NotebookOutlinePosition[     25580,        631]
-CellTagsIndexPosition[     25537,        628]
+NotebookDataLength[     25840,        635]
+NotebookOptionsPosition[     25393,        615]
+NotebookOutlinePosition[     25752,        631]
+CellTagsIndexPosition[     25709,        628]
 WindowFrame->Normal*)
 
 (* Beginning of Notebook Content *)
@@ -52,14 +52,15 @@ Add as many walls, seeds and tips as you like, using Alt + Click. Note that \
 two points are required to define each wall, seed, tip. Once this is done, \
 evaluate:
      
-myOptions = MergeRules[{\"obstacles\" -> manObstacles, \"nRaster\" -> 100}, \
-myOptions];
-myParams = {\"tips\" -> manTips, \"seeds\" -> manSeeds, \"model\" -> \
-\"Elastica2<5>\", \"xi\" -> 0.2};
-ShowShortestPaths[myOptions, myParams]\
+myOptions = MergeRules[{\"obstacles\" -> manObstacles, \"nRaster\" -> 100, \
+\[OpenCurlyDoubleQuote]modelName\[CloseCurlyDoubleQuote] -> \
+\[OpenCurlyDoubleQuote]Elastica2\[CloseCurlyDoubleQuote]}, myOptions];
+myParams = {\"tips\" -> manTips, \"seeds\" -> manSeeds, \"xi\" -> 0.2};
+ShowShortestPaths[myOptions, myParams];\
 \>", "Text",
  CellChangeTimes->{{3.699967269386609*^9, 3.699967300403363*^9}, 
-   3.699983737811639*^9}],
+   3.699983737811639*^9, {3.729539906719499*^9, 3.729539912285626*^9}, 
+   3.7295400942085943`*^9}],
 
 Cell[BoxData[{
  RowBox[{
@@ -213,18 +214,14 @@ Cell[BoxData[{
        "opts", ",", "prms", ",", "gridScale", ",", "refDir", ",", "out", ",", 
         "\[IndentingNewLine]", "walls", ",", 
         RowBox[{"dom", "=", 
-         RowBox[{"\"\<domain\>\"", "/.", "options"}]}]}], "}"}], ",", 
-      "\[IndentingNewLine]", 
+         RowBox[{"\"\<domain\>\"", "/.", "options"}]}], ",", "executable"}], 
+       "}"}], ",", "\[IndentingNewLine]", 
       RowBox[{
        RowBox[{"opts", "=", 
         RowBox[{"MergeRules", "[", 
          RowBox[{"options", ",", 
           RowBox[{"{", 
-           RowBox[{
-            RowBox[{"\"\<nDir\>\"", "\[Rule]", "60"}], ",", 
-            RowBox[{
-            "\"\<FileHFM_executable\>\"", "\[Rule]", 
-             "\"\<FileHFM_AllBase\>\""}]}], "}"}]}], "]"}]}], ";", 
+           RowBox[{"\"\<nDir\>\"", "\[Rule]", "60"}], "}"}]}], "]"}]}], ";", 
        "\[IndentingNewLine]", 
        RowBox[{"walls", "=", 
         RowBox[{"RasterObstacles", "[", "options", "]"}]}], ";", 
@@ -255,8 +252,6 @@ Cell[BoxData[{
             "\[IndentingNewLine]", 
             RowBox[{"\"\<gridScale\>\"", "\[Rule]", "gridScale"}], ",", 
             "\[IndentingNewLine]", 
-            RowBox[{"\"\<model\>\"", "\[Rule]", "\"\<ReedsShepp2\>\""}], ",", 
-            "\[IndentingNewLine]", 
             RowBox[{"\"\<speed\>\"", "\[Rule]", "1"}], ",", 
             "\[IndentingNewLine]", 
             RowBox[{"\"\<progressReportLandmarks\>\"", "\[Rule]", 
@@ -268,11 +263,15 @@ Cell[BoxData[{
             RowBox[{"\"\<walls\>\"", "\[Rule]", "walls"}]}], 
            "\[IndentingNewLine]", "}"}]}], "]"}]}], ";", 
        "\[IndentingNewLine]", 
+       RowBox[{"executable", "=", 
+        RowBox[{"\"\<FileHFM_\>\"", "<>", 
+         RowBox[{"(", 
+          RowBox[{"\"\<modelName\>\"", "/.", "opts"}], ")"}]}]}], ";", 
+       "\[IndentingNewLine]", 
        RowBox[{"out", "=", 
         RowBox[{"RunExec", "[", 
-         RowBox[{
-          RowBox[{"\"\<FileHFM_executable\>\"", "/.", "opts"}], ",", "prms"}],
-          "]"}]}], ";", "\[IndentingNewLine]", 
+         RowBox[{"executable", ",", "prms"}], "]"}]}], ";", 
+       "\[IndentingNewLine]", 
        RowBox[{"{", 
         RowBox[{"prms", ",", "out"}], "}"}]}]}], "\[IndentingNewLine]", 
      "]"}]}], ";"}], "\[IndentingNewLine]"}], "\[IndentingNewLine]", 
@@ -610,7 +609,8 @@ Cell[BoxData[{
    3.69996679599114*^9, 3.699966847764018*^9}, {3.699983000189371*^9, 
    3.699983002475236*^9}, {3.720185400831444*^9, 3.720185464744219*^9}, {
    3.720185528942474*^9, 3.720185565473506*^9}, {3.720185600108745*^9, 
-   3.720185609250939*^9}}]
+   3.720185609250939*^9}, {3.729539959536723*^9, 3.7295399890357647`*^9}, {
+   3.7295400260751333`*^9, 3.729540065535597*^9}}]
 }, Open  ]]
 },
 WindowSize->{795, 855},
@@ -634,8 +634,8 @@ Cell[CellGroupData[{
 Cell[579, 22, 239, 3, 148, "Title"],
 Cell[821, 27, 334, 4, 51, "Subtitle"],
 Cell[1158, 33, 645, 14, 144, "Text"],
-Cell[1806, 49, 520, 12, 125, "Text"],
-Cell[2329, 63, 22876, 549, 2104, "Input"]
+Cell[1806, 49, 682, 13, 144, "Text"],
+Cell[2491, 64, 22886, 548, 2070, "Input"]
 }, Open  ]]
 }
 ]

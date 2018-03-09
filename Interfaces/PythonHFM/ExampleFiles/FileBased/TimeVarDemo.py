@@ -27,12 +27,15 @@ from matplotlib.backends.backend_pdf import PdfPages
 import matplotlib.pyplot as plt
 import FileIO
 
+# Get the executable name and path
+FileHFM_executable = "FileHFM_Isotropic2"
+if len(sys.argv) >=2:   FileHFM_binary_dir = sys.argv[1];
+
 n = 100 if len(sys.argv)<=2 else int(sys.argv[2])
 
 input = {
 "arrayOrdering": "YXZ_RowMajor", #compatibility with numpy.meshgrid
 "sndOrder": 1,
-"model": "IsotropicBox2<Boundary::Closed>",
 "dims": np.array([n, n]),
 "gridScale": 1./n,
 "seeds": np.array([[0.5, 0.5],[0.7,0.8]]),
@@ -48,10 +51,6 @@ input = {
 # w.r.t cost (=1/speed), seen as a global map
 "inspectSensitivity": np.array([[1./6, 1./6],[1./6,1./2],[0.67,0.6]])
 }
-
-# Get the executable name and path
-FileHFM_executable = "FileHFM_AllBase"
-if len(sys.argv) >=2:   FileHFM_binary_dir = sys.argv[1];
 
 #Write parameter file to disk, execute program, import results
 result = FileIO.WriteCallRead(input,
@@ -70,20 +69,20 @@ with PdfPages("Output/TimeVar_results.pdf") as pdf:
     plt.close()
     
     plt.figure()
-    plt.title('valueVariations_0')
-    cp = plt.contourf(X, Y, result["valueSensitivity_0"])
+    plt.title('costSensitivity_0')
+    cp = plt.contourf(X, Y, result["costSensitivity_0"])
     pdf.savefig()
     plt.close()
 
     plt.figure()
-    plt.title('valueVariations_1')
-    cp = plt.contourf(X, Y, result["valueSensitivity_1"])
+    plt.title('costSensitivity_1')
+    cp = plt.contourf(X, Y, result["costSensitivity_1"])
     pdf.savefig()
     plt.close()
 
     plt.figure()
-    plt.title('valueVariations_2')
-    cp = plt.contourf(X, Y, result["valueSensitivity_2"])
+    plt.title('costSensitivity_2')
+    cp = plt.contourf(X, Y, result["costSensitivity_2"])
     pdf.savefig()
     plt.close()
 

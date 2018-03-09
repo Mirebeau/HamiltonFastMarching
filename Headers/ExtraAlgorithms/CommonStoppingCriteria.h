@@ -20,6 +20,11 @@ HamiltonFastMarching<T>::ExtraAlgorithmInterface {
     
     std::set<IndexType> stopWhenAnyAccepted;
     std::set<IndexType> stopWhenAllAccepted;
+    
+    typedef typename HFMI::template SpecializationsDefault<> HFMIS;
+    typedef typename HFMIS::UnorientedIndexType UnorientedIndexType;
+    std::set<UnorientedIndexType> stopWhenAnyAccepted_Unoriented;
+    std::set<UnorientedIndexType> stopWhenAllAccepted_Unoriented;
     ScalarType stopAtDistance = Traits::Infinity(), latestDistance; // TODO : Return point and geodesic that triggered stop ?
     size_t nAccepted=0, nMaxAccepted=std::numeric_limits<size_t>::max();
     bool showProgress = false;
@@ -36,6 +41,8 @@ template<typename T> bool
 CommonStoppingCriteria<T>::ImplementIn(HFM * _pFM) {
     if(stopWhenAllAccepted.empty() &&
        stopWhenAnyAccepted.empty() &&
+       stopWhenAllAccepted_Unoriented.empty() &&
+       stopWhenAnyAccepted_Unoriented.empty() &&
        stopAtDistance==Traits::Infinity() &&
        nMaxAccepted==std::numeric_limits<size_t>::max() &&
        progressReportLandmarks.empty())
@@ -70,6 +77,15 @@ CommonStoppingCriteria<T>::PostProcess(IndexCRef acceptedIndex){
             return Decision::kTerminate;
     }
     
+    if(HFM::hasBundle && stopWhenAnyAccepted_Unoriented.find(HFMIS::StripUnoriented(acceptedIndex))!=stopWhenAnyAccepted_Unoriented.end())
+        return Decision::kTerminate;
+    
+    if(HFM::hasBundle && !stopWhenAllAccepted_Unoriented.empty()){
+        stopWhenAllAccepted_Unoriented.erase(HFMIS::StripUnoriented(acceptedIndex));
+        if(stopWhenAllAccepted_Unoriented.empty())
+            return Decision::kTerminate;
+    }
+    
     if(stopAtDistance<Traits::Infinity() && pFM->values(acceptedIndex) > stopAtDistance)
         return Decision::kTerminate;
     
@@ -101,6 +117,25 @@ CommonStoppingCriteria<T>::Setup(HFMI*that){
             IndexType index = dom.IndexFromPoint(param.ADim(p));
             if(dom.Periodize(index)[Dimension]) Msg() << "Warning : target " << p << " is out of range.";
             else stopWhenAllAccepted.insert(index);
+        }
+    }
+    
+    typedef typename HFMIS::UnorientedPointType UnorientedPointType;
+    if(HFM::hasBundle && io.HasField("stopWhenAnyAccepted_Unoriented")){
+        const auto & targets = io.template GetVector<UnorientedPointType>("stopWhenAnyAccepted_Unoriented");
+        for(const auto & p : targets) {
+            IndexType index = dom.IndexFromPoint(param.ADim(HFMIS::PadUnoriented(p)));
+            if(dom.Periodize(index)[Dimension]) Msg() << "Warning : unoriented target " ExportArrayArrow(p) << " is out of range.";
+            else stopWhenAnyAccepted_Unoriented.insert(HFMIS::StripUnoriented(index));
+        }
+    }
+    
+    if(HFM::hasBundle && io.HasField("stopWhenAllAccepted_Unoriented")){
+        const auto & targets = io.template GetVector<UnorientedPointType>("stopWhenAllAccepted_Unoriented");
+        for(const auto & p : targets) {
+            IndexType index = dom.IndexFromPoint(param.ADim(HFMIS::PadUnoriented(p)));
+            if(dom.Periodize(index)[Dimension]) Msg() << "Warning : unoriented target " ExportArrayArrow(p) << " is out of range.";
+            else stopWhenAllAccepted_Unoriented.insert(HFMIS::StripUnoriented(index));
         }
     }
     

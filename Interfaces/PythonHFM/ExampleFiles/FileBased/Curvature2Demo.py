@@ -21,18 +21,24 @@ from matplotlib.backends.backend_pdf import PdfPages
 import matplotlib.pyplot as plt
 import FileIO
 
+# Get the executable name and path
+if len(sys.argv) >=2:   FileHFM_binary_dir = sys.argv[1];
 
+# domain size
 size = 61 if len(sys.argv)<=2 else int(sys.argv[2])
-model = "Elastica2<5>" if len(sys.argv)<=3 else sys.argv[3]
-#model = 'Elastica2<5>' #'Dubins2' #'ReedsShepp2'
+
+#model, determines the executable
+model = "Elastica2" if len(sys.argv)<=3 else sys.argv[3]
+#Alternatively 'ReedsShepp2' 'ReedsSheppForward2' 'Elastica2' 'Dubins2'
+
+FileHFM_executable = "FileHFM_"+model
 
 
 def SquareTest(n,model,withWall=False):
     input={
         'arrayOrdering':'YXZ_RowMajor', # Using the YXZ axes ordering as in numpy (meshgrid, contourf, ...)
         
-        # model and relaxation parameter
-        'model':model,
+        # relaxation parameter for the model
         'eps':0.1,
         
         # space0,space1,angle
@@ -91,10 +97,6 @@ def SquareTest(n,model,withWall=False):
     return input
 
 withWall=True;
-
-# Get the executable name and path
-FileHFM_executable = "FileHFM_AllBase"
-if len(sys.argv) >=2:   FileHFM_binary_dir = sys.argv[1];
 
 #Write parameter file to disk, execute program, import results
 result = FileIO.WriteCallRead(SquareTest(size,model,withWall),

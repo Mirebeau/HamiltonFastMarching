@@ -102,7 +102,7 @@ struct StencilIsotropic3 : HamiltonFastMarching<TraitsIsotropic3>::StencilDataTy
 // --- 3D diagonal metrics ---
 
 struct TraitsDiagonal3 : TraitsBase<3> {
-    typedef Difference<2> DifferenceType;
+    typedef Difference<3> DifferenceType;
     static const DiscreteType nStencilDependencies=0;
     constexpr static std::array<DiscreteType, nStencilDependencies> stencilDependencies = {{}};
     static const DiscreteType nSymmetric = Dimension;

@@ -75,7 +75,7 @@ input = {
 }
 
 # Get the executable name and path
-FileHFM_executable = "FileHFM_Experimental0"
+FileHFM_executable = "FileHFM_"+model
 if len(sys.argv) >=2:   FileHFM_binary_dir = sys.argv[1];
 
 #Write parameter file to disk, execute program, import results

@@ -10,10 +10,10 @@
 NotebookFileLineBreakTest
 NotebookFileLineBreakTest
 NotebookDataPosition[       158,          7]
-NotebookDataLength[     11186,        260]
-NotebookOptionsPosition[     10740,        239]
-NotebookOutlinePosition[     11099,        255]
-CellTagsIndexPosition[     11056,        252]
+NotebookDataLength[     12143,        269]
+NotebookOptionsPosition[     11696,        248]
+NotebookOutlinePosition[     12056,        264]
+CellTagsIndexPosition[     12013,        261]
 WindowFrame->Normal*)
 
 (* Beginning of Notebook Content *)
@@ -29,18 +29,16 @@ Cell[BoxData[
       RowBox[{"Association", "[", 
        RowBox[{"{", "}"}], "]"}]}], ",", 
      RowBox[{"n", "=", "11"}], ",", "values", ",", "test", ",", "used", ",", 
-     "defaulted"}], "}"}], ",", "\[IndentingNewLine]", 
+     "defaulted", ",", "modelName"}], "}"}], ",", "\[IndentingNewLine]", 
    RowBox[{
+    RowBox[{"modelName", " ", "=", " ", "\"\<Isotropic2\>\""}], ";", 
+    "\[IndentingNewLine]", 
     RowBox[{"hfmLibraryPath", "=", 
      RowBox[{"FileNameJoin", "[", 
       RowBox[{"{", 
-       RowBox[{
-       "hfmBinDirectory", ",", "\"\<libMathematicaHFM_Isotropic\>\""}], "}"}],
-       "]"}]}], ";", " ", "\[IndentingNewLine]", 
-    RowBox[{
-     RowBox[{"params", "[", "\"\<model\>\"", "]"}], "=", 
-     "\"\<IsotropicBox2<Boundary::Closed>\>\""}], ";", "\[IndentingNewLine]", 
-    
+       RowBox[{"hfmBinDirectory", ",", 
+        RowBox[{"\"\<libMathematicaHFM_\>\"", "<>", "modelName"}]}], "}"}], 
+      "]"}]}], ";", " ", "\[IndentingNewLine]", 
     RowBox[{
      RowBox[{"params", "[", "\"\<speed\>\"", "]"}], "=", 
      RowBox[{"Array", "[", 
@@ -105,15 +103,22 @@ Cell[BoxData[
     RowBox[{"UnloadHFMWLL", "[", "]"}], ";", "\[IndentingNewLine]", 
     RowBox[{"TablePlot", "[", "values", "]"}]}]}], "\[IndentingNewLine]", 
   "]"}]], "Input",
- CellChangeTimes->CompressedData["
-1:eJxTTMoPSmViYGAQBWIQfWfVplnGU147mslz7QPRk48qHQPREnVpZ0H0DI2u
-iyBaRvr1FRDNkfL+Jojessv7Nohm6t5cbwGkA6arNIFodhe9+SB6Y9d6MD1j
-07zFIHpZ3mowfeiPM7cVkBb4fRZMZ3QUaIDod18ZDUH0B+OJFiC6Yc17KxB9
-xdS/CUQHb/BtBtG77jWzWwPpVe+ec4JoPyeDChDdwHugFkTLfDPsAdGahvv7
-QPT2/CO/PEDioQf+gOiW4MfqniD3iZvqgOgYDSEbEH1EsN0eRFstjHMG0b8O
-vvcE0fnXLPf1g/y9/QGYviB29MgEIH0x8/oJED3nMMfvjdtfO77YrfgPRAMA
-O5OszA==
-  "]],
+ CellChangeTimes->{{3.701578965583357*^9, 3.70157924831631*^9}, {
+   3.701579313086618*^9, 3.7015793712028923`*^9}, {3.7015794043174553`*^9, 
+   3.7015794313470592`*^9}, {3.701579471480961*^9, 3.701579482366541*^9}, {
+   3.7015889896107187`*^9, 3.701589009143471*^9}, {3.701589241445804*^9, 
+   3.70158924548568*^9}, {3.701589276959301*^9, 3.701589277357257*^9}, {
+   3.701592154124604*^9, 3.7015921584368973`*^9}, {3.701592387516651*^9, 
+   3.7015924560612707`*^9}, {3.70159251653759*^9, 3.701592535489807*^9}, {
+   3.701593106475321*^9, 3.701593114427774*^9}, {3.7015941721209383`*^9, 
+   3.701594191247884*^9}, {3.701595073508094*^9, 3.701595118001648*^9}, {
+   3.7015952335612926`*^9, 3.701595253974751*^9}, {3.701622742138637*^9, 
+   3.7016227580103893`*^9}, {3.701623103103945*^9, 3.701623137659142*^9}, {
+   3.7016232645674267`*^9, 3.7016232922209187`*^9}, {3.701623322957181*^9, 
+   3.701623375492429*^9}, {3.701767665807426*^9, 3.7017676710223427`*^9}, {
+   3.7017697661590347`*^9, 3.701769798731667*^9}, {3.720187864273878*^9, 
+   3.720187889054188*^9}, 3.729541688606895*^9, {3.72954172143814*^9, 
+   3.729541754186974*^9}}],
 
 Cell[CellGroupData[{
 
@@ -121,15 +126,16 @@ Cell["\<\
 ***** Warning ! *****
 BaseIO: redefining field speed.
 ********************
-Field arrayOrdering defaults to Reversed
+Field arrayOrdering defaults to RowMajor
 Field origin defaults to {0,0}
 Field sndOrder defaults to 0
-Fast marching solver completed in 0.000466 s.
+Field showProgress defaults to 0
+Fast marching solver completed in 6.7e-05 s.
 Field exportActiveNeighs defaults to 0
 Field exportGeodesicFlow defaults to 0
 Unused fields from compute : MaxStencilWidth StencilCPUTime nAccepted 
 Defaulted fields : arrayOrdering exportActiveNeighs exportGeodesicFlow origin \
-sndOrder \
+showProgress sndOrder \
 \>", "Print",
  CellChangeTimes->{
   3.701588158419917*^9, 3.7015882345555*^9, 3.701588270250873*^9, 
@@ -149,7 +155,8 @@ sndOrder \
    3.701767503248169*^9, 3.701767671802701*^9, 3.701767786486408*^9, 
    3.701768039497786*^9, 3.701768938712154*^9, 3.701769710715148*^9, {
    3.701769767365396*^9, 3.701769799273302*^9}, {3.720187867088984*^9, 
-   3.72018788947029*^9}}],
+   3.72018788947029*^9}, 3.729541710739581*^9, {3.72954174735096*^9, 
+   3.729541754740116*^9}}],
 
 Cell[BoxData[
  RowBox[{"{", 
@@ -172,7 +179,8 @@ Cell[BoxData[
    3.701767503248169*^9, 3.701767671802701*^9, 3.701767786486408*^9, 
    3.701768039497786*^9, 3.701768938712154*^9, 3.701769710715148*^9, {
    3.701769767365396*^9, 3.701769799273302*^9}, {3.720187867088984*^9, 
-   3.7201878894791737`*^9}}]
+   3.72018788947029*^9}, 3.729541710739581*^9, {3.72954174735096*^9, 
+   3.729541754746891*^9}}]
 }, Open  ]],
 
 Cell[BoxData[
@@ -234,11 +242,12 @@ dF5cUQvP2MeMItty6Mw+/wfoAtav
    3.701767413524331*^9, 3.7017674273382883`*^9}, 3.7017675033479633`*^9, 
    3.701767671920856*^9, 3.7017677865794086`*^9, 3.7017680396068153`*^9, 
    3.701768938786606*^9, 3.701769710792988*^9, {3.7017697674847403`*^9, 
-   3.701769799378573*^9}, {3.720187867158922*^9, 3.720187889575303*^9}}]
+   3.701769799378573*^9}, {3.720187867158922*^9, 3.720187889575303*^9}, 
+   3.729541710807508*^9, {3.729541747444118*^9, 3.729541754842813*^9}}]
 }, Open  ]]
 },
 WindowSize->{729, 855},
-WindowMargins->{{Automatic, 447}, {Automatic, 0}},
+WindowMargins->{{Automatic, 198}, {Automatic, 14}},
 FrontEndVersion->"11.0 for Mac OS X x86 (32-bit, 64-bit Kernel) (September \
 21, 2016)",
 StyleDefinitions->"Default.nb"
@@ -255,12 +264,12 @@ CellTagsIndex->{}
 (*NotebookFileOutline
 Notebook[{
 Cell[CellGroupData[{
-Cell[580, 22, 3575, 93, 453, "Input"],
+Cell[580, 22, 4275, 98, 474, "Input"],
 Cell[CellGroupData[{
-Cell[4180, 119, 1766, 32, 194, "Print"],
-Cell[5949, 153, 1363, 21, 24, "Print"]
+Cell[4880, 124, 1882, 34, 211, "Print"],
+Cell[6765, 160, 1431, 22, 24, "Print"]
 }, Open  ]],
-Cell[7327, 177, 3397, 59, 203, "Output"]
+Cell[8211, 185, 3469, 60, 237, "Output"]
 }, Open  ]]
 }
 ]
