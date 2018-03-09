@@ -6,6 +6,6 @@ set(Experimental_Headers
 	${CMAKE_CURRENT_SOURCE_DIR}/ReedsSheppAdaptive2.h
 	${CMAKE_CURRENT_SOURCE_DIR}/IsotropicBox.h
 	${CMAKE_CURRENT_SOURCE_DIR}/Differentiable.h
-	${CMAKE_CURRENT_SOURCE_DIR}/Riemannian45.h
+	${CMAKE_CURRENT_SOURCE_DIR}/RollingBall.h
 	PARENT_SCOPE
 	)

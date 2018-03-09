@@ -17,8 +17,6 @@
  */
 
 #include "Specializations/CommonTraits.h"
-#include "Base/HFMInterface.h"
-
 
 // ------------- Isotropic metric, everywhere differentiable implementation ------------
 template<size_t VDimension>
@@ -27,20 +25,17 @@ struct TraitsIsotropicDiff : TraitsBase<VDimension> {
     Redeclare1Type(FromSuperclass,DiscreteType)
     Redeclare1Constant(FromSuperclass,Dimension)
 
-    typedef Difference<1> DifferenceType;
-    static const DiscreteType nStencilDependencies=0;
-    constexpr static std::array<DiscreteType, nStencilDependencies> stencilDependencies = {{}};
+    typedef typename Superclass::template Difference<1> DifferenceType;
     static const DiscreteType nForward = 2*Dimension;
-    constexpr static const std::array<Boundary, Dimension>  boundaryConditions = {{Boundary::Closed, Boundary::Closed}};
 };
-// Linker wants the following line for some obscure reason.
-constexpr const decltype(TraitsIsotropicDiff2::stencilDependencies) TraitsIsotropicDiff2::stencilDependencies;
-constexpr const decltype(TraitsIsotropicDiff2::boundaryConditions)  TraitsIsotropicDiff2::boundaryConditions;
 
-struct StencilIsotropicDiff2 : HamiltonFastMarching<TraitsIsotropicDiff2>::StencilDataType {
-    typedef HamiltonFastMarching<TraitsIsotropicDiff2> HFM;
-    typedef HFM::StencilDataType Superclass;
-    HFM::ParamDefault param;
+template<size_t VDimension>
+struct StencilIsotropicDiff : HamiltonFastMarching<TraitsIsotropicDiff<VDimension> >::StencilDataType {
+    typedef HamiltonFastMarching<TraitsIsotropicDiff<VDimension> > HFM;
+    typedef typename HFM::StencilDataType Superclass;
+    Redeclare5Types(FromHFM,ParamDefault,IndexType,StencilType,ParamInterface,HFMI)
+    Redeclare1Constant(FromHFM,Dimension)
+    ParamDefault param;
     
     virtual void SetStencil(const IndexType & index, StencilType & stencil) override {
         int n=0;

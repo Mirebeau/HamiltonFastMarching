@@ -5,7 +5,6 @@
 #ifndef QuaternionSpecializations_h
 #define QuaternionSpecializations_h
 
-#include "Base/HamiltonFastMarching.h"
 #include "Specializations/CommonTraits.h"
 
 /* This file was intended for curvature penalized shortest path on S2.

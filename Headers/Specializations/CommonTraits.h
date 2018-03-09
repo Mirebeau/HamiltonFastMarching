@@ -5,11 +5,17 @@
 #ifndef CommonTraits_h
 #define CommonTraits_h
 
-
+#include "Base/HFMInterface.h"
 #include "LinearAlgebra/SymmetricMatrixType.h"
 #include "LinearAlgebra/ArrayType.h"
 #include "LinearAlgebra/BasisReduction.h"
 #include "LinearAlgebra/SquareCube.h"
+
+#ifdef HighVoronoi // Will need high dimensional Voronoi reduction
+#include <type_traits> // std::conditional
+#include "LinearAlgebra/VoronoiReduction.h"
+#endif
+
 
 template<int VDim> struct TraitsBase {
     static const int Dimension = VDim;
@@ -23,8 +29,25 @@ template<int VDim> struct TraitsBase {
     typedef LinearAlgebra::Vector<ScalarType, Dimension> VectorType;
     typedef LinearAlgebra::Point<DiscreteType, Dimension> IndexType; /// Multi-index of a grid point
     typedef LinearAlgebra::Vector<ShortType, Dimension> OffsetType; /// Used for offsets between neighbor indices
+    
+    // Tensor decomposition based on Voronoi first reduction.
+    // (Involved in many PDE discretization schemes.)
+#ifdef HighVoronoi // Change the tensor decomposition in high dimension
+    /*
+    typedef typename Traits::template BasisReduction<Dimension> ReductionType23;
+    typedef VoronoiFirstReduction<ScalarType,Dimension> ReductionType45;
+    typedef typename std::conditional<Dimension<=3, ReductionType23, ReductionType45>::type ReductionType;
+    */
+    template<size_t n> using BasisReduction=typename std::conditional<
+    n<=3,
+    LinearAlgebra::BasisReduction<ScalarType, DiscreteType, n>,
+    VoronoiFirstReduction<ScalarType,Dimension>
+    >::type;
+#else
     template<size_t n> using
-    BasisReduction=LinearAlgebra::BasisReduction<ScalarType, DiscreteType, n>; // Ingredient of many PDE discretization schemes.
+    BasisReduction=LinearAlgebra::BasisReduction<ScalarType, DiscreteType, n>;
+//    typedef typename Traits::template BasisReduction<Dimension> ReductionType;
+#endif
     
     template<typename T, size_t n> using Array=LinearAlgebra::Array<T,n>;
     
@@ -40,7 +63,8 @@ template<int VDim> struct TraitsBase {
     nForward=0, nSymmetric=0,
     nMax=1, nMaxForward=0, nMaxSymmetric=0;
     
-    /// On which coordinates do the adaptive stencils depend (default : none)
+    /** On which coordinates do the adaptive stencils depend (default : none)
+     Only applies if there is a multiplier field*/
     static const DiscreteType nStencilDependencies=0;
     typedef std::array<DiscreteType, nStencilDependencies> StencilDepType_None;
     constexpr static const StencilDepType_None stencilDependencies = {{}};
@@ -57,7 +81,7 @@ template<int VDim> struct TraitsBase {
         virtual ReturnType operator()(const IndexType &) const = 0;
     };
 };
-
+// Linker wants the following two lines for some obscure reason.
 template<int VD> constexpr const typename TraitsBase<VD>::StencilDepType_None TraitsBase<VD>::stencilDependencies;
 template<int VD> constexpr const Boundary_AllClosed TraitsBase<VD>::boundaryConditions;
 

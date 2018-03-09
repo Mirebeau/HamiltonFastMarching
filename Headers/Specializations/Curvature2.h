@@ -5,7 +5,6 @@
 #ifndef Curvature2Specializations_h
 #define Curvature2Specializations_h
 
-#include "Base/HamiltonFastMarching.h"
 #include "CommonTraits.h"
 
 // --------------- R2S1 Traits ---------------

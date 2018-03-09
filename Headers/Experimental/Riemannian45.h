@@ -9,7 +9,6 @@
 #define Riemannian45_h
 
 #include "Specializations/CommonTraits.h"
-#include "Base/HFMInterface.h"
 #include "LinearAlgebra/VoronoiReduction.h"
 
 // ------------- 4D Riemannian metrics ------------

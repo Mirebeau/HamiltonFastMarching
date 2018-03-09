@@ -6,8 +6,6 @@
 #define Isotropic_h
 
 #include "CommonTraits.h"
-#include "Base/HFMInterface.h"
-
 
 // ------------- Isotropic metrics ------------
 template<size_t VDimension>
@@ -15,18 +13,9 @@ struct TraitsIsotropic : TraitsBase<VDimension> {
     typedef TraitsBase<VDimension> Superclass;
     Redeclare1Type(FromSuperclass,DiscreteType)
     Redeclare1Constant(FromSuperclass,Dimension)
-    
     typedef typename Superclass::template Difference<1> DifferenceType;
-//    static const DiscreteType nStencilDependencies=0;
-//    typedef std::array<DiscreteType, nStencilDependencies> StencilDepType;
-//    constexpr static const StencilDepType stencilDependencies = {{}};
-    
     static const DiscreteType nSymmetric = Dimension;
-//    constexpr static const Boundary_AllClosed boundaryConditions{};
 };
-// Linker wants the following line for some obscure reason.
-//template<size_t VD> constexpr const typename TraitsIsotropic<VD>::StencilDepType TraitsIsotropic<VD>::stencilDependencies;
-//template<size_t VD> constexpr const Boundary_AllClosed TraitsIsotropic<VD>::boundaryConditions;
 
 template<size_t VDimension>
 struct StencilIsotropic : HamiltonFastMarching<TraitsIsotropic<VDimension> >::StencilDataType {
@@ -57,15 +46,8 @@ struct TraitsDiagonal : TraitsBase<VDimension> {
     Redeclare1Constant(FromSuperclass,Dimension)
 
     typedef typename Superclass::template Difference<Dimension> DifferenceType;
-    static const DiscreteType nStencilDependencies=0;
-    typedef std::array<DiscreteType, nStencilDependencies> StencilDepType;
-    constexpr static const StencilDepType stencilDependencies = {{}};
-    
     static const DiscreteType nSymmetric = Dimension;
-    constexpr static const Boundary_AllClosed boundaryConditions{};
 };
-template<size_t VD> constexpr const typename TraitsDiagonal<VD>::StencilDepType TraitsDiagonal<VD>::stencilDependencies;
-template<size_t VD> constexpr const Boundary_AllClosed TraitsDiagonal<VD>::boundaryConditions;
 
 template<size_t VDimension>
 struct StencilDiagonal : HamiltonFastMarching<TraitsDiagonal<VDimension> >::StencilDataType {

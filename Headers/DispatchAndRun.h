@@ -5,10 +5,18 @@
 #ifndef DispatchAndRun_h
 #define DispatchAndRun_h
 
-#include "Base/HFMInterface.h"
-
 #define PPCAT_NX(A, B) A ## B
 #define PPCAT(A, B) PPCAT_NX(A, B)
+
+// **** Do we need high dimensional Voronoi reduction ***
+
+#define HighVoronoi_Riemann4                1
+#define HighVoronoi_Riemann5                1
+#define HighVoronoi_AsymmetricQuadratic4    1
+
+#if PPCAT(HighVoronoi_,ModelName)
+#define HighVoronoi
+#endif
 
 // **** Which header contains which model ****
 // Standard specializations
@@ -25,8 +33,8 @@
 
 #define Riemannian_Riemann2             1
 #define Riemannian_Riemann3             1
-#define RiemannianHigh_Riemannian4        1
-#define RiemannianHigh_Riemannian5        1
+#define Riemannian_Riemann4        1
+#define Riemannian_Riemann5        1
 
 #define Curvature2_ReedsShepp2          1
 #define Curvature2_ReedsSheppForward2   1
@@ -45,11 +53,13 @@
 #define PrescribedCurvature2_ElasticaExt2_5         1
 
 #define Differentiable_IsotropicDiff2   1
+#define Differentiable_IsotropicDiff3   1
+#define Differentiable_IsotropicDiff4   1
 #define Differentiable_RiemannDiff2     1
-
 
 #define AsymmetricQuadratic_AsymmetricQuadratic2    1
 #define AsymmetricQuadratic_AsymmetricQuadratic3    1
+#define AsymmetricQuadratic_AsymmetricQuadratic4    1
 #define AsymmetricQuadratic_AsymmetricQuadratic3p1  1
 
 #define RiemannLifted_RiemannLifted2_Closed         1
@@ -59,6 +69,7 @@
 #define HalfDisk_HalfDisk2              1
 #define HalfDisk_HalfDisk3              1
 #define HalfDisk_HalfDisk3p1            1
+
 
 
 // **** Include the correct header ****
@@ -77,9 +88,6 @@
 #include "Experimental/PrescribedCurvature2.h"
 #elif PPCAT(Differentiable_,ModelName)
 #include "Experimental/Differentiable.h"
-#elif PPCAT(RiemannianHigh_,ModelName)
-#define RiemannianHigh
-#include "Specializations/Riemannian.h"
 #elif PPCAT(AsymmetricQuadratic_,ModelName)
 #include "Experimental/AsymmetricQuadratic.h"
 #elif PPCAT(RiemannLifted_,ModelName)
@@ -91,6 +99,7 @@
 #else
 #include "Experimental/ReedsSheppAdaptive2.h"
 #include "Experimental/Quaternionic.h"
+#include "Experimental/RollingBall.h"
 #endif
 
 // Key redefinitions for templated classes
@@ -109,6 +118,14 @@
 #define Riemann4 Riemann<4>
 #define Riemann5 Riemann<5>
 
+#define IsotropicDiff2 IsotropicDiff<2>
+#define IsotropicDiff3 IsotropicDiff<3>
+#define IsotropicDiff4 IsotropicDiff<4>
+
+#define AsymmetricQuadratic2 AsymmetricQuadratic<2>
+#define AsymmetricQuadratic3 AsymmetricQuadratic<3>
+#define AsymmetricQuadratic4 AsymmetricQuadratic<4>
+
 #define Elastica2 Elastica2<5>
 #define Elastica2_9 Elastica2<9>
 #define RiemannLifted2_Closed RiemannLifted2<Boundary::Closed>
@@ -125,7 +142,7 @@ if(model== #modelName){ \
     io.currentSetter=IO::SetterTag::User; return;} }
 
 #ifdef Custom
-#include "Specializations/Isotropic.h"
+#include "Experimental/Differentiable.h"
 #endif
 /*
 #ifdef AllBaseModels
@@ -157,8 +174,7 @@ void Run(IO & io){
     const std::string model = io.GetString("model");
 #ifdef Custom
 // This custom executable is here to let the user choose the adequate combination of (FastMarchingClass, Model) for his/her application.
-    HFMSpecializationMacro(Isotropic2)
-
+    HFMSpecializationMacro(IsotropicDiff<2>)
 #endif
     
 // ------------- Model options ----------

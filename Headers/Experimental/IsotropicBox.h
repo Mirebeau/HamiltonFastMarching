@@ -6,9 +6,8 @@
 #define IsotropicSpecializations_h
 
 #include "CommonTraits.h"
-#include "Base/HFMInterface.h"
 
-// -- Box 2D domain with various boundary conditions (closed, periodic, klein bottle) --
+// -- Isotropic metrics on 2D and 3D domains with various boundary conditions (closed, periodic, klein bottle) --
 // Used mainly for testing these boundary conditions.
 
 template<Boundary cond>

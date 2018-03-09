@@ -6,7 +6,6 @@
 #define Curvature3_h
 
 #include "CommonTraits.h"
-#include "Base/HFMInterface.h"
 
 // ------------- R3S2 Traits ---------------
 

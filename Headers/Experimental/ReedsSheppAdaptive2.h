@@ -22,7 +22,6 @@
  */
 
 #include "Specializations/Curvature2.h"
-#include "Base/HamiltonFastMarching.h"
 
 // -----------
 

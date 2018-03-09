@@ -41,6 +41,8 @@ struct TraitsReedsSheppS2 : TraitsBase<3> {
 };
 // Linker wants the following line for some obscure reason.
 constexpr const decltype(TraitsReedsSheppS2::boundaryConditions) TraitsReedsSheppS2::boundaryConditions;
+constexpr const decltype(TraitsReedsSheppS2::stencilDependencies) TraitsReedsSheppS2::stencilDependencies;
+
 
 struct StencilReedsSheppS2
 : HamiltonFastMarching<TraitsReedsSheppS2>::StencilDataType {
@@ -107,6 +109,7 @@ struct TraitsDubinsS2 : TraitsBase<3> {
     static const DiscreteType nMax = 2, nMaxForward = 6;
 };
 constexpr const decltype(TraitsDubinsS2::boundaryConditions) TraitsDubinsS2::boundaryConditions;
+constexpr const decltype(TraitsDubinsS2::stencilDependencies) TraitsDubinsS2::stencilDependencies;
 
 struct StencilDubinsS2
 : HamiltonFastMarching<TraitsDubinsS2>::StencilDataType {
@@ -154,6 +157,7 @@ struct TraitsRollingBall : TraitsBase<5> {
     static const DiscreteType nSymmetric = 15;
 };
 constexpr const decltype(TraitsRollingBall::boundaryConditions) TraitsRollingBall::boundaryConditions;
+constexpr const decltype(TraitsRollingBall::stencilDependencies) TraitsRollingBall::stencilDependencies;
 
 struct StencilRolling2
 : HamiltonFastMarching<TraitsRollingBall>::StencilDataType {

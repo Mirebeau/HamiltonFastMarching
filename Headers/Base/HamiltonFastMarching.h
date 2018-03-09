@@ -12,7 +12,6 @@
 #include <cmath>
 #include <memory>
 
-
 #include "DataStructures/ShallowMap.h"
 #include "DataStructures/RangeAccessor.h"
 #include "DataStructures/CappedVector.h"

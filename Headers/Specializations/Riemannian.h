@@ -3,12 +3,6 @@
 // Licence GPU GPL v3 or later, see <http://www.gnu.org/licenses/>. Distributed WITHOUT ANY WARRANTY.
 
 #include "CommonTraits.h"
-#include "Base/HFMInterface.h"
-
-#ifdef RiemannianHigh // Applies only to dimensions 4 and 5
-#include <type_traits> // std::conditional
-#include "LinearAlgebra/VoronoiReduction.h"
-#endif
 
 // ------------- 2D - 3D Riemannian metrics ------------
 template<size_t VDimension>
@@ -18,11 +12,8 @@ struct TraitsRiemann : TraitsBase<VDimension> {
     Redeclare1Constant(FromSuperclass,Dimension)
 
     typedef typename Superclass::template Difference<0> DifferenceType;
-    constexpr static const Boundary_AllClosed  boundaryConditions{};
     static const DiscreteType nSymmetric = (Dimension*(Dimension+1))/2;
 };
-// Linker wants the following line for some obscure reason.
-template<size_t VD> constexpr const Boundary_AllClosed TraitsRiemann<VD>::boundaryConditions;
 
 template<size_t VDimension>
 struct StencilRiemann : HamiltonFastMarching<TraitsRiemann<VDimension> >::StencilDataType {
@@ -31,15 +22,8 @@ struct StencilRiemann : HamiltonFastMarching<TraitsRiemann<VDimension> >::Stenci
     Redeclare7Types(FromHFM,ParamDefault,IndexType,StencilType,ParamInterface,HFMI,Traits,ScalarType)
     Redeclare1Constant(FromHFM,Dimension)
     ParamDefault param;
-    
-#ifdef RiemannianHigh
-    typedef typename Traits::template BasisReduction<Dimension> ReductionType23;
-    typedef VoronoiFirstReduction<ScalarType,Dimension> ReductionType45;
-    typedef typename std::conditional<Dimension<=3, ReductionType23, ReductionType45>::type ReductionType;
-#else
+
     typedef typename Traits::template BasisReduction<Dimension> ReductionType;
-#endif
-    
     typedef typename ReductionType::SymmetricMatrixType SymmetricMatrixType;
     typedef SymmetricMatrixType MetricElementType;
     typedef typename Traits::template DataSource<MetricElementType> MetricType;

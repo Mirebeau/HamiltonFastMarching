@@ -5,7 +5,6 @@
 #ifndef AsymmetricQuadratic_h
 #define AsymmetricQuadratic_h
 
-#include "Base/HamiltonFastMarching.h"
 #include "Specializations/CommonTraits.h"
 #include "LinearAlgebra/VectorPairType.h"
 
@@ -99,32 +98,37 @@ void HalfDisk(ScalarType r, ScalarType delta, SymmetricMatrixType & D, VectorTyp
     
 }
 
-// ------- Two dimensional model --------
+// ------- Asymmetric quadratic model --------
 
-struct TraitsAsymmetricQuadratic2 : TraitsBase<2> {
-    typedef Difference<0> DifferenceType;
-    constexpr static std::array<Boundary, Dimension> boundaryConditions =
-    {{Boundary::Closed, Boundary::Closed}};
-    static const DiscreteType nSymmetric=3, nForward=3;
+template<size_t VDimension>
+struct TraitsAsymmetricQuadratic : TraitsBase<VDimension> {
+    typedef TraitsBase<VDimension> Superclass;
+    Redeclare1Type(FromSuperclass,DiscreteType)
+    Redeclare1Constant(FromSuperclass,Dimension)
+    typedef typename Superclass::template Difference<0> DifferenceType;
+    static const DiscreteType SymDimension = (Dimension*(Dimension+1))/2;
+    static const DiscreteType nSymmetric=SymDimension, nForward=SymDimension;
 };
 
-constexpr decltype(TraitsAsymmetricQuadratic2::boundaryConditions) TraitsAsymmetricQuadratic2::boundaryConditions;
-
-struct StencilAsymmetricQuadratic2 : HamiltonFastMarching<TraitsAsymmetricQuadratic2>::StencilDataType {
-    typedef HamiltonFastMarching<TraitsAsymmetricQuadratic2> HFM;
-    typedef HFM::StencilDataType Superclass;
-    HFM::ParamDefault param;
+template<size_t VDimension>
+struct StencilAsymmetricQuadratic : HamiltonFastMarching<TraitsAsymmetricQuadratic<VDimension> >::StencilDataType {
+    typedef HamiltonFastMarching<TraitsAsymmetricQuadratic<VDimension> > HFM;
+    typedef typename HFM::StencilDataType Superclass;
+    Redeclare5Types(FromHFM,ParamDefault,ScalarType,Traits,VectorType,IndexType)
+    Redeclare4Types(FromHFM,StencilType,ParamInterface,HFMI,IndexCRef)
+    Redeclare1Constant(FromHFM,Dimension)
+    ParamDefault param;
     ScalarType eps = 0.3, epsSide = 0.2;
     
-    typedef Traits::BasisReduction<Dimension> ReductionType;
-    typedef ReductionType::SymmetricMatrixType SymmetricMatrixType;
+    typedef typename Traits::template BasisReduction<Dimension> ReductionType;
+    typedef typename ReductionType::SymmetricMatrixType SymmetricMatrixType;
     typedef LinearAlgebra::VectorPair<SymmetricMatrixType, VectorType> MetricElementType;
-    typedef Traits::DataSource<MetricElementType> MetricType;
+    typedef typename Traits::template DataSource<MetricElementType> MetricType;
     std::unique_ptr<MetricType> pMetric;
     std::unique_ptr<MetricType> pDualMetric;
 
     typedef LinearAlgebra::VectorPair<VectorType, ScalarType> HalfDiskElementType;
-    typedef Traits::DataSource<HalfDiskElementType>  HalfDiskType;
+    typedef typename Traits::template DataSource<HalfDiskElementType>  HalfDiskType;
     std::unique_ptr<HalfDiskType> pHalfDisk;
 
 
@@ -154,21 +158,21 @@ struct StencilAsymmetricQuadratic2 : HamiltonFastMarching<TraitsAsymmetricQuadra
         auto & io = that->io;
         Superclass::Setup(that);
         param.Setup(that);
-        eps = io.Get<ScalarType>("eps",eps);
+        eps = io.template Get<ScalarType>("eps",eps);
         if(io.HasField("dualMetric")){
-            pDualMetric = that->GetField<MetricElementType>("dualMetric");
+            pDualMetric = that->template GetField<MetricElementType>("dualMetric");
         } else if(io.HasField("metric")) {
-            pMetric = that->GetField<MetricElementType>("dualMetric");
+            pMetric = that->template GetField<MetricElementType>("dualMetric");
         } else {
-            pHalfDisk = that->GetField<HalfDiskElementType>("halfDisk");
-            epsSide=that->io.Get<ScalarType>("epsForward",eps/1.5);
+            pHalfDisk = that->template GetField<HalfDiskElementType>("halfDisk");
+            epsSide=that->io.template Get<ScalarType>("epsForward",eps/1.5);
         }
     }
 };
 
 
 // ------- Three dimensional model ---------
-
+/*
 struct TraitsAsymmetricQuadratic3 : TraitsBase<3> {
     typedef Difference<0> DifferenceType;
     constexpr static std::array<Boundary, Dimension> boundaryConditions =
@@ -233,8 +237,8 @@ struct StencilAsymmetricQuadratic3 : HamiltonFastMarching<TraitsAsymmetricQuadra
         }
     }
 };
-
-// ------- Three dimensional model with one additional radius dimension ---------
+*/
+// ------- Three dimensional lifted model with one additional radius dimension ---------
 
 struct TraitsAsymmetricQuadratic3p1 : TraitsBase<4> {
     typedef Difference<0> DifferenceType;

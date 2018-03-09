@@ -6,7 +6,6 @@
 #define RiemannLifted_h
 
 #include "Specializations/CommonTraits.h"
-#include "Base/HamiltonFastMarching.h"
 #include "LinearAlgebra/VectorPairType.h"
 
 template<Boundary cond>
