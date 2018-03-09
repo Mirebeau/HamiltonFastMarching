@@ -13,13 +13,20 @@
 // **** Which header contains which model ****
 // Standard specializations
 
+#define Isotropic_Isotropic1            1
 #define Isotropic_Isotropic2            1
-#define Isotropic_Diagonal2             1
 #define Isotropic_Isotropic3            1
+#define Isotropic_Isotropic4            1
+#define Isotropic_Isotropic5            1
+#define Isotropic_Diagonal2             1
 #define Isotropic_Diagonal3             1
+#define Isotropic_Diagonal4             1
+#define Isotropic_Diagonal5             1
 
 #define Riemannian_Riemann2             1
 #define Riemannian_Riemann3             1
+#define RiemannianHigh_Riemannian4        1
+#define RiemannianHigh_Riemannian5        1
 
 #define Curvature2_ReedsShepp2          1
 #define Curvature2_ReedsSheppForward2   1
@@ -40,8 +47,6 @@
 #define Differentiable_IsotropicDiff2   1
 #define Differentiable_RiemannDiff2     1
 
-#define Riemannian45_Riemannian4        1
-#define Riemannian45_Riemannian5        1
 
 #define AsymmetricQuadratic_AsymmetricQuadratic2    1
 #define AsymmetricQuadratic_AsymmetricQuadratic3    1
@@ -72,8 +77,9 @@
 #include "Experimental/PrescribedCurvature2.h"
 #elif PPCAT(Differentiable_,ModelName)
 #include "Experimental/Differentiable.h"
-#elif PPCAT(Riemannian45_,ModelName)
-#include "Experimental/Riemannian45.h"
+#elif PPCAT(RiemannianHigh_,ModelName)
+#define RiemannianHigh
+#include "Specializations/Riemannian.h"
 #elif PPCAT(AsymmetricQuadratic_,ModelName)
 #include "Experimental/AsymmetricQuadratic.h"
 #elif PPCAT(RiemannLifted_,ModelName)
@@ -88,10 +94,26 @@
 #endif
 
 // Key redefinitions for templated classes
+#define Isotropic1 Isotropic<1>
+#define Isotropic2 Isotropic<2>
+#define Isotropic3 Isotropic<3>
+#define Isotropic4 Isotropic<4>
+#define Isotropic5 Isotropic<5>
+#define Diagonal2 Diagonal<2>
+#define Diagonal3 Diagonal<3>
+#define Diagonal4 Diagonal<4>
+#define Diagonal5 Diagonal<5>
+
+#define Riemann2 Riemann<2>
+#define Riemann3 Riemann<3>
+#define Riemann4 Riemann<4>
+#define Riemann5 Riemann<5>
+
 #define Elastica2 Elastica2<5>
 #define Elastica2_9 Elastica2<9>
 #define RiemannLifted2_Closed RiemannLifted2<Boundary::Closed>
 #define RiemannLifted2_Periodic RiemannLifted2<Boundary::Periodic>
+
 
 // ------- Custom invocation, with multiple models.  ---------
 

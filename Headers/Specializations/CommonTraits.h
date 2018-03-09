@@ -40,10 +40,13 @@ template<int VDim> struct TraitsBase {
     nForward=0, nSymmetric=0,
     nMax=1, nMaxForward=0, nMaxSymmetric=0;
     
-    /** */
-    static const DiscreteType
-    nStencilDependencies=0,
-    nBundleDimensions=0;
+    /// On which coordinates do the adaptive stencils depend (default : none)
+    static const DiscreteType nStencilDependencies=0;
+    typedef std::array<DiscreteType, nStencilDependencies> StencilDepType_None;
+    constexpr static const StencilDepType_None stencilDependencies = {{}};
+    
+    /// Boundary conditions for the PDE (default : closed box)
+    constexpr static const Boundary_AllClosed boundaryConditions{};
     
     /// A DataSource is a pure interface, multi-dimensional-array-like for providing pointwise data on a grid
     template<typename E> struct DataSource {
@@ -54,6 +57,9 @@ template<int VDim> struct TraitsBase {
         virtual ReturnType operator()(const IndexType &) const = 0;
     };
 };
+
+template<int VD> constexpr const typename TraitsBase<VD>::StencilDepType_None TraitsBase<VD>::stencilDependencies;
+template<int VD> constexpr const Boundary_AllClosed TraitsBase<VD>::boundaryConditions;
 
 template<int VDim> template<size_t VMultSize, typename Dummy> struct TraitsBase<VDim>::Difference {
     typedef TraitsBase<VDim> T; typedef T::ScalarType ScalarType; typedef T::OffsetType OffsetType;

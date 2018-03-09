@@ -20,8 +20,13 @@
 #include "Base/HFMInterface.h"
 
 
-// ------------- 2D Isotropic metric, differentiable implementation ------------
-struct TraitsIsotropicDiff2 : TraitsBase<2> {
+// ------------- Isotropic metric, everywhere differentiable implementation ------------
+template<size_t VDimension>
+struct TraitsIsotropicDiff : TraitsBase<VDimension> {
+    typedef TraitsBase<VDimension> Superclass;
+    Redeclare1Type(FromSuperclass,DiscreteType)
+    Redeclare1Constant(FromSuperclass,Dimension)
+
     typedef Difference<1> DifferenceType;
     static const DiscreteType nStencilDependencies=0;
     constexpr static std::array<DiscreteType, nStencilDependencies> stencilDependencies = {{}};
