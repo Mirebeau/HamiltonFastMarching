@@ -4,6 +4,10 @@
 % - C(s)=1+s^2 for Elastica2<5>.
 % - C(s)=1 if |s|<=1, infty otherwise for the Dubins2 model.
 
+% If you have not compiled this model yet, please run the CompileMexHFM script and then
+% compileModelsHFM(binary_Dir,JMM_CPPLibs_Dir,{'ReedsShepp2','ReedsSheppForward2','Elastica2','Dubins2'})
+
+
 if false %Some geodesics, around the origin, without obstacles.
     clear input;
     n=101;
@@ -15,7 +19,7 @@ if false %Some geodesics, around the origin, without obstacles.
     input.origin=[0;0];  % Physical origin
     input.gridScale=1/n; % Physical gridScale
 
-    modelName = 'Elastica2'; %Alternatively : 'ReedsShepp2','ReedsSheppForward2', 'Elastica2<5>', 'Dubins2'
+    modelName = 'Elastica2'; %Alternatively : 'ReedsShepp2','ReedsSheppForward2', 'Elastica2', 'Dubins2'
     input.speed = 1; %Use an array for a position, angle, or (position and angle) dependent speed. 
     % Alternatively input.speed = ones(n,n), or ones(nTheta), or ones(n,n,nTheta)
     input.xi = 0.1; %Model parameter, typical radius of curvature.

@@ -5,15 +5,8 @@
 %- stopping criterion based on geodesic euclidean length
 %- voronoi diagram computation
 
-% The c++ project files must be built prior to execution of this script. 
-% For that purpose the notebook CompileMexHFM, and then the functions
-% compileHFM(binaryDir,'Isotropic'), or compileHFMAll(binaryDir)
-
-% In order to apply these features to a different model 
-% (e.g. Riemann2, Riemann3, ReedsShepp2, ... all are supported) 
-% then you need to open file '../../DispatchAndRun.h', and add the line 
-% HFMSpecializationMacro(HFMState,YOUR_MODEL_NAME)
-
+% If you have not compiled this model yet, please run the CompileMexHFM script and then
+% compileModelsHFM(binary_Dir,JMM_CPPLibs_Dir,{'Isotropic2'})
 
 n=20;h=1/n;
 [x,y]=meshgrid(0:1/n:2,0:1/n:1); 

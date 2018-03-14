@@ -2,13 +2,15 @@
 
 % This file demonstrate riemannian anisotropic fast marching.
 
+% If you have not compiled this model yet, please run the CompileMexHFM script and then
+% compileModelsHFM(binary_Dir,JMM_CPPLibs_Dir,{'Riemann2'})
+
 clear input;
 nx=81;ny=83; %Taking different dimensions to make sure axes are not inverted...
 nGeo=8;
 
 % We do use Matlab's convention of ordering the axes as y, x, z.
-% Internally, the first two array coordinates are transposed.
-% This feature can be turned off by setting input.transposeFirstTwoCoordinates=False
+% Use the input.arrayOrdering field to change this behavior
 [x,y]=meshgrid(1:nx,1:ny);
 
 

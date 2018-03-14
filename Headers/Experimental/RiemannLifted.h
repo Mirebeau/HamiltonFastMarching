@@ -33,12 +33,15 @@ struct StencilRiemannLifted2 : HamiltonFastMarching<TraitsRiemannLifted2<cond> >
     typedef typename ReductionType::SymmetricMatrixType Sym;
     typedef LinearAlgebra::VectorPair<Sym,ScalarType> MetricElementType;
     typedef typename Traits::template DataSource<MetricElementType> MetricType;
-    std::unique_ptr<MetricType> pDualMetric;
+    std::unique_ptr<MetricType> pDualMetric, pMetric;
     
     typename HFM::ParamDefault param;
     
     virtual void SetStencil(const IndexType & index, StencilType & stencil) override {
-        const MetricElementType & met = (*pDualMetric)(index);
+        MetricElementType met;
+        if(pDualMetric) met = (*pDualMetric)(index);
+        else {met = (*pMetric)(index); met.first = met.first.Inverse(); met.second=1/met.second;}
+        
         Voronoi1Mat<ReductionType>(&stencil.symmetric[0], met.first/square(param.gridScale));
         stencil.symmetric[3].offset = {0,0,1};
         stencil.symmetric[3].baseWeight = met.second/square(param.dependScale);
@@ -46,10 +49,12 @@ struct StencilRiemannLifted2 : HamiltonFastMarching<TraitsRiemannLifted2<cond> >
     virtual const ParamInterface & Param() const override {return param;}
     virtual void Setup(HFMI *that) override {
         Superclass::Setup(that);
+        auto & io = that->io;
         const ScalarType bundleScale =
-        that->io.template Get<ScalarType>("bundleScale",cond==Boundary::Periodic ? 2.*Traits::mathPi/this->dims[2] : 1.);
+        io.template Get<ScalarType>("bundleScale",cond==Boundary::Periodic ? 2.*Traits::mathPi/this->dims[2] : 1.);
         param.Setup(that->io,bundleScale);
-        pDualMetric=that->template GetField<MetricElementType>("dualMetric");        
+        if(io.HasField("metric")) pMetric = that->template GetField<MetricElementType>("metric");
+        else pDualMetric=that->template GetField<MetricElementType>("dualMetric");
     }
 };
 

@@ -1,3 +1,5 @@
+% If you have not compiled this model yet, please run the CompileMexHFM script and then
+% compileModelsHFM(binary_Dir,JMM_CPPLibs_Dir,{'RiemannLifted2_Periodic'})
 
 if true 
     % This example reproduces the the Reeds Shepp model.

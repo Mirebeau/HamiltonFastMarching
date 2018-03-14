@@ -143,6 +143,7 @@ if(model== #modelName){ \
 
 #ifdef Custom
 #include "Experimental/Differentiable.h"
+#include "Experimental/RiemannLifted.h"
 #endif
 /*
 #ifdef AllBaseModels
@@ -175,6 +176,7 @@ void Run(IO & io){
 #ifdef Custom
 // This custom executable is here to let the user choose the adequate combination of (FastMarchingClass, Model) for his/her application.
     HFMSpecializationMacro(IsotropicDiff<2>)
+    HFMSpecializationMacro(RiemannLifted2<Boundary::Closed>)
 #endif
     
 // ------------- Model options ----------
