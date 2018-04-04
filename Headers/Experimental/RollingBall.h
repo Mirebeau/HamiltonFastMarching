@@ -37,7 +37,7 @@ struct TraitsReedsSheppS2 : TraitsBase<3> {
     stencilDependencies = {{0,2}};
     // TODO : allow 'stencil dependencies' to be distinct from 'speed dependencies' (?)
     
-    static const DiscreteType nSymmetric = 3+1;
+    static const DiscreteType nSymmetric = 6;
 };
 // Linker wants the following line for some obscure reason.
 constexpr const decltype(TraitsReedsSheppS2::boundaryConditions) TraitsReedsSheppS2::boundaryConditions;
@@ -58,7 +58,7 @@ struct StencilReedsSheppS2
         const ScalarType psi = index[2]*scales[2];
 
         typedef Traits::BasisReduction<3> ReductionType;
-        const ReductionType::VectorType // Issue : is this primal or dual ??
+        const ReductionType::VectorType
         vTheta = {1,0,0},
         vPhi = {0,1/sin(theta),-cos(theta)/sin(theta)},
         vPsi = {0,0,xi};
@@ -69,22 +69,11 @@ struct StencilReedsSheppS2
         
         typedef ReductionType::SymmetricMatrixType Sym;
         // Define the metric
-        Sym m = Sym::RankOneTensor(u) + Sym::RankOneTensor(v)/square(eps) + Sym::RankOneTensor(vPsi);
-        for(int i=0; i<=Dimension; ++i){
+        Sym m = Sym::RankOneTensor(u) + Sym::RankOneTensor(v)*square(eps) + Sym::RankOneTensor(vPsi);
+        for(int i=0; i<Dimension; ++i){
             for(int j=0; j<=i; ++j){
-                m(i,j)*=scales[i]*scales[j];}}
-        Voronoi1Mat<ReductionType>(&stencil.symmetric[0],m.Inverse());
-        
-        /*
-        typedef Traits::BasisReduction<2> ReductionType;
-        const ReductionType::VectorType v{cos(psi)/scales[0],sin(psi)/(sin(theta)*scales[1])};
-        typedef ReductionType::SymmetricMatrixType Sym;
-        Voronoi1Mat<ReductionType>(&stencil.symmetric[0],
-            (Sym::RankOneTensor(v)*(1.-square(eps)) + Sym::Identity() * square(eps)) );
-        
-        // Motion in the angular direction
-        stencil.symmetric[3].offset = OffsetType{0,0,1};
-        stencil.symmetric[3].baseWeight = 1./square(xi*param.gridScales[2]);*/
+                m(i,j)/=scales[i]*scales[j];}}
+        Voronoi1Mat<ReductionType>(&stencil.symmetric[0],m);
     }
     virtual const ParamInterface & Param() const override {return param;}
     virtual void Setup(HFMI *that) override {

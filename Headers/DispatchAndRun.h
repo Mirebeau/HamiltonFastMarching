@@ -7,6 +7,8 @@
 
 #define PPCAT_NX(A, B) A ## B
 #define PPCAT(A, B) PPCAT_NX(A, B)
+#define STRING_NX(s) #s
+#define STRING(s) STRING_NX(s)
 
 // **** Do we need high dimensional Voronoi reduction ***
 
@@ -102,6 +104,9 @@
 #include "Experimental/RollingBall.h"
 #endif
 
+// Saving the model name as a string for future reference
+const std::string ModelNameString=STRING(ModelName);
+
 // Key redefinitions for templated classes
 #define Isotropic1 Isotropic<1>
 #define Isotropic2 Isotropic<2>
@@ -161,6 +166,12 @@ void Run(IO & io){
 
     // ------- Run a single model --------
 #ifdef ModelName
+    
+    if(io.HasField("model")){
+        if(io.GetString("model")!=ModelNameString)
+            ExceptionMacro("Executable applies to " << ModelNameString
+                           << ", not to " << io.GetString("model") << ".");
+    }
     typedef HFMInterface<PPCAT(Traits,ModelName)> HFMI;
     typedef PPCAT(Stencil,ModelName) StencilDataType;
     

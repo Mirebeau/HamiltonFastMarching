@@ -95,7 +95,7 @@ template<typename T> template<typename Dummy> struct
 HFMInterface<T>::SpecializationsDefault<false,Dummy> {
     typedef HFMInterface<T> HFMI;
     typedef typename HFMI::HFM HFM;
-    Redeclare2Types(FromHFM,ScalarType,PointType)
+    Redeclare3Types(FromHFM,ScalarType,PointType,IndexType)
     Redeclare1Constant(FromHFM,Dimension)
     
     template<typename E> using DataSource = typename HFM::template DataSource<E>;
