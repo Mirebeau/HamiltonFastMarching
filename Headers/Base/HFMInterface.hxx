@@ -311,7 +311,7 @@ Run_SetupStencil() {
     stencil.Setup(this);
     
     const clock_t top = clock();
-    pFM=std::unique_ptr<HFM>(new HFM(std::move(_pStencil)));
+    pFM=std::unique_ptr<HFM>(new HFM(stencil));
     io.Set<ScalarType>("StencilCPUTime",ScalarType(clock()-top)/CLOCKS_PER_SEC);
 }
 

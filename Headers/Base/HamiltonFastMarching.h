@@ -92,7 +92,7 @@ struct HamiltonFastMarching {
     template<bool b=hasMultiplier, typename Dummy=void> struct _StencilDataType;
     typedef _StencilDataType<> StencilDataType;
     DiscreteType MaxStencilWidth() const;
-    std::unique_ptr<StencilDataType> pStencilData;
+    StencilDataType & stencilData;
     
     // Default domain parametrization (Currently used in all instantiations)
     static const bool hasBundle = (0<Traits::nStencilDependencies) && (Traits::nStencilDependencies<Dimension);
@@ -105,7 +105,7 @@ struct HamiltonFastMarching {
     struct ExtraAlgorithmPtrs;
     ExtraAlgorithmPtrs extras;
     
-    HamiltonFastMarching(std::unique_ptr<StencilDataType>);
+    HamiltonFastMarching(StencilDataType &);
 protected:
     template<size_t n=Traits::nMax> struct _QuadType;
     typedef _QuadType<> QuadType;

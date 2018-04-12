@@ -161,6 +161,22 @@ if(model== #modelName){ \
 //#define HFMSpecializationMacro(hfmName,modelName) \
 //{ if(model== #modelName) {HFMInterface<Stencil ## modelName,hfmName<Traits ## modelName> >(io).Run(); return;} }
 
+template<typename TTraits> struct HFMInterface2 {
+    typedef TTraits Traits;
+    typedef HamiltonFastMarching<Traits> HFM;
+    Redeclare4Types(FromHFM,ActiveNeighFlagType,StencilDataType,ExtraAlgorithmInterface,GeodesicSolverInterface);
+    
+    template<typename E, size_t n> using Array = typename Traits::template Array<E,n>;
+    template<typename E> using DataSource = typename Traits::template DataSource<E>;
+    template<typename E> struct DataSource_Value;
+    
+    IO & io;
+    StencilDataType & stencil;
+    HFMInterface2(IO & _io, StencilDataType & _stencil) : io(_io), stencil(_stencil) {}
+    //_pStencil(std::move(pStencil)) {};
+    virtual void Run(){};
+};
+
 
 void Run(IO & io){
 
@@ -176,9 +192,9 @@ void Run(IO & io){
     typedef PPCAT(Stencil,ModelName) StencilDataType;
     
     io.currentSetter=IO::SetterTag::Compute;
-    HFMI(io, std::unique_ptr<StencilDataType>(new StencilDataType)).Run();\
+    StencilDataType stencil;
+    HFMI(io, stencil).Run();
     io.currentSetter=IO::SetterTag::User;
-    
     return;
 #endif
     

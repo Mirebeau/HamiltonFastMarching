@@ -164,7 +164,7 @@ PostProcessWithRecompute(IndexCRef index, const RecomputeType &, const DiscreteF
     }
     
     if(stoppingCriterion==StoppingCriterionEnum::kVoronoiOppositesMeeting){ // Note : only applies to R^n x S^d domains, d in {1,2}
-        const IndexType oppositeIndex = OppositeIndex<>()(index,pFM->pStencilData->dims);
+        const IndexType oppositeIndex = OppositeIndex<>()(index,pFM->stencilData.dims);
         const ShortType oppositeFlag = voronoiFlags(oppositeIndex);
         if(indexFlag!=-1 && oppositeFlag!=-1 && indexFlag!=oppositeFlag){
             stoppingIndex0=index; stoppingIndex1=oppositeIndex;

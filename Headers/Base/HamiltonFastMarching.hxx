@@ -25,10 +25,9 @@ HamiltonFastMarching<Traits>::StencilType::PrintSelf(std::ostream & os) const {
 // --------- Construction -------
 
 template<typename T> HamiltonFastMarching<T>::
-HamiltonFastMarching(std::unique_ptr<StencilDataType> _pStencilData):
-dom(_pStencilData->dims), pStencilData(std::move(_pStencilData)){
-    assert(pStencilData);
-    values.dims = pStencilData->dims;
+HamiltonFastMarching(StencilDataType & _stencilData):
+dom(_stencilData.dims), stencilData(_stencilData){
+    values.dims = stencilData.dims;
     values.resize(values.dims.ProductOfCoordinates(),Traits::Infinity());
     
     acceptedFlags.dims=values.dims;
@@ -37,13 +36,13 @@ dom(_pStencilData->dims), pStencilData(std::move(_pStencilData)){
     activeNeighs.dims = values.dims;
     activeNeighs.resize(values.size(),0);
     
-    pStencilData->Initialize(this);
+    stencilData.Initialize(this);
 };
 
 template<typename T> auto HamiltonFastMarching<T>::
 MaxStencilWidth() const -> DiscreteType {
     return std::accumulate(
-    pStencilData->reversedOffsets.begin(),pStencilData->reversedOffsets.end(),0,
+    stencilData.reversedOffsets.begin(),stencilData.reversedOffsets.end(),0,
     [](DiscreteType a, const OffsetType & offset)->DiscreteType {
     return std::max(a,std::accumulate(offset.begin(),offset.end(),0,
     [](DiscreteType b, DiscreteType c)->DiscreteType {return b+std::abs(c);}
@@ -106,9 +105,9 @@ bool HamiltonFastMarching<T>::RunOnce(){
     if(dec & Decision::kContinue) return queue.empty();
     
     acceptedFlags[accepted.linear]=true;
-    pStencilData->EraseCache(accepted.linear);
+    stencilData.EraseCache(accepted.linear);
     
-    const auto offsets = pStencilData->ReversedOffsets(accepted);
+    const auto offsets = stencilData.ReversedOffsets(accepted);
     for(OffsetCRef offset : offsets){
         ConditionalUpdate(accepted.index, offset, top.value);}
 
@@ -158,7 +157,7 @@ template<typename T> void HamiltonFastMarching<T>::
 Update(FullIndexCRef updated, OffsetCRef offset, ScalarType acceptedValue){
     auto & active = activeNeighs[updated.linear];
 
-    auto data = pStencilData->UpdateData(updated);
+    auto data = stencilData.UpdateData(updated);
     if(data.quad.minVal==-Traits::Infinity()){
         assert(active==0);
         data.quad.minVal = acceptedValue;
@@ -331,7 +330,7 @@ Recompute(const IndexType & updatedIndex, DiscreteFlowType & discreteFlow) const
     const ActiveNeighFlagType active = activeNeighs[updatedLinearIndex];
 //    if(active.none()) return values[updatedLinearIndex]; // Handled below
     
-    const auto & data = pStencilData->RecomputeData(updatedIndex);
+    const auto & data = stencilData.RecomputeData(updatedIndex);
     
     std::bitset<nActiveNeigh> sndOrderNeighs;
     auto PushValueDiff = [this,&updatedIndex, &discreteFlow, &sndOrderNeighs](OffsetType offset){

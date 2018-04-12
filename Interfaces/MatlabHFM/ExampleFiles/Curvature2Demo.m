@@ -8,7 +8,7 @@
 % compileModelsHFM(binary_Dir,JMM_CPPLibs_Dir,{'ReedsShepp2','ReedsSheppForward2','Elastica2','Dubins2'})
 
 
-if false %Some geodesics, around the origin, without obstacles.
+if true %Some geodesics, around the origin, without obstacles.
     clear input;
     n=101;
     nTheta=60;
@@ -47,7 +47,7 @@ if false %Some geodesics, around the origin, without obstacles.
     pause;
 end
 
-if true % Within centre Pompidou
+if false % Within centre Pompidou
     clear input;
     modelName = 'ReedsShepp2'; % Alternatively 'ReedShepp2', 'ReedSheppForward2', %'Elastica2', 'Dubins2'; 
     input.xi = 0.7; %Model parameter, typical radius of curvature.

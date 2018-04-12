@@ -33,15 +33,12 @@ set(DataStructures_dir 		"${JMM_CPPLibs_dir}/DataStructures")
 
 set(DummyBinDir "${CMAKE_CURRENT_BINARY_DIR}/Dummy")
 
+
 # ---- Include headers -----
 add_subdirectory(${LinearAlgebra_dir} "${DummyBinDir}/LinearAlgebra")
 add_subdirectory(${Output_dir} "${DummyBinDir}/Output")
 add_subdirectory(${DataStructures_dir} 	"${DummyBinDir}/DataStructures")
 add_subdirectory("../../Headers" "${DummyBinDir}/HFMHeaders")
-#add_subdirectory("Base")
-#add_subdirectory("Specializations")
-#add_subdirectory("Experimental")
-#add_subdirectory("ExtraAlgorithms")
 
 set(DataStructures_Headers
 	${DataStructures_Headers}
@@ -65,6 +62,8 @@ set(Output_Headers
 	"${Output_dir}/Output/IO.h"
 	"${Output_dir}/Output/IO.hxx"
 	"${Output_dir}/Output/ExceptionMacro.h"
+	"${Output_dir}/Output/MexIO.h"
+	"${Output_dir}/Output/MexIO.hxx"
 )
 
 set(Project_Headers 

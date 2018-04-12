@@ -28,7 +28,7 @@ template<typename TTraits> struct HFMInterface {
     std::vector<std::unique_ptr<ExtraAlgorithmInterface> > extras;
     std::unique_ptr<TimeDependentFields<Traits> > pTime;
     std::unique_ptr<GeodesicSolverInterface> pGeodesicSolver;
-    HFMInterface(IO & _io, std::unique_ptr<StencilDataType> pStencil) :io(_io), stencil(*pStencil), _pStencil(std::move(pStencil)) {};
+    HFMInterface(IO & _io, StencilDataType & _stencil) :io(_io), stencil(_stencil) {};
     virtual void Run();
 
     template<typename E> std::unique_ptr<DataSource<E> > GetField(std::string s, bool=true); // bool field: allow time dependency
@@ -42,7 +42,7 @@ protected:
     template<typename E, bool b=HFM::hasBundle> struct DataSource_Dep;   // A data source depending only on the "bundle" coords.
     template<typename E> struct TimeDependentSource;
 
-    std::unique_ptr<StencilDataType> _pStencil;
+//    std::unique_ptr<StencilDataType> _pStencil;
     template<typename Alg> Alg * SetupSingleAlgorithm();
     
     virtual void Run_SetupIO();

@@ -182,7 +182,7 @@ ValueVariation(IndexCRef index, ActiveNeighborsType & neighbors) const ->MultTyp
     
     MultType var = DiffHelper::NullMult();
     ScalarType weightSum=0;
-    const auto & data = pFM->pStencilData->RecomputeData(index);
+    const auto & data = pFM->stencilData.RecomputeData(index);
     const ActiveNeighFlagType active = pFM->activeNeighs(index);
     
     auto func = [&,this](DiscreteType s, const DifferenceType & diff){
