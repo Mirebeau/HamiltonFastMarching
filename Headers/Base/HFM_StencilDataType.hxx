@@ -190,7 +190,7 @@ Initialize(const HFM * pFM) {
     offsets.reserve(shallowStencilQuads.size()*HFM::nNeigh);
     
     IndexType updatedIndex;
-    auto InsertOffset = [this,pFM,&offsets,&updatedIndex](OffsetType offset, ScalarType w){
+    auto InsertOffset = [pFM,&offsets,&updatedIndex](OffsetType offset, ScalarType w){
         if(w==0.) return;
         IndexType acceptedIndex;
         auto reversed = pFM->VisibleOffset(updatedIndex,offset,acceptedIndex);

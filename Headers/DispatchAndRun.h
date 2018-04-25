@@ -143,7 +143,8 @@ const std::string ModelNameString=STRING(ModelName);
 {typedef HFMInterface<Traits ## modelName> HFMI; typedef Stencil ## modelName StencilDataType;\
 if(model== #modelName){ \
     io.currentSetter=IO::SetterTag::Compute;\
-    HFMI(io, std::unique_ptr<StencilDataType>(new StencilDataType)).Run();\
+    StencilDataType stencil; \
+    HFMI(io, stencil).Run();\
     io.currentSetter=IO::SetterTag::User; return;} }
 
 #ifdef Custom

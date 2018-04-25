@@ -37,3 +37,8 @@ Jean-Marie Mirebeau, Anisotropic fast-marching on cartesian grids using Voronoi'
 
 - (On Euler Elastica and Dubins paths) : 
 Jean-Marie Mirebeau, Fast Marching methods for Curvature Penalized Shortest Paths, in preparation, 2017
+
+
+*** Reproducible research ***
+This code (or an earlier version), was submitted to a reproducible research journal alongside a publication entitled:
+Jean-Marie Mirebeau, Jorg M. Portegies, Hamiltonian Fast Marching: A numerical solver for anisotropic and non-holonomic eikonal PDEs, 2018, submitted.
