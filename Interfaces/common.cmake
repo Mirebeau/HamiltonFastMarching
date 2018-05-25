@@ -1,6 +1,6 @@
 # ---- Choose the models to be compiled ---- 
-SET(StandardModelNames "Isotropic2;Isotropic3;Diagonal2;Diagonal3;Riemann2;Riemann3;ReedsShepp2;ReedsSheppForward2;Elastica2;Dubins2;ReedsShepp3;ReedsSheppForward3" CACHE STRING "ModelNames")
-Set(ExperimentalModelNames "IsotropicDiff2;RiemannLifted2_Periodic;DubinsExt2" CACHE STRING "ExperimentalModelNames")
+SET(StandardModelNames "Isotropic2;Isotropic3;Diagonal2;Diagonal3;Riemann2;Riemann3;ReedsShepp2;ReedsSheppForward2;Elastica2;Dubins2;ReedsShepp3;ReedsSheppForward3;IsotropicDiff2;DubinsExt2" CACHE STRING "ModelNames")
+Set(ExperimentalModelNames "RiemannLifted2_Periodic" CACHE STRING "ExperimentalModelNames")
 Set(CustomModelNames "" CACHE STRING "CustomModelNames")
 
 option(IncludeStandardModels "IncludeStandardModels" TRUE)
