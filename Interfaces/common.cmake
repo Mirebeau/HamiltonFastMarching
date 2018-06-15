@@ -64,6 +64,8 @@ set(Output_Headers
 	"${Output_dir}/Output/ExceptionMacro.h"
 	"${Output_dir}/Output/MexIO.h"
 	"${Output_dir}/Output/MexIO.hxx"
+	"${Output_dir}/Output/PythonIO.h"
+	"${Output_dir}/Output/PythonIO.hxx"
 )
 
 set(Project_Headers 

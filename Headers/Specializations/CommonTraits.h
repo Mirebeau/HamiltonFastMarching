@@ -179,11 +179,13 @@ DiffType * Voronoi1Vec(DiffType * pDiff,
     
     // Build tensor
     typedef typename ReductionType::SymmetricMatrixType SymmetricMatrixType;
-    const SymmetricMatrixType d =
-    SymmetricMatrixType::RankOneTensor(v)*(1.-square(eps))
+    const SymmetricMatrixType exact = SymmetricMatrixType::RankOneTensor(v);
+    const SymmetricMatrixType relaxed =
+    exact*(1.-square(eps))
     +v.SquaredNorm()*SymmetricMatrixType::Identity()*square(eps);
     // Get decomposition
-    const auto & decomp = ReductionType::TensorDecomposition(d);
+    const auto & decomp = ReductionType::TensorDecomposition(relaxed);
+    
     auto offsetIt = decomp.offsets.begin();
     auto weightIt = decomp.weights.begin();
     // Fill in the scheme, omitting excessively low values, with reorientation

@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 2.8.3)
 set (CMAKE_CXX_STANDARD 14)
 
 project(PythonHFM)
-include(${CMAKE_CURRENT_SOURCE_DIR}/../common.cmake)
+include(${CMAKE_CURRENT_SOURCE_DIR}/../../common.cmake)
 
 #-------- Link with boost, python, boost-numpy ------
 
