@@ -1,18 +1,14 @@
-
-#include <boost/python/numpy.hpp>
-#include <boost/python.hpp>
 #include <iostream>
 #include <vector>
-
-
 #include "Output/ExportMacros.h"
 #include "Output/PythonIO.h"
+
 typedef IO_<PythonIO> IO;
 #define FromIO(a) IO:: a
 Redeclare2Types(FromIO,Msg,WarnMsg)
-
 #include "DispatchAndRun.h"
-  
+
+
 struct HFMIO {
     Redeclare3Types(FromIO,ScalarType,KeyCRef,ndarray);
     IO io;
@@ -31,6 +27,35 @@ struct HFMIO {
     bool HasField(KeyCRef key) const {return io.HasField(key);}
     bool EraseField(KeyCRef key) {return io.EraseField(key);}
 };
+
+
+int add(int i, int j) {return i + j+1; }
+
+PYBIND11_MODULE(PythonModuleName, m){
+    py::register_exception<JMMCppException>(m, "PyExp");
+
+    m.doc() = "pybind11 example plugin"; // optional module docstring
+    m.def("add", &add, "A function which adds two numbers");
+    
+    py::class_<HFMIO>(m, "HFMIO")
+    .def(py::init<>())
+    .def("Run",&HFMIO::Run)
+    .def("GetString",&HFMIO::GetString)
+    .def("SetString",&HFMIO::SetString)
+    .def("GetScalar",&HFMIO::GetScalar)
+    .def("SetScalar",&HFMIO::SetScalar)
+    .def("GetArray", &HFMIO::GetArray)
+    .def("SetArray", &HFMIO::SetArray)
+    .def("GetComputedKeys", &HFMIO::GetComputedKeys)
+    .def("HasField", &HFMIO::HasField)
+    .def("EraseField",&HFMIO::EraseField)
+    ;
+}
+
+/*
+
+
+ 
 
 
 void translator(JMMCppException const & e) {
@@ -53,4 +78,4 @@ BOOST_PYTHON_MODULE(PythonModuleName)
     .def("HasField", &HFMIO::HasField)
     .def("EraseField",&HFMIO::EraseField)
     ;
-}
+}*/

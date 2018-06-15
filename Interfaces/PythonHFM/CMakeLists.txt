@@ -1,41 +1,23 @@
-cmake_minimum_required(VERSION 2.8.3)
-set (CMAKE_CXX_STANDARD 14)
+cmake_minimum_required(VERSION 2.8.12)
+project(pybind11_hfm)
+Set(PATH_TO_PYTHON_EXECUTABLE "/Users/jean-mariemirebeau/anaconda3/bin/python3.6" CACHE STRING "Path to python executable")
+Set(PYTHON_EXECUTABLE  ${PATH_TO_PYTHON_EXECUTABLE})
 
-project(PythonHFM)
-include(${CMAKE_CURRENT_SOURCE_DIR}/../../common.cmake)
+FIND_PACKAGE(pybind11)
+include(${CMAKE_CURRENT_SOURCE_DIR}/../common.cmake)
 
-#-------- Link with boost, python, boost-numpy ------
+INCLUDE_DIRECTORIES(${PROJECT_DIR})
+#pybind11_add_module(pybind11_hfm src/main.cpp)
 
-#FILE(COPY hello.py DESTINATION .)
-
-FIND_PACKAGE(PythonInterp)
-FIND_PACKAGE(PythonLibs)
-if(APPLE AND ${PYTHON_VERSION_MAJOR} EQUAL 3)
-    FIND_PACKAGE(Boost COMPONENTS python3)
-else()
-    FIND_PACKAGE(Boost COMPONENTS python)
-endif()
-
-find_library(BoostNumpy NAMES boost_numpy)
-INCLUDE_DIRECTORIES(${PROJECT_DIR} ${Boost_INCLUDE_DIRS} ${PYTHON_INCLUDE_DIRS})
-LINK_LIBRARIES(${Boost_LIBRARIES} ${PYTHON_LIBRARIES} ${BoostNumpy}) # Deprecated but so convenient!
 
 # ------- Declare the different builds -------
 
 foreach(model ${ModelNames})
-PYTHON_ADD_MODULE(PythonHFM_${model} PythonHFM.cpp)
+pybind11_add_module(PythonHFM_${model} src/main.cpp)
 target_compile_definitions(PythonHFM_${model} PRIVATE ModelName=${model} PythonModuleName=PythonHFM_${model})
 endforeach(model)
 
 if(CustomExecutable)
-PYTHON_ADD_MODULE(PythonHFM_Custom PythonHFM.cpp ${Project_Headers})
+pybind11_add_module(PythonHFM_Custom src/main.cpp ${Project_Headers})
 target_compile_definitions(PythonHFM_Custom PRIVATE Custom PythonModuleName=PythonHFM_Custom)
 endif()
-
-
-# --- Old ----
-#option(Executable_RiemannExtra "Executable_RiemannExtra")
-#if(Executable_RiemannExtra)
-#PYTHON_ADD_MODULE(PythonHFM_RiemannExtra PythonHFM.cpp)
-#target_compile_definitions(PythonHFM_RiemannExtra PRIVATE RiemannExtra PythonModuleName=PythonHFM_RiemannExtra)
-#endif()
