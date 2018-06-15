@@ -12,7 +12,7 @@ Redeclare2Types(FromIO,Msg,WarnMsg)
 struct HFMIO {
     Redeclare3Types(FromIO,ScalarType,KeyCRef,ndarray);
     IO io;
-    void Run(){::Run(io);}
+    void Run(){::Run(io); io.UsageReport();}
     
     // Input output
     std::string GetString(KeyCRef key) const {return io.GetString(key);}
@@ -37,7 +37,7 @@ PYBIND11_MODULE(PythonModuleName, m){
     m.doc() = "pybind11 example plugin"; // optional module docstring
     m.def("add", &add, "A function which adds two numbers");
     
-    py::class_<HFMIO>(m, "HFMIO")
+    py::class_<HFMIO>(m, "Build")
     .def(py::init<>())
     .def("Run",&HFMIO::Run)
     .def("GetString",&HFMIO::GetString)

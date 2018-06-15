@@ -40,6 +40,7 @@ extern "C"
         MathematicaTryCatch(0,
                             io.SetWolframLibraryData(libData);
                             Run(io);
+                            io.UsageReport();
                             )
     }
 }
