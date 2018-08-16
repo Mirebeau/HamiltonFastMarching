@@ -27,6 +27,8 @@ struct TraitsIsotropicDiff : TraitsBase<VDimension> {
 
     typedef typename Superclass::template Difference<1> DifferenceType;
     static const DiscreteType nForward = 2*Dimension;
+    
+    typedef PeriodicGrid<TraitsIsotropicDiff> DomainType;
 };
 
 template<size_t VDimension>
@@ -67,6 +69,7 @@ struct TraitsRiemannDiff2 : TraitsBase<2> {
     constexpr static std::array<DiscreteType, nStencilDependencies>
     stencilDependencies = {{0,1}};
     
+    typedef PeriodicGrid<TraitsRiemannDiff2> DomainType;
 };
 // Linker wants the following line for some obscure reason.
 constexpr const decltype(TraitsRiemannDiff2::boundaryConditions) TraitsRiemannDiff2::boundaryConditions;

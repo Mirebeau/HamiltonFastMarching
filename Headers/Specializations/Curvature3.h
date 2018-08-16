@@ -18,6 +18,8 @@ struct TraitsR3S2 : TraitsBase<5> {
     constexpr static std::array<Boundary, Dimension> boundaryConditions =
     {{Boundary::Closed, Boundary::Closed, Boundary::Closed,
         Boundary::Sphere2_0, Boundary::Sphere2_1}};
+    
+    typedef PeriodicGrid<TraitsR3S2> DomainType;
 };
 constexpr decltype(TraitsR3S2::stencilDependencies) TraitsR3S2::stencilDependencies;
 constexpr decltype(TraitsR3S2::boundaryConditions) TraitsR3S2::boundaryConditions;

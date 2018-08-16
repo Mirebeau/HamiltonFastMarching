@@ -49,6 +49,8 @@ struct TraitsDiagonal : TraitsBase<VDimension> {
 
     typedef typename Superclass::template Difference<Dimension> DifferenceType;
     static const DiscreteType nSymmetric = Dimension;
+    
+    typedef PeriodicGrid<TraitsDiagonal> DomainType;
 };
 
 template<size_t VDimension>

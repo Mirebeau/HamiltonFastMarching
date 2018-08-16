@@ -18,6 +18,8 @@
 // TODO : find a better way to initialize, current approach is ugly (and get rid of mutable).
 // Probably, the initialization of HFM and its StencilData needs to be modified, in a single function call, with reference to the domain. Or better, the domain should be able to initialize itself, but then some modifications are needed.
 
+// TODO : check if works with the other stencil cache policy.
+
 template<typename TTraits>
 struct AlignedBillardGrid : TTraits::BaseDomain {
     typedef TTraits Traits;

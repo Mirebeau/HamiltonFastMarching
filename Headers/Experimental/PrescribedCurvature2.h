@@ -40,6 +40,7 @@ constexpr decltype(TraitsR2S1NonShared::stencilDependencies) TraitsR2S1NonShared
 // ----------- 2D Reeds-Shepp Extended model ---------
 struct TraitsReedsSheppExt2 : TraitsR2S1NonShared {
     static const DiscreteType nSymmetric = 6+1;
+    typedef PeriodicGrid<TraitsReedsSheppExt2> DomainType;
 };
 
 struct StencilReedsSheppExt2
@@ -82,6 +83,7 @@ struct StencilReedsSheppExt2
 
 struct TraitsReedsSheppForwardExt2 : TraitsR2S1NonShared {
     static const DiscreteType nSymmetric = 1, nForward=6;
+    typedef PeriodicGrid<TraitsReedsSheppForwardExt2> DomainType;
 };
 
 struct StencilReedsSheppForwardExt2
@@ -125,6 +127,7 @@ struct StencilReedsSheppForwardExt2
 
 struct TraitsDubinsExt2 : TraitsR2S1NonShared {
     static const DiscreteType nMax=2, nMaxForward=6;
+    typedef PeriodicGrid<TraitsDubinsExt2> DomainType;
 };
 
 struct StencilDubinsExt2
