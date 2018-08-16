@@ -9,6 +9,8 @@
 #include "Output/ExceptionMacro.h"
 #include "LinearAlgebra/SquareCube.h"
 
+// TODO : Put this file in specializations
+
 // Spherical boundary conditions correspond to the parametrization (here in dim 4)
 //( cos(t1), sin(t1) cos(t2), sin(t1) sin(t2) cos(t3), sin(t1) sin(t2) sin(t3))
 // which is invariant under the transformations ti->2pi-ti, t(i+1)->t(i+1)+pi.

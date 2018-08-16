@@ -25,23 +25,13 @@
 
 #define FromHFM(x) HFM:: x
 
-// Silly replacement for a constexpr log. TODO : hide somewhere.
-
-template<size_t i> struct FloorLog2 {static const size_t value = 1+FloorLog2<i/2>::value;};
-template<> struct FloorLog2<1> {static const size_t value = 0;};
-template<size_t i> class CeilLog2 {
-    static const size_t floor = FloorLog2<i>::value;
-public:
-    static const size_t value = (i== (1<<floor) ? floor : (floor+1));
-};
-
 template<typename T> struct HFMInterface;
 
 template<typename TTraits>
 struct HamiltonFastMarching {
     typedef TTraits Traits;
     Redeclare1Constant(FromTraits,Dimension)
-    Redeclare4Types(FromTraits,ScalarType,DiscreteType,ShortType,DomainType)
+    Redeclare5Types(FromTraits,ScalarType,DiscreteType,ShortType,DomainType,StencilType)
     Redeclare6Types(FromTraits,PointType,VectorType,IndexType,OffsetType,DifferenceType,IndexDiff)
     
     typedef const IndexType & IndexCRef;
@@ -71,21 +61,24 @@ struct HamiltonFastMarching {
     struct GeodesicSolverInterface;
     struct FlowDataType;
     FlowDataType GeodesicFlow(IndexCRef) const;
-    static const DiscreteType nNeigh =
+/*    static const DiscreteType nNeigh =
     Traits::nForward + 2*Traits::nSymmetric + Traits::nMax*(Traits::nMaxForward+2*Traits::nMaxSymmetric);
     static const DiscreteType nMaxBits = CeilLog2<Traits::nMax>::value;
-    typedef std::bitset<nNeigh+nMaxBits> ActiveNeighFlagType;
+    typedef std::bitset<nNeigh+nMaxBits> ActiveNeighFlagType;*/
+    typedef typename StencilType::ActiveNeighFlagType ActiveNeighFlagType;
     Array<ActiveNeighFlagType,Dimension> activeNeighs;
 
-    static const DiscreteType nActiveNeigh =
-    Traits::nForward + Traits::nSymmetric + Traits::nMaxForward + Traits::nMaxSymmetric;
+//    static const DiscreteType nActiveNeigh =
+//    Traits::nForward + Traits::nSymmetric + Traits::nMaxForward + Traits::nMaxSymmetric;
+    
+    static const int nActiveNeigh = StencilType::nActiveNeigh;
     struct DiscreteFlowElement {OffsetType offset; ScalarType weight;};
     typedef CappedVector<DiscreteFlowElement, nActiveNeigh> DiscreteFlowType;
     struct RecomputeType {ScalarType value,width;};
     RecomputeType Recompute(IndexCRef, DiscreteFlowType &) const;
 
     // StencilDataType must be subclassed.
-    struct StencilType;
+//    struct StencilType;
     typedef ParamInterface_<PointType,VectorType> ParamInterface;
     typedef typename DifferenceType::MultiplierType MultiplierType;
     static const bool hasMultiplier = DifferenceType::multSize>0;
@@ -107,7 +100,7 @@ struct HamiltonFastMarching {
     
     HamiltonFastMarching(StencilDataType &);
 protected:
-    template<size_t n=Traits::nMax> struct _QuadType;
+    template<size_t n=StencilType::nMax> struct _QuadType;
     typedef _QuadType<> QuadType;
     
     struct QueueElement;
@@ -165,6 +158,7 @@ HamiltonFastMarching<Traits>::FlowDataType{
     PrintSelfMacro(FlowDataType)
 };
 
+/*
 template<typename Traits> struct HamiltonFastMarching<Traits>::
 StencilType {
     std::array<DifferenceType, Traits::nForward> forward;
@@ -172,7 +166,7 @@ StencilType {
     std::array<std::array<DifferenceType, Traits::nMaxForward>, Traits::nMax> maxForward;
     std::array<std::array<DifferenceType, Traits::nMaxSymmetric>, Traits::nMax> maxSymmetric;
     PrintSelfMacro(StencilType);
-};
+};*/
 
 // ******** Stencil data - multiplier based *********
 

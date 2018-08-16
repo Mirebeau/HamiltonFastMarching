@@ -10,7 +10,8 @@
 #include "LinearAlgebra/SquareCube.h"
 
 #include "Base/BaseGrid.h"
-#include "Base/PeriodicGrid.h" //Boundary_AllClosed. 
+#include "Base/PeriodicGrid.h" //Boundary_AllClosed.
+#include "Base/StencilType.h"
 
 #ifdef HighVoronoi // Will need high dimensional Voronoi reduction
 #include <type_traits> // std::conditional
@@ -45,15 +46,15 @@ template<int VDim> struct TraitsBase {
     
     /** A Difference is a basic component of a PDE scheme. It is the data of an offset and weight.
      The weight which is either specified directly or as a baseweight and a multiplier index, within [0,VMultSize[.*/
-    template<size_t VMultSize, typename Dummy=void> struct Difference;
+/*    template<size_t VMultSize, typename Dummy=void> struct Difference;*/
 
     
     /** A PDE discretization is specified via a set of differences, of several types, 
      which number is fixed in advance by the following parameters.
      These (empty) defaults need to be redefined (=shadowed) in a subclass.*/
-    static const DiscreteType
+/*    static const DiscreteType
     nForward=0, nSymmetric=0,
-    nMax=1, nMaxForward=0, nMaxSymmetric=0;
+    nMax=1, nMaxForward=0, nMaxSymmetric=0;*/
     
     /** On which coordinates do the adaptive stencils depend (default : none)
      Only applies if there is a multiplier field*/
@@ -77,6 +78,7 @@ template<int VDim> struct TraitsBase {
 template<int VD> constexpr const typename TraitsBase<VD>::StencilDepType_None TraitsBase<VD>::stencilDependencies;
 template<int VD> constexpr const Boundary_AllClosed TraitsBase<VD>::boundaryConditions;
 
+/*
 template<int VDim> template<size_t VMultSize, typename Dummy> struct TraitsBase<VDim>::Difference {
     typedef TraitsBase<VDim> T; typedef T::ScalarType ScalarType; typedef T::OffsetType OffsetType;
     typedef T::ShortType ShortType;
@@ -99,21 +101,21 @@ template<int VDim> template<typename Dummy> struct TraitsBase<VDim>::Difference<
     ScalarType baseWeight; OffsetType offset; static constexpr size_t multSize=0;
     struct MultiplierType {};
     ScalarType Weight(MultiplierType) const {return baseWeight;}
-};
+};*/
 
 /* // Print differences
  // GCC cannot match the following template in a template, so a macro is used instead
 template<int VDim,int k> std::ostream & operator <<
 (std::ostream & os, const typename TraitsBase<VDim>::template Difference<k> & diff) {
      return os << "{" << diff.baseWeight << "," << diff.offset  << "}";}*/
-
+/*
 #define __PrintDiff(__VDim) \
 template<size_t k> std::ostream & operator << \
 (std::ostream & os, const TraitsBase<__VDim>::Difference<k> & diff) { \
     return os << "{" << diff.baseWeight << "," << diff.offset  << "}";}
 
 __PrintDiff(2) __PrintDiff(3) __PrintDiff(4) __PrintDiff(5)
-
+*/
 // --------------------- Tensor decomposition ---------------------
 
 /** PDE discretization helper.

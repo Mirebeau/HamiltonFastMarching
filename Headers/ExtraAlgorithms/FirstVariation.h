@@ -198,6 +198,7 @@ ValueVariation(IndexCRef index, ActiveNeighborsType & neighbors) const ->MultTyp
         DiffHelper::Elem(var,diff)+=w*valueDiff;
     };
     
+    /*
     int iNeigh=0;
     for(const auto & diff : data.stencil.forward){
         if(active[iNeigh]){
@@ -234,6 +235,32 @@ ValueVariation(IndexCRef index, ActiveNeighborsType & neighbors) const ->MultTyp
             func(-1,diff);}
         iNeigh+=2;
     }
+    */
+    
+    const int iMax = HFM::StencilType::GetIMax(active);
+    int iNeigh = iMax*HFM::StencilType::nSingleNeigh;
+/*    int iMax=0;
+    for(int i=0; i<HFM::nMaxBits; ++i){
+        if(active[HFM::nNeigh+i]) iMax |= (1<<i);}
+    int iNeigh=iMax*(T::nMaxForward+2*T::nMaxSymmetric);*/
+    const auto & maxForward = data.stencil.forward[iMax];
+    const auto & maxSymmetric = data.stencil.symmetric[iMax];
+    
+    for(const auto & diff : maxForward){
+        if(active[iNeigh]){
+            func( 1,diff);}
+        ++iNeigh;
+    }
+    for(const auto & diff : maxSymmetric){
+        if(active[iNeigh]){
+            assert(!active[iNeigh+1]);
+            func( 1,diff);}
+        if(active[iNeigh+1]){
+            assert(!active[iNeigh]);
+            func(-1,diff);}
+        iNeigh+=2;
+    }
+    
     
     if(weightSum==0) return var;
     const ScalarType invWeight = 1./weightSum;

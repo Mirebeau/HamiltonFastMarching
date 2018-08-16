@@ -11,10 +11,13 @@
 template<size_t VDimension>
 struct TraitsIsotropic : TraitsBase<VDimension> {
     typedef TraitsBase<VDimension> Superclass;
-    Redeclare1Type(FromSuperclass,DiscreteType)
+    Redeclare3Types(FromSuperclass,DiscreteType,OffsetType,ScalarType)
     Redeclare1Constant(FromSuperclass,Dimension)
-    typedef typename Superclass::template Difference<1> DifferenceType;
-    static const DiscreteType nSymmetric = Dimension;
+
+    typedef EulerianDifference<OffsetType,ScalarType,1> DifferenceType;
+    typedef EulerianStencil<DifferenceType,Dimension> StencilType;
+//    typedef typename Superclass::template Difference<1> DifferenceType;
+//    static const DiscreteType nSymmetric = Dimension;
     
     typedef PeriodicGrid<TraitsIsotropic> DomainType;
 };
@@ -28,8 +31,9 @@ struct StencilIsotropic : HamiltonFastMarching<TraitsIsotropic<VDimension> >::St
     ParamDefault param;
     
     virtual void SetStencil(const IndexType & index, StencilType & stencil) override {
+        auto & differences = stencil.symmetric[0];
         for(int i=0; i<Dimension; ++i){
-            auto & diff = stencil.symmetric[i];
+            auto & diff = differences[i];
             diff.baseWeight=1./square(param.gridScale);
             diff.offset.fill(0);
             diff.offset[i]=1;

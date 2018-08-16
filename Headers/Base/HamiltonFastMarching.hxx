@@ -11,7 +11,7 @@ template<typename Traits> void
 HamiltonFastMarching<Traits>::FlowDataType::PrintSelf(std::ostream & os) const {
     os << "{" << flow << "," << value << "," << width << "}";
 }
-
+/*
 template<typename Traits> void
 HamiltonFastMarching<Traits>::StencilType::PrintSelf(std::ostream & os) const {
     os << "{";
@@ -20,7 +20,7 @@ HamiltonFastMarching<Traits>::StencilType::PrintSelf(std::ostream & os) const {
     if(Traits::nMaxForward) os ExportArrayRecursiveArrow(maxForward, 1);
     if(Traits::nMaxSymmetric) os ExportArrayRecursiveArrow(maxSymmetric, 1);
     os << "}";
-}
+}*/
 
 // --------- Construction -------
 
@@ -160,6 +160,7 @@ Update(FullIndexCRef updated, OffsetCRef offset, ScalarType acceptedValue){
         data.quad.minVal = acceptedValue;
     }
 
+    /*
     DiscreteType iNeigh=0;
     for(const auto & diff : data.stencil.forward){
         if(diff.offset==offset){
@@ -216,6 +217,37 @@ Update(FullIndexCRef updated, OffsetCRef offset, ScalarType acceptedValue){
             iNeigh+=2;
         }
     }
+    */
+    
+    DiscreteType iNeigh=0;
+    for(int iMax=0; iMax<StencilType::nMax; ++iMax){
+        for(const auto & diff : data.stencil.forward[iMax]){
+            if(diff.offset==offset){
+                assert(!active[iNeigh]);
+                active[iNeigh]=1;
+                data.quad.Add(acceptedValue,diff.Weight(data.mult),iMax);
+            }
+            ++iNeigh;
+        }
+        
+        for(const auto & diff : data.stencil.symmetric[iMax]){
+            if(diff.offset==offset){
+                assert(!active[iNeigh]);
+                if(!active[iNeigh+1]){
+                    active[iNeigh]=1;
+                    data.quad.Add(acceptedValue,diff.Weight(data.mult), iMax);
+                }
+            }
+            if(diff.offset==-offset){
+                assert(!active[iNeigh+1]);
+                if(!active[iNeigh]){
+                    active[iNeigh+1]=1;
+                    data.quad.Add(acceptedValue,diff.Weight(data.mult), iMax);
+                }
+            }
+            iNeigh+=2;
+        }
+    }
     
     const std::pair<ScalarType,int> result = data.quad.Solve();
     
@@ -224,8 +256,8 @@ Update(FullIndexCRef updated, OffsetCRef offset, ScalarType acceptedValue){
     if(result.first>=val) return;*/
        
     values[updated.linear] = result.first;
-    
-    for(int i=0; i<nMaxBits; ++i) active[nNeigh+i] = result.second & (1<<i);
+    StencilType::SetIMax(active,result.second);
+//    for(int i=0; i<nMaxBits; ++i) active[nNeigh+i] = result.second & (1<<i);
     queue.push({updated.linear,result.first});
     
 }
@@ -289,6 +321,7 @@ Add(ScalarType value, ScalarType weight, int i) {
     d.b+=wv;
     d.c+=wv2;
 }
+
 
 template<typename T> template<size_t n> void
 HamiltonFastMarching<T>::_QuadType<n>::
@@ -357,6 +390,7 @@ Recompute(const IndexType & updatedIndex, DiscreteFlowType & discreteFlow) const
     };
     
     CappedVector<ScalarType, nActiveNeigh> weights;
+    /*
     int iNeigh=0;
     for(const auto & diff : data.stencil.forward){
         if(active[iNeigh]){
@@ -378,6 +412,7 @@ Recompute(const IndexType & updatedIndex, DiscreteFlowType & discreteFlow) const
         }
         iNeigh+=2;
     }
+     
     
     int iMax=0;
     for(int i=0; i<nMaxBits; ++i){
@@ -406,6 +441,39 @@ Recompute(const IndexType & updatedIndex, DiscreteFlowType & discreteFlow) const
         }
         iNeigh+=2;
     }
+    */
+    /*int iMax=0;
+    for(int i=0; i<nMaxBits; ++i){
+        if(active[nNeigh+i]) iMax |= (1<<i);}
+     int iNeigh=iMax*(T::nMaxForward+2*T::nMaxSymmetric);
+*/
+    const int iMax = StencilType::GetIMax(active);
+    int iNeigh = iMax * StencilType::nSingleNeigh;
+    
+    const auto & maxForward = data.stencil.forward[iMax];
+    const auto & maxSymmetric = data.stencil.symmetric[iMax];
+    
+    for(const auto & diff : maxForward){
+        if(active[iNeigh]){
+            weights.push_back(diff.Weight(data.mult));
+            PushValueDiff(diff.offset);
+        }
+        ++iNeigh;
+    }
+    for(const auto & diff : maxSymmetric){
+        if(active[iNeigh]){
+            assert(!active[iNeigh+1]);
+            weights.push_back(diff.Weight(data.mult));
+            PushValueDiff(diff.offset);
+        }
+        if(active[iNeigh+1]){
+            assert(!active[iNeigh]);
+            weights.push_back(diff.Weight(data.mult));
+            PushValueDiff(-diff.offset);
+        }
+        iNeigh+=2;
+    }
+    
     
     _QuadType<1> quad; quad.minVal = Traits::Infinity();
     for(const auto & offsetValue : discreteFlow){

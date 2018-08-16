@@ -125,7 +125,7 @@ Initialize(const HFM * pFM) {
     
     typedef std::pair<DiscreteType,OffsetType> IndexOffsetPair;
     std::vector<IndexOffsetPair> offsets;
-    offsets.reserve(stencils.size()*HFM::nNeigh);
+    offsets.reserve(stencils.size()*HFM::StencilType::nNeigh);
     IndexType updatedIndex;
     auto InsertOffset = [this,pFM,&offsets,&updatedIndex](OffsetType offset, ScalarType w){
         if(w==0.) return;
@@ -142,6 +142,7 @@ Initialize(const HFM * pFM) {
         updatedIndex = IndexFromShortIndex(stencils.Convert(linearIndex));
         StencilType & stencil = stencils[linearIndex];
         SetStencil(updatedIndex,stencil);
+        /*
         for(const DifferenceType & diff : stencil.forward)
             InsertOffset( diff.offset, diff.baseWeight);
         for(const DifferenceType & diff : stencil.symmetric){
@@ -152,6 +153,15 @@ Initialize(const HFM * pFM) {
             for(const auto & diff : diffs)
                 InsertOffset( diff.offset, diff.baseWeight);
         for(const auto & diffs : stencil.maxSymmetric)
+            for(const auto & diff : diffs){
+                InsertOffset( diff.offset, diff.baseWeight);
+                InsertOffset(-diff.offset, diff.baseWeight);
+            }
+         */
+        for(const auto & diffs : stencil.forward)
+            for(const auto & diff : diffs)
+                InsertOffset( diff.offset, diff.baseWeight);
+        for(const auto & diffs : stencil.symmetric)
             for(const auto & diff : diffs){
                 InsertOffset( diff.offset, diff.baseWeight);
                 InsertOffset(-diff.offset, diff.baseWeight);
@@ -185,7 +195,7 @@ Initialize(const HFM * pFM) {
     
     typedef std::pair<DiscreteType,OffsetType> IndexOffsetPair;
     std::vector<IndexOffsetPair> offsets;
-    offsets.reserve(shallowStencilQuads.size()*HFM::nNeigh);
+    offsets.reserve(shallowStencilQuads.size()*HFM::StencilType::nNeigh);
     
     IndexType updatedIndex;
     auto InsertOffset = [pFM,&offsets,&updatedIndex](OffsetType offset, ScalarType w){
