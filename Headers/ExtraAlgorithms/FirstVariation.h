@@ -13,7 +13,7 @@ template<typename T> struct FirstVariation :
 HamiltonFastMarching<T>::ExtraAlgorithmInterface {
     typedef HamiltonFastMarching<T> HFM;
     Redeclare7Types(FromHFM,IndexType,ScalarType,IndexCRef,HFMI,DifferenceType,ActiveNeighFlagType,DiscreteType)
-    Redeclare4Types(FromHFM,Traits,RecomputeType,DiscreteFlowType,PointType)
+    Redeclare5Types(FromHFM,Traits,RecomputeType,DiscreteFlowType,PointType,IndexDiff)
     Redeclare1Constant(FromHFM,Dimension)
     template<typename E, size_t n> using Array = typename HFM::template Array<E,n>;
     typedef typename std::conditional<HFM::hasMultiplier, typename HFM::MultiplierType, ScalarType>::type MultType;
@@ -91,7 +91,7 @@ template<typename T> void FirstVariation<T>::Finally(HFMI*that){
         for(int i=0; i<lengths.size(); ++i){
             for(int k=0; k<lengths[i]; ++k, ++indIt, ++wIt){
                 PointType p = that->stencil.Param().ADim(*indIt);
-                if(that->pFM->dom.Periodize(p)[Dimension]) {
+                if(!that->pFM->dom.Periodize(p,p).IsValid()) {
                     ExceptionMacro("Error : inspectSensitivity data points are out of range");}
                 iw.push_back({that->pFM->dom.IndexFromPoint(p),*wIt});
             }
@@ -187,9 +187,9 @@ ValueVariation(IndexCRef index, ActiveNeighborsType & neighbors) const ->MultTyp
     
     auto func = [&,this](DiscreteType s, const DifferenceType & diff){
         IndexType neighIndex=index;
-        for(int i=0; i<Dimension; ++i) neighIndex[i]+=s*diff.offset[i];
-        const auto reversed = pFM->dom.Periodize(neighIndex);
-        assert(!reversed[Dimension]); (void)reversed;
+        neighIndex+=s*IndexDiff::CastCoordinates(diff.offset);
+        const auto transform = pFM->dom.Periodize(neighIndex,index);
+        assert(transform.IsValid()); (void)transform;
         const ScalarType neighValue = values(neighIndex);
         const ScalarType valueDiff = std::max(0., value-neighValue);
         const ScalarType w = diff.Weight(data.mult)*valueDiff;
@@ -258,7 +258,7 @@ BackwardVariation(const std::vector<std::pair<IndexType,ScalarType> > & base, Ar
     GeoType geo;
     for(const auto & indexWeight : base){
         IndexType index = indexWeight.first;
-        if(pFM->dom.Periodize(index)[Dimension]) continue;
+        if(!pFM->dom.Periodize(index,index).IsValid()) continue;
         geo.insert({{values(index),index},indexWeight.second});}
 
     

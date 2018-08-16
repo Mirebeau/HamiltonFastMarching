@@ -19,6 +19,7 @@ HamiltonFastMarching<TTraits>::_ParamDefault<1,Dummy> : HFM::ParamInterface {
     // Two distinct scales, for "physical" and "bundle" parts respectively.
     ScalarType gridScale=1, dependScale=1;
     virtual PointType ADim(const PointType & p) const override;
+    virtual VectorType ADim(const VectorType & u) const override;
     virtual PointType ReDim(const PointType & p) const override;
     virtual VectorType ReDim(const VectorType & u) const override;
     void Setup(IO & io, ScalarType _dependScale){
@@ -48,6 +49,8 @@ HamiltonFastMarching<TTraits>::_ParamDefault<0,Dummy> : HFM::ParamInterface {
     ScalarType gridScale=1;
     virtual PointType ADim(const PointType & p) const override {
         return PointType::FromOrigin((p-origin)/gridScale);}
+    virtual VectorType ADim(const VectorType & v) const override {
+        return v/gridScale;}
     virtual PointType ReDim(const PointType & p) const override {
         return VectorType::FromOrigin(p)*gridScale+origin;}
     virtual VectorType ReDim(const VectorType & v) const override {
@@ -71,6 +74,11 @@ HamiltonFastMarching<TTraits>::_ParamDefault<2,Dummy> : HFM::ParamInterface {
         PointType result;
         for(int i=0; i<Dimension; ++i) result[i]=(p[i]-origin[i])/gridScales[i];
         return result;}
+    virtual VectorType ADim(const VectorType & v) const override {
+        VectorType result;
+        for(int i=0; i<Dimension; ++i) result[i]=v[i]/gridScales[i];
+        return result;}
+    
     virtual PointType ReDim(const PointType & p) const override {
         PointType result;
         for(int i=0; i<Dimension; ++i) result[i]=p[i]*gridScales[i]+origin[i];
@@ -85,7 +93,7 @@ HamiltonFastMarching<TTraits>::_ParamDefault<2,Dummy> : HFM::ParamInterface {
     }
 };
 
-
+// ---------- Implementation ----------
 
 template<typename T> template<typename Dummy> auto
 HamiltonFastMarching<T>::_ParamDefault<1,Dummy>::
@@ -101,6 +109,22 @@ ADim(const PointType & p) const -> PointType {
     }
     return result;
 }
+
+template<typename T> template<typename Dummy> auto
+HamiltonFastMarching<T>::_ParamDefault<1,Dummy>::
+ADim(const VectorType & p) const -> VectorType {
+    VectorType result;
+    for(int i=0,j=0; i<Dimension; ++i){
+        if(j<T::nStencilDependencies && i==Traits::stencilDependencies[j]){
+            result[i] = p[i]/dependScale;
+            ++j;
+        } else {
+            result[i] = p[i]/gridScale;
+        }
+    }
+    return result;
+}
+
 
 template<typename T> template<typename Dummy> auto
 HamiltonFastMarching<T>::_ParamDefault<1,Dummy>::

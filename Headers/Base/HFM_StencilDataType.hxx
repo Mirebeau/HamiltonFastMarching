@@ -130,13 +130,11 @@ Initialize(const HFM * pFM) {
     auto InsertOffset = [this,pFM,&offsets,&updatedIndex](OffsetType offset, ScalarType w){
         if(w==0.) return;
         IndexType acceptedIndex;
-        auto reversed = pFM->VisibleOffset(updatedIndex,offset,acceptedIndex);
-        if(!reversed[Dimension]){
-            for(int i=0; i<Dimension; ++i)
-                if(DomainType::MayReverse(i) && reversed[i]){
-                    offset[i]*=-1;
-                }
-            offsets.push_back({stencils.Convert(ShortIndexFromIndex(acceptedIndex)),offset});
+        auto transform = pFM->VisibleOffset(updatedIndex,offset,acceptedIndex);
+        if(transform.IsValid()){
+            transform.PullVector(offset);
+            offsets.push_back({
+                stencils.Convert(ShortIndexFromIndex(acceptedIndex)),offset});
         }
     };
     
@@ -193,17 +191,17 @@ Initialize(const HFM * pFM) {
     auto InsertOffset = [pFM,&offsets,&updatedIndex](OffsetType offset, ScalarType w){
         if(w==0.) return;
         IndexType acceptedIndex;
-        auto reversed = pFM->VisibleOffset(updatedIndex,offset,acceptedIndex);
-        if(!reversed[Dimension]){
-            for(int i=0; i<Dimension; ++i)
-                if(pFM->dom.MayReverse(i) && reversed[i]){
-                    offset[i]*=-1;}
+        auto transform = pFM->VisibleOffset(updatedIndex,offset,acceptedIndex);
+        if(transform.IsValid()){
+            transform.PullVector(offset);
             offsets.push_back({pFM->values.Convert(acceptedIndex),offset});
         }
     };
     
     for(DiscreteType linearIndex=0; linearIndex<pFM->values.size(); ++linearIndex){
         updatedIndex = pFM->values.Convert(linearIndex);
+        if(HFM::DomainType::periodizeUsesBase && !pFM->dom.PeriodizeNoBase(updatedIndex).IsValid())
+            continue;
         StencilType stencil;
         SetStencil(updatedIndex,stencil);
         for(const DifferenceType & diff : stencil.forward)

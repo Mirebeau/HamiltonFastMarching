@@ -50,39 +50,35 @@ struct Boundary_AllClosed {
   Can also be used for 3D projective space, with 0<=t1<=pi, n1=2n0, (t0,t1,t2)~(t0,t1+pi,t2+pi).
   */
 
-template<typename TTraits> struct PeriodicGrid {
+template<typename TTraits> struct PeriodicGrid : TTraits::BaseDomain {
     typedef TTraits Traits;
-    Redeclare4Types(FromTraits,DiscreteType,ScalarType,IndexType,PointType);
-    Redeclare1Constant(FromTraits,Dimension);
-    typedef const IndexType & IndexCRef;
+    typedef typename Traits::BaseDomain Superclass;
+    Redeclare5Types(FromSuperclass,IndexType,PointType,IndexCRef,DiscreteType,ScalarType)
+    Redeclare1Constant(FromSuperclass,Dimension);
     
-    DiscreteType LinearFromIndex(IndexCRef) const;
-    IndexType    IndexFromLinear(DiscreteType) const;
-    PointType    PointFromIndex(IndexCRef) const;
-    IndexType    IndexFromPoint(const PointType &) const;
+    struct Transform;
     
-    // Sets back to parametrization domain and returns which axes were flipped + failbit.
-    typedef std::bitset<Dimension+1> ReverseFlag;
-    static constexpr bool MayReverse(DiscreteType i);
-    ReverseFlag Periodize(IndexType &) const;
-    ReverseFlag Periodize(PointType &) const;
+    // Target point, base point (here ignored)
+    static const bool periodizeUsesBase = false;
+    Transform Periodize(IndexType & target, IndexCRef base) const;
+    Transform Periodize(PointType & target, const PointType & base) const;
+    Transform PeriodizeNoBase(IndexType & target) const;
+    Transform PeriodizeNoBase(PointType & target) const;
     
     PeriodicGrid(IndexCRef);
+};
+
+
+template<typename TTraits> struct
+PeriodicGrid<TTraits>::Transform {
+    bool IsValid() const {return !reverseFlag[Dimension];}
+    template<typename TVec> void PullVector(TVec &) const;
+    void Invalidate(){reverseFlag[Dimension]=true;}
 protected:
-    typename Traits::template Array<ScalarType,Dimension> arr;
+    friend PeriodicGrid<TTraits>;
+    std::bitset<Dimension+1> reverseFlag;
+    static constexpr bool MayReverse(DiscreteType i);
 };
-
-// A second class is used to reparametrize the domain
-template<typename TPoint, typename TVec> struct ParamInterface_ {
-    typedef TPoint PointType;
-    typedef TVec VectorType;
-    virtual PointType ADim(const PointType & p) const=0;
-    virtual PointType ReDim(const PointType & p) const=0;
-    virtual VectorType ReDim(const VectorType & p) const=0;
-    virtual ~ParamInterface_(){};
-};
-
-
 
 #include "PeriodicGrid.hxx"
 

@@ -13,6 +13,7 @@ struct TraitsRiemann : TraitsBase<VDimension> {
 
     typedef typename Superclass::template Difference<0> DifferenceType;
     static const DiscreteType nSymmetric = (Dimension*(Dimension+1))/2;
+    typedef PeriodicGrid<TraitsRiemann> DomainType;
 };
 
 template<size_t VDimension>

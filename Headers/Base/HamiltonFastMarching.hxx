@@ -135,12 +135,9 @@ HamiltonFastMarching<T>::ConditionalUpdate(IndexCRef acceptedIndex,
                                            OffsetType offset,
                                            ScalarType acceptedValue){
     FullIndexType updated;
-    const auto reversed = VisibleOffset(acceptedIndex,-offset, updated.index);
-    if(reversed[Dimension]) return;
-    for(int i=0; i<Dimension; ++i)
-        if(dom.MayReverse(i) && reversed[i])
-            offset[i]*=-1;
-    
+    const auto transform = VisibleOffset(acceptedIndex,-offset, updated.index);
+    if(!transform.IsValid()) return;
+    transform.PullVector(offset);    
     updated.linear = values.Convert(updated.index);
     if(acceptedFlags[updated.linear]) return;
 
@@ -312,11 +309,13 @@ Add(ScalarType value, ScalarType weight) {
 // ----------------- Boundary conditions -------------------
 
 template<typename T> auto HamiltonFastMarching<T>::
-VisibleOffset(const IndexType & acceptedIndex, const OffsetType & offset, IndexType & updatedIndex) const -> ReverseFlag {
-    for(int i=0; i<Dimension; ++i) {updatedIndex[i]=acceptedIndex[i]+offset[i];}
-    std::bitset<Dimension+1> result = dom.Periodize(updatedIndex);
+VisibleOffset(const IndexType & acceptedIndex, const OffsetType & offset, IndexType & updatedIndex) const -> DomainTransformType {
+    updatedIndex=acceptedIndex+IndexDiff::CastCoordinates(offset);
+    DomainTransformType result = dom.Periodize(updatedIndex,acceptedIndex);
     for(ExtraAlgorithmInterface * p : extras.visible){
-        result[Dimension] = result[Dimension] || !p->Visible(acceptedIndex,offset,updatedIndex);}
+        if(!p->Visible(acceptedIndex,offset,updatedIndex))
+            result.Invalidate();
+            }
     return result;
 }
 
@@ -336,18 +335,18 @@ Recompute(const IndexType & updatedIndex, DiscreteFlowType & discreteFlow) const
     auto PushValueDiff = [this,&updatedIndex, &discreteFlow, &sndOrderNeighs](OffsetType offset){
         IndexType acceptedIndex;
         for(int i=0; i<Dimension; ++i) {acceptedIndex[i] = updatedIndex[i]+offset[i];}
-        const auto & flipped = dom.Periodize(acceptedIndex);
-        assert(!flipped[Dimension]);
+        const auto transform = dom.Periodize(acceptedIndex,updatedIndex);
+        assert(transform.IsValid());
         
         //Note that, in the beginning, we store values, and not weights, in discreteFlow.
         const ScalarType acceptedValue = values(acceptedIndex);
         discreteFlow.push_back({offset,acceptedValue});
         
         if(!sndOrder) return;
-        OffsetType offset2;
-        for(int i=0; i<Dimension; ++i){offset2[i] = flipped[i] ? -offset[i] : offset[i];}
+        OffsetType offset2 = offset;
+        transform.PullVector(offset2);
         IndexType acceptedIndex2;
-        if(VisibleOffset(acceptedIndex, offset2, acceptedIndex2)[Dimension]) return;
+        if(!VisibleOffset(acceptedIndex, offset2, acceptedIndex2).IsValid()) return;
         
         const DiscreteType acceptedLinearIndex2 = values.Convert(acceptedIndex2);
         if(!acceptedFlags[acceptedLinearIndex2]) return;

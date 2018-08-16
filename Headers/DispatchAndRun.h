@@ -99,9 +99,11 @@
 
 // Very experimental specializations
 #else
+/*
 #include "Experimental/ReedsSheppAdaptive2.h"
 #include "Experimental/Quaternionic.h"
 #include "Experimental/RollingBall.h"
+ */
 #endif
 
 // Saving the model name as a string for future reference
@@ -148,8 +150,9 @@ if(model== #modelName){ \
     io.currentSetter=IO::SetterTag::User; return;} }
 
 #ifdef Custom
-#include "Experimental/Differentiable.h"
-#include "Experimental/RiemannLifted.h"
+//#include "Experimental/Differentiable.h"
+//#include "Experimental/RiemannLifted.h"
+#include "Experimental/AlignedBillard.h"
 #endif
 /*
 #ifdef AllBaseModels
@@ -203,8 +206,12 @@ void Run(IO & io){
     const std::string model = io.GetString("model");
 #ifdef Custom
 // This custom executable is here to let the user choose the adequate combination of (FastMarchingClass, Model) for his/her application.
-    HFMSpecializationMacro(IsotropicDiff<2>)
-    HFMSpecializationMacro(RiemannLifted2<Boundary::Closed>)
+
+    HFMSpecializationMacro(AlignedBillard)
+    
+//    HFMSpecializationMacro(IsotropicDiff<2>)
+//    HFMSpecializationMacro(RiemannLifted2<Boundary::Closed>)
+    
 #endif
     
 // ------------- Model options ----------

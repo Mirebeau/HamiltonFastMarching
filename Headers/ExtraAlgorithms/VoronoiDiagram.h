@@ -11,7 +11,7 @@ HamiltonFastMarching<T>::ExtraAlgorithmInterface {
     typedef HamiltonFastMarching<T> HFM;
     typedef typename HFM::ExtraAlgorithmInterface Superclass;
     Redeclare8Types(FromHFM,IndexCRef,IndexType,ScalarType,Traits,HFMI,PointType,DiscreteType,ShortType)
-    Redeclare6Types(FromHFM,OffsetCRef,VectorType,DiscreteFlowType,RecomputeType,DiscreteFlowElement,Decision)
+    Redeclare7Types(FromHFM,OffsetCRef,VectorType,DiscreteFlowType,RecomputeType,DiscreteFlowElement,Decision,IndexDiff)
     Redeclare1Constant(FromHFM,Dimension)
     
     enum StoppingCriterionEnum {kVoronoiNone,kVoronoiRegionsMeeting,kVoronoiOppositesMeeting};
@@ -43,7 +43,7 @@ Setup(HFMI * that){
                            ") is distinct from the number of seedFlags(" <<seedFlags.size() << ").\n");}
         for(int i=0; i<seeds.size(); ++i){
             IndexType index = that->pFM->dom.IndexFromPoint(that->stencil.Param().ADim(seeds[i]));
-            if(that->pFM->dom.Periodize(index)[Dimension]) ExceptionMacro("Error : seed " << seeds[i] << " is out of range.\n");
+            if(!that->pFM->dom.Periodize(index,index).IsValid()) ExceptionMacro("Error : seed " << seeds[i] << " is out of range.\n");
             voronoiFlags(index) = seedFlags[i];
         }
     }
@@ -60,7 +60,7 @@ Setup(HFMI * that){
             HFMIS::PadAdimEquiv(that,uSeeds[i],equiv);
             for(const PointType & p : equiv){
                 IndexType index = that->pFM->dom.IndexFromPoint(p);
-                if(that->pFM->dom.Periodize(index)[Dimension]) ExceptionMacro("Error : unoriented seed, of index " << i << ", is out of range.\n");
+                if(!that->pFM->dom.Periodize(index,index).IsValid()) ExceptionMacro("Error : unoriented seed, of index " << i << ", is out of range.\n");
                 voronoiFlags(index) = uSeedFlags[i];
             }
         }
@@ -125,9 +125,9 @@ PostProcessWithRecompute(IndexCRef index, const RecomputeType &, const DiscreteF
     for(const DiscreteFlowElement & fl : flow){
         if(fl.weight<=maxWeight) continue;
         maxWeight=fl.weight;
-        IndexType neigh = index; for(int i=0; i<Dimension; ++i) neigh[i]+=fl.offset[i];
-        const auto reversed = pFM->dom.Periodize(neigh);
-        assert(!reversed[Dimension]); (void)reversed;
+        IndexType neigh = index + IndexDiff::CastCoordinates(fl.offset);
+        const auto transform = pFM->dom.Periodize(neigh,index);
+        assert(transform.IsValid()); (void)transform;
         indexFlag = voronoiFlags(neigh);
     }
     
@@ -136,8 +136,8 @@ PostProcessWithRecompute(IndexCRef index, const RecomputeType &, const DiscreteF
             for(DiscreteType eps=-1; eps<=1; ++eps){
                 IndexType neigh=index;
                 neigh[i]+=eps;
-                const auto reversed = pFM->dom.Periodize(neigh);
-                if(reversed[Dimension]) continue;
+                const auto transform = pFM->dom.Periodize(neigh,index);
+                if(!transform.IsValid()) continue;
                 const ShortType flag = voronoiFlags(neigh);
                 if(flag==-1 || flag==indexFlag) continue;
                 stoppingIndex0=index;

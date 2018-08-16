@@ -98,7 +98,7 @@ GeodesicDiscrete(std::vector<PointType> & geodesic) const {
             } // for j
             assert(weight>=0);
             IndexType indexPer=index;
-            if(dom.Periodize(indexPer)[Dimension]) continue;
+            if(!dom.Periodize(indexPer,indexRef).IsValid()) continue;
             geo[{fm.values(indexPer),index}] = weight;
             UpdateSums(weight,index);
         }
@@ -120,8 +120,8 @@ GeodesicDiscrete(std::vector<PointType> & geodesic) const {
         
         // Insert children points.
         IndexType perIndex = index;
-        const auto reversed = dom.Periodize(perIndex);
-        assert(!reversed[Dimension]);
+        const auto transform = dom.Periodize(perIndex,perIndex);
+        assert(transform.IsValid());
         DiscreteFlowType flow;
         fm.Recompute(perIndex, flow);
         
@@ -144,13 +144,12 @@ GeodesicDiscrete(std::vector<PointType> & geodesic) const {
         for(const auto & offsetWeight : flow){
             const ScalarType w= weight*offsetWeight.weight/wSum;
             IndexType ind = index;
-            for(int i=0; i<Dimension; ++i){
-                ind[i] +=
-                (dom.MayReverse(i) && reversed[i]) ?
-                -offsetWeight.offset[i] : offsetWeight.offset[i];}
+            OffsetType offset = offsetWeight.offset;
+            transform.PullVector(offset);
+            ind+=IndexDiff::CastCoordinates(offset);
             IndexType perInd = ind;
-            const auto reversed = dom.Periodize(perInd);
-            assert(!reversed[Dimension]); (void)reversed;
+            const auto transform = dom.Periodize(perInd,index);
+            assert(transform.IsValid()); (void)transform;
             const ScalarType val = fm.values(perInd);
             const auto it = geo.find({val,ind});
             if(it==geo.end()){

@@ -6,38 +6,32 @@
 #define CommonTraits_h
 
 #include "Base/HFMInterface.h"
-#include "LinearAlgebra/SymmetricMatrixType.h"
-#include "LinearAlgebra/ArrayType.h"
 #include "LinearAlgebra/BasisReduction.h"
 #include "LinearAlgebra/SquareCube.h"
+
+#include "Base/BaseGrid.h"
+#include "Base/PeriodicGrid.h" //Boundary_AllClosed. 
 
 #ifdef HighVoronoi // Will need high dimensional Voronoi reduction
 #include <type_traits> // std::conditional
 #include "LinearAlgebra/VoronoiReduction.h"
 #endif
 
+#define FromBaseDomain(x) BaseDomain:: x
 
 template<int VDim> struct TraitsBase {
     static const int Dimension = VDim;
-    typedef double ScalarType;
-    typedef int DiscreteType; /// Used for array indexing and multi-index components.
-    typedef int_least8_t ShortType;
+    typedef BaseGrid<VDim, double, int, int_least8_t> BaseDomain;
+    Redeclare6Types(FromBaseDomain,DiscreteType,IndexType,IndexDiff,IndexCRef,ShortType,OffsetType)
+    Redeclare3Types(FromBaseDomain,ScalarType,PointType,VectorType)
+    template<typename T, size_t n> using Array=typename BaseDomain::template Array<T,n>;
+    
     static constexpr ScalarType Infinity() {return std::numeric_limits<ScalarType>::infinity();}
     static constexpr ScalarType mathPi =  3.141592653589793238462643383279502884L;
-    
-    typedef LinearAlgebra::Point<ScalarType, Dimension> PointType;
-    typedef LinearAlgebra::Vector<ScalarType, Dimension> VectorType;
-    typedef LinearAlgebra::Point<DiscreteType, Dimension> IndexType; /// Multi-index of a grid point
-    typedef LinearAlgebra::Vector<ShortType, Dimension> OffsetType; /// Used for offsets between neighbor indices
     
     // Tensor decomposition based on Voronoi first reduction.
     // (Involved in many PDE discretization schemes.)
 #ifdef HighVoronoi // Change the tensor decomposition in high dimension
-    /*
-    typedef typename Traits::template BasisReduction<Dimension> ReductionType23;
-    typedef VoronoiFirstReduction<ScalarType,Dimension> ReductionType45;
-    typedef typename std::conditional<Dimension<=3, ReductionType23, ReductionType45>::type ReductionType;
-    */
     template<size_t n> using BasisReduction=typename std::conditional<
     n<=3,
     LinearAlgebra::BasisReduction<ScalarType, DiscreteType, n>,
@@ -46,10 +40,8 @@ template<int VDim> struct TraitsBase {
 #else
     template<size_t n> using
     BasisReduction=LinearAlgebra::BasisReduction<ScalarType, DiscreteType, n>;
-//    typedef typename Traits::template BasisReduction<Dimension> ReductionType;
 #endif
     
-    template<typename T, size_t n> using Array=LinearAlgebra::Array<T,n>;
     
     /** A Difference is a basic component of a PDE scheme. It is the data of an offset and weight.
      The weight which is either specified directly or as a baseweight and a multiplier index, within [0,VMultSize[.*/

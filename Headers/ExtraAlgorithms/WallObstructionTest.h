@@ -12,7 +12,7 @@ HamiltonFastMarching<T>::ExtraAlgorithmInterface {
     typedef HamiltonFastMarching<T> HFM;
     typedef typename HFM::ExtraAlgorithmInterface Superclass;
     Redeclare8Types(FromHFM,IndexCRef,IndexType,ScalarType,Traits,HFMI,PointType,ShortType,DiscreteType)
-    Redeclare3Types(FromHFM,OffsetCRef,OffsetType,ReverseFlag)
+    Redeclare3Types(FromHFM,OffsetCRef,OffsetType,DomainTransformType)
     Redeclare1Constant(FromHFM,Dimension)
     
     virtual void Setup(HFMI*) override;
@@ -72,8 +72,8 @@ WallObstructionTest<T>::ImplementIn(HFM*_pFM) {
             for(int eps=-1; eps<=1; eps+=2){
                 IndexType neighbor = index;
                 neighbor[i]+=eps;
-                const auto reversed = pFM->dom.Periodize(neighbor);
-                if(reversed[Dimension]) continue;
+                const auto transform = pFM->dom.Periodize(neighbor,index);
+                if(!transform.IsValid()) continue;
                 const DiscreteType neighLinearIndex = wallDist.Convert(neighbor);
                 ShortType & neighVal = wallDist[neighLinearIndex];
                 if(neighVal<=neighBound) continue;
@@ -133,8 +133,8 @@ WallObstructionTest<T>::Visible(IndexCRef base, OffsetCRef v, IndexCRef sum) con
             }
         }
         IndexType posPer=pos;
-        const ReverseFlag reversed = pFM->dom.Periodize(posPer);
-        assert(!reversed[Dimension]); (void)reversed;
+        const DomainTransformType transform = pFM->dom.Periodize(posPer,base);
+        assert(transform.IsValid()); (void)transform;
         wd=(DiscreteType)wallDist(posPer);
         if(vSum<=wd) return true;
         else if(wd==0) return false;

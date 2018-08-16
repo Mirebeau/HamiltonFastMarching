@@ -29,7 +29,9 @@ GeodesicODESolver<Traits>::Run(HFMI * that, const std::vector<PointType> & tips)
     for(const PointType & tip : tips){
         std::vector<PointType> geodesic;
         geodesic.push_back(tip);
-        const bool failed = Run(geodesic);
+        const bool failed =
+            (HFM::DomainType::periodizeUsesBase && !this->fm.dom.PeriodizeNoBase(geodesic.back()).IsValid()) ||
+            Run(geodesic);
         if(failed) {Msg() << "Geodesic ODE solver seems to have failed for tip "
             << that->stencil.Param().ReDim( tip ) << ".\n";}
         result.push_back(std::move(geodesic));
@@ -61,11 +63,19 @@ GeodesicFlow(const PointType & p, const Array<ShortType,Dimension> & target, Flo
         w[i] = std::abs(w[i]);
     }
     
+    DomainTransformType pIndexTransform;
+    if(HFM::DomainType::periodizeUsesBase){
+        const auto & dom = fm.dom;
+        PointType pIndexCont = dom.PointFromIndex(pIndex);
+        pIndexTransform = dom.Periodize(pIndexCont,p);
+        pIndex = dom.IndexFromPoint(pIndexCont);
+    }
+    
     typedef typename FlowCacheType::iterator FlowIteratorType;
     struct WeightedOrientedFlowType {
         FlowIteratorType it;
         ScalarType weight;
-        std::bitset<Dimension+1> reversed;
+        DomainTransformType transform;
     };
     std::array<WeightedOrientedFlowType, (1<<Dimension)> flows;
     DiscreteType
@@ -77,9 +87,9 @@ GeodesicFlow(const PointType & p, const Array<ShortType,Dimension> & target, Flo
         OffsetType offset;
         for(int j=0; j<Dimension; ++j){offset[j] = (i & (1<<j)) ? sign[j] : 0;}
         IndexType qIndex;
-        const auto reversed = fm.VisibleOffset(pIndex, offset, qIndex);
-        if(reversed[Dimension]) {
-            flows[i]={cache.end(),0};
+        const auto transform = fm.VisibleOffset(pIndex, offset, qIndex);
+        if(!transform.IsValid()) {
+            flows[i]={cache.end(),0,transform};
             continue;}
         const DiscreteType qLinearIndex = fm.values.Convert(qIndex);
         minTol=std::min(minTol, (DiscreteType)target[qLinearIndex]);
@@ -93,7 +103,7 @@ GeodesicFlow(const PointType & p, const Array<ShortType,Dimension> & target, Flo
         ScalarType weight = 1;
         for(int j=0; j<Dimension; ++j){weight *= offset[j] ? w[j] : (1-w[j]);}
         
-        flows[i] = {qIt,weight,reversed};
+        flows[i] = {qIt,weight,transform};
         maxStat=std::max(maxStat,qIt->second.second);
         ++qIt->second.second;
     }
@@ -125,16 +135,24 @@ GeodesicFlow(const PointType & p, const Array<ShortType,Dimension> & target, Flo
         if(weight>0 && flowData.value<=valThreshold){
             weightSum+=weight;
             //            result.value+=weight*flowData.value;
+            VectorType inc = weight*flowData.flow;
+            wOFlow.transform.PullVector(inc);
+            result.flow+=inc;
+            /*
             for(int i=0; i<Dimension; ++i){
                 ScalarType inc = weight * flowData.flow[i];
                 if(fm.dom.MayReverse(i) && wOFlow.reversed[i]){
                     inc*=-1;}
                 result.flow[i] += inc;
-            }
+            }*/
         }
     }
-    if(weightSum>0) result.flow/=weightSum; //result.value/=weightSum;
-        return result;
+    if(weightSum>0) {result.flow/=weightSum;} //result.value/=weightSum;
+    
+    if(HFM::DomainType::periodizeUsesBase){
+        pIndexTransform.PullVector(result.flow);}
+    
+    return result;
 }
 
 // ------ Second order Euler scheme -------
@@ -169,14 +187,29 @@ GeodesicODESolver<Traits>::Run(std::vector<PointType> & geodesic) const {
         if(flowNorm==0) return false; // At seed
         
         // Do a half step and recompute flow at this point.
-        const PointType q = p+0.5*geodesicStep*flow/flowNorm;
+        PointType q = p+0.5*geodesicStep*flow/flowNorm;
+        
+        DomainTransformType qTransform;
+        if(HFM::DomainType::periodizeUsesBase){
+            const auto qTransform = this->fm.dom.Periodize(q,p);
+            assert(qTransform.IsValid());
+        }
         
         flowData = GeodesicFlow(q,targetDistances,flowCache);
         flow=flowData.flow;
+        
+        if(HFM::DomainType::periodizeUsesBase){
+            qTransform.PullVector(flow);}
+        
         flowNorm = flow.Norm();
         if(flowNorm==0) return false;
         
-        const PointType r = p+geodesicStep*flow/flowNorm;
+        PointType r = p+geodesicStep*flow/flowNorm;
+        
+        if(HFM::DomainType::periodizeUsesBase){
+            const auto rTransform = this->fm.dom.Periodize(r,p);
+            assert(rTransform.IsValid());}
+        
         geodesic.push_back(r);
     }
     return true;
@@ -224,7 +257,7 @@ LInfDistance(const std::vector<IndexType> & seeds, ShortType upperBound) const -
         if(acceptedValue>=upperBound) continue;
         for(const OffsetType & offset : offsets){
             IndexType updatedIndex;
-            if(fm.VisibleOffset(acceptedIndex, offset, updatedIndex)[Dimension]) continue;
+            if(!fm.VisibleOffset(acceptedIndex, offset, updatedIndex).IsValid()) continue;
             ShortType & updatedValue = result(updatedIndex);
             if(updatedValue<=acceptedValue+1) continue;
             updatedValue=acceptedValue+1;

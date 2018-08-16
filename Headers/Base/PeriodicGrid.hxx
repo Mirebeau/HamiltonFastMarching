@@ -5,34 +5,10 @@
 #ifndef PeriodicGrid_hxx
 #define PeriodicGrid_hxx
 
-// Basic conversions
-template<typename T> auto PeriodicGrid<T>::
-LinearFromIndex(IndexCRef index) const -> DiscreteType {
-    return arr.Convert(index);}
-
-template<typename T> auto PeriodicGrid<T>::
-IndexFromLinear(DiscreteType linearIndex) const -> IndexType {
-    return arr.Convert(linearIndex);}
-
-
-template<typename T> auto PeriodicGrid<T>::
-IndexFromPoint(const PointType & p) const -> IndexType {
-    IndexType result;
-    for(int i=0; i<Dimension; ++i){
-        result[i] = std::floor(p[i]);}
-    return result;
-}
-
-template<typename T> auto PeriodicGrid<T>::
-PointFromIndex(const IndexType & p) const -> PointType {
-    PointType result;
-    for(int i=0; i<Dimension; ++i){
-        result[i]=p[i]+0.5;}
-    return result;
-}
+// ------- Methods of child class transform -------
 
 // Boundary conditions
-template<typename T> constexpr bool PeriodicGrid<T>::
+template<typename T> constexpr bool PeriodicGrid<T>::Transform::
 MayReverse(DiscreteType i) {
 //    assert(0<=i && i<Dimension); // Some compilers complain about assert in constexpr
     return
@@ -40,15 +16,22 @@ MayReverse(DiscreteType i) {
     Traits::boundaryConditions[i]==Boundary::Sphere3_0;
 }
 
+template<typename T> template<typename TVec> void PeriodicGrid<T>::Transform::PullVector(TVec & v) const {
+    for(DiscreteType i=0; i<Dimension; ++i){
+        if(MayReverse(i) && reverseFlag[i])
+            v[i]*=-1;
+    }
+}
+
+// --------- Main methods -------
+
+
 template<typename T> PeriodicGrid<T>::
-PeriodicGrid(IndexCRef dims){
+PeriodicGrid(IndexCRef dims): Superclass(dims){
     const std::string err = "PeriodicGrid error : ";
-    arr.dims=dims;
     const auto & bc=Traits::boundaryConditions;
     for(int i=0; i<Dimension; ++i){
         const DiscreteType n=dims[i];
-        if(n<=0)
-            ExceptionMacro("PeriodicGrid error : non-positive dimension");
         
         switch(bc[i]){
             case Boundary::Sphere2_0:{
@@ -101,15 +84,23 @@ PeriodicGrid(IndexCRef dims){
 
 // Periodization
 template<typename T> auto PeriodicGrid<T>::
-Periodize(IndexType & point) const -> ReverseFlag {
-    ReverseFlag flipped;
-    const auto & dims = arr.dims;
+Periodize(IndexType & point, IndexCRef) const -> Transform {
+    return PeriodizeNoBase(point);}
+
+template<typename T> auto PeriodicGrid<T>::
+Periodize(PointType & point, const PointType &) const -> Transform {
+    return PeriodizeNoBase(point);}
+
+template<typename T> auto PeriodicGrid<T>::
+PeriodizeNoBase(IndexType & point) const -> Transform {
+    Transform flipped;
+    const auto & dims = this->arr.dims;
     for(int i=0; i<Dimension; ++i){
         switch(Traits::boundaryConditions[i]) {
                 
             case Boundary::Closed:
-                if(point[i]<0 || point[i]>=dims[i]) {
-                    flipped[Dimension]=1;
+                if(point[i]<0 || point[i]>=dims[i]){
+                    flipped.Invalidate();
                     return flipped;
                 }
                 break;
@@ -126,7 +117,7 @@ Periodize(IndexType & point) const -> ReverseFlag {
                 point[i]=PosMod(point[i], 2*dims[i]);
                 if(point[i]>=dims[i]){
                     point[i] = 2*dims[i]-point[i]-1;
-                    flipped[i]=1;
+                    flipped.reverseFlag[i]=1;
                     if(T::boundaryConditions[i+1]==Boundary::Sphere2_0) {
                         // Hack to handle arbitrary dimensional spheres,
                         // but this parametrization is ill conditioned in dim n>2.
@@ -151,6 +142,7 @@ Periodize(IndexType & point) const -> ReverseFlag {
                 }
                 if(point[i]>=n){
                     point[i]=2*n-point[i]-1;
+                    flipped.reverseFlag[i]=1;
                     point[i+1]+=2*n;
                 }
             }
@@ -169,14 +161,14 @@ Periodize(IndexType & point) const -> ReverseFlag {
 }
 
 template<typename T> auto PeriodicGrid<T>::
-Periodize(PointType & point) const -> ReverseFlag {
-    ReverseFlag flipped;
-    const auto & dims = arr.dims;
+PeriodizeNoBase(PointType & point) const -> Transform {
+    Transform flipped;
+    const auto & dims = this->arr.dims;
     for(int i=0; i<Dimension; ++i){
         switch (T::boundaryConditions[i]) {
             case Boundary::Closed:
                 if(point[i]<0 || point[i]>=dims[i]) {
-                    flipped[Dimension]=1;
+                    flipped.Invalidate();
                     return flipped;
                 }
                 break;
@@ -194,7 +186,7 @@ Periodize(PointType & point) const -> ReverseFlag {
                 point[i] = fPosMod(point[i],(ScalarType)2*dims[i]);
                 if(point[i]>=dims[i]){
                     point[i] = 2*dims[i]-point[i]; // !! Note the missing -1 w.r.t discrete
-                    flipped[i]=1;
+                    flipped.reverseFlag[i]=1;
                     if(T::boundaryConditions[i+1]==Boundary::Sphere2_0) {
                         point[i+1]=point[i+1]+dims[i+1];
                     } else if(T::boundaryConditions[i+1]==Boundary::Sphere2_1) {
@@ -218,6 +210,7 @@ Periodize(PointType & point) const -> ReverseFlag {
                 }
                 if(point[i]>=n){
                     point[i]=2*n-point[i];
+                    flipped.reverseFlag[i]=1;
                     point[i+1]+=2*n;
                 }
             }

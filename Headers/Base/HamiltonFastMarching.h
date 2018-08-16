@@ -15,7 +15,7 @@
 #include "DataStructures/ShallowMap.h"
 #include "DataStructures/RangeAccessor.h"
 #include "DataStructures/CappedVector.h"
-#include "PeriodicGrid.h"
+#include "BaseGrid.h"
 #include "Output/ExportMacros.h"
 
 /*
@@ -41,8 +41,8 @@ template<typename TTraits>
 struct HamiltonFastMarching {
     typedef TTraits Traits;
     Redeclare1Constant(FromTraits,Dimension)
-    Redeclare3Types(FromTraits,ScalarType,DiscreteType,ShortType)
-    Redeclare5Types(FromTraits,PointType,VectorType,IndexType,OffsetType,DifferenceType)
+    Redeclare4Types(FromTraits,ScalarType,DiscreteType,ShortType,DomainType)
+    Redeclare6Types(FromTraits,PointType,VectorType,IndexType,OffsetType,DifferenceType,IndexDiff)
     
     typedef const IndexType & IndexCRef;
     typedef const OffsetType & OffsetCRef;
@@ -56,10 +56,10 @@ struct HamiltonFastMarching {
     template<size_t n> using BasisReduction=typename Traits::template BasisReduction<n>;
 
     // Domain and Running
-    typedef PeriodicGrid<Traits> DomainType;
-    typedef typename DomainType::ReverseFlag ReverseFlag;
+//    typedef PeriodicGrid<Traits> DomainType;
+    typedef typename DomainType::Transform DomainTransformType;
     const DomainType dom;
-    virtual ReverseFlag VisibleOffset(IndexCRef, OffsetCRef, IndexType &) const;
+    virtual DomainTransformType VisibleOffset(IndexCRef, OffsetCRef, IndexType &) const;
 
     std::map<IndexType,ScalarType,typename IndexType::LexicographicCompare> seeds;
     void Run();

@@ -327,7 +327,7 @@ Run_SetupSolver() {
         oss << "{";
         for(const PointType & p : pts){
             IndexType index = pFM->dom.IndexFromPoint(stencil.Param().ADim(p));
-            if(pFM->dom.Periodize(index)[Dimension]){
+            if(!pFM->dom.PeriodizeNoBase(index).IsValid()){
                 WarnMsg() << "GetStencil error : point " << p << "is out of range.\n";
                 continue;}
             typename HFM::StencilType indStencil;
@@ -384,7 +384,7 @@ Run_SetupSolver() {
         
         for(int i=0; i<seedPoints.size(); ++i){
             auto seedIndex=pFM->dom.IndexFromPoint(seedPoints[i]);
-            if(pFM->dom.Periodize(seedIndex)[Dimension]){
+            if(!pFM->dom.PeriodizeNoBase(seedIndex).IsValid()){
                 WarnMsg() << "Error : seed " << stencil.Param().ReDim(seedPoints[i]) << " is out of range.\n";
                 continue;}
             pFM->seeds.insert({seedIndex,seedValues[i]});}
@@ -436,7 +436,9 @@ template<typename T> void HFMInterface<T>::
 ExportGeodesics(std::string suffix, const std::vector<PointType> & tips){
     if(pGeodesicSolver==nullptr){
         typedef std::unique_ptr<GeodesicSolverInterface> GeoSolverPtr;
-        std::string geodesicSolverType = io.GetString("geodesicSolver", "Discrete");
+        std::string geodesicSolverType =
+        HFM::DomainType::periodizeUsesBase ? "ODE" : 
+        io.GetString("geodesicSolver", "Discrete");
         if(geodesicSolverType=="Discrete") {pGeodesicSolver = GeoSolverPtr(new GeodesicDiscreteSolver<Traits>(*pFM));}
         else if(geodesicSolverType=="ODE") {pGeodesicSolver = GeoSolverPtr(new GeodesicODESolver<Traits>(*pFM));}
         else {ExceptionMacro("Error : Unrecognized geodesic solver " << geodesicSolverType << ".\n");}
@@ -475,7 +477,7 @@ Run_ExtractGeodesics() {
             PointType pMin=equiv.front();
             for(const PointType & q : equiv){
                 PointType r=q;
-                if(pFM->dom.Periodize(r)[Dimension]) continue; // Out of range
+                if(!pFM->dom.PeriodizeNoBase(r).IsValid()) continue; // Out of range
                 const ScalarType val =pFM->values(pFM->dom.IndexFromPoint(r));
                 if(valMin<val) continue; // Too large value
                 pMin=q; valMin=val;

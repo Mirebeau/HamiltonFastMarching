@@ -15,6 +15,8 @@ struct TraitsIsotropic : TraitsBase<VDimension> {
     Redeclare1Constant(FromSuperclass,Dimension)
     typedef typename Superclass::template Difference<1> DifferenceType;
     static const DiscreteType nSymmetric = Dimension;
+    
+    typedef PeriodicGrid<TraitsIsotropic> DomainType;
 };
 
 template<size_t VDimension>

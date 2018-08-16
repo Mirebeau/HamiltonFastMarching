@@ -72,8 +72,8 @@ PostProcessWithRecompute(IndexCRef index, const RecomputeType &, const DiscreteF
         weightSum+=fl.weight;
         flowSum+=fl.weight * VectorType::CastCoordinates(fl.offset);
         IndexType neigh = index; for(int i=0; i<Dimension; ++i) neigh[i]+=fl.offset[i];
-        const auto reversed = pFM->dom.Periodize(neigh);
-        assert(!reversed[Dimension]); (void)reversed;
+        const auto transform = pFM->dom.Periodize(neigh,index);
+        assert(transform.IsValid()); (void)transform;
         lengthSum+=fl.weight * euclideanLengths(neigh);
     }
     if(weightSum>0){

@@ -106,8 +106,8 @@ CommonStoppingCriteria<T>::Setup(HFMI*that){
         const auto & targets = io.template GetVector<PointType>("stopWhenAnyAccepted");
         for(const auto & p : targets) {
             IndexType index = dom.IndexFromPoint(param.ADim(p));
-            if(dom.Periodize(index)[Dimension]) Msg() << "Warning : target " << p << " is out of range.";
-            else stopWhenAnyAccepted.insert(index);
+            if(dom.Periodize(index,index).IsValid()) stopWhenAnyAccepted.insert(index);
+            else  Msg() << "Warning : target " << p << " is out of range.";
         }
     }
     
@@ -115,8 +115,8 @@ CommonStoppingCriteria<T>::Setup(HFMI*that){
         const auto & targets = io.template GetVector<PointType>("stopWhenAllAccepted");
         for(const auto & p : targets) {
             IndexType index = dom.IndexFromPoint(param.ADim(p));
-            if(dom.Periodize(index)[Dimension]) Msg() << "Warning : target " << p << " is out of range.";
-            else stopWhenAllAccepted.insert(index);
+            if(dom.Periodize(index,index).IsValid()) stopWhenAllAccepted.insert(index);
+            else Msg() << "Warning : target " << p << " is out of range.";
         }
     }
     
@@ -125,8 +125,8 @@ CommonStoppingCriteria<T>::Setup(HFMI*that){
         const auto & targets = io.template GetVector<UnorientedPointType>("stopWhenAnyAccepted_Unoriented");
         for(const auto & p : targets) {
             IndexType index = dom.IndexFromPoint(param.ADim(HFMIS::PadUnoriented(p)));
-            if(dom.Periodize(index)[Dimension]) Msg() << "Warning : unoriented target " ExportArrayArrow(p) << " is out of range.";
-            else stopWhenAnyAccepted_Unoriented.insert(HFMIS::StripUnoriented(index));
+            if(dom.Periodize(index,index).IsValid())  stopWhenAnyAccepted_Unoriented.insert(HFMIS::StripUnoriented(index));
+            else Msg() << "Warning : unoriented target " ExportArrayArrow(p) << " is out of range.";
         }
     }
     
@@ -134,8 +134,8 @@ CommonStoppingCriteria<T>::Setup(HFMI*that){
         const auto & targets = io.template GetVector<UnorientedPointType>("stopWhenAllAccepted_Unoriented");
         for(const auto & p : targets) {
             IndexType index = dom.IndexFromPoint(param.ADim(HFMIS::PadUnoriented(p)));
-            if(dom.Periodize(index)[Dimension]) Msg() << "Warning : unoriented target " ExportArrayArrow(p) << " is out of range.";
-            else stopWhenAllAccepted_Unoriented.insert(HFMIS::StripUnoriented(index));
+            if(dom.Periodize(index,index).IsValid())  stopWhenAllAccepted_Unoriented.insert(HFMIS::StripUnoriented(index));
+            else Msg() << "Warning : unoriented target " ExportArrayArrow(p) << " is out of range.";
         }
     }
     

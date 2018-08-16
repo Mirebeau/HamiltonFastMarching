@@ -11,12 +11,14 @@
 
 
 #include "HamiltonFastMarching.h"
+#include "LinearAlgebra/SquareCube.h"
+
 
 template <typename TTraits> struct GeodesicODESolver
 : HamiltonFastMarching<TTraits>::GeodesicSolverInterface {
     typedef TTraits Traits; typedef HamiltonFastMarching<Traits> HFM;
     Redeclare7Types(FromTraits,DiscreteType,ScalarType,ShortType,IndexType,OffsetType,VectorType,PointType)
-    Redeclare2Types(FromHFM,HFMI,GeodesicSolverInterface);
+    Redeclare3Types(FromHFM,HFMI,GeodesicSolverInterface,DomainTransformType);
 
     Redeclare1Type(FromHFM, FlowDataType);
     template<typename E, size_t n> using Array = typename Traits::template Array<E,n>;
