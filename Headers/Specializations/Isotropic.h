@@ -16,8 +16,6 @@ struct TraitsIsotropic : TraitsBase<VDimension> {
 
     typedef EulerianDifference<OffsetType,ScalarType,1> DifferenceType;
     typedef EulerianStencil<DifferenceType,Dimension> StencilType;
-//    typedef typename Superclass::template Difference<1> DifferenceType;
-//    static const DiscreteType nSymmetric = Dimension;
     
     typedef PeriodicGrid<TraitsIsotropic> DomainType;
 };
@@ -48,11 +46,11 @@ struct StencilIsotropic : HamiltonFastMarching<TraitsIsotropic<VDimension> >::St
 template<size_t VDimension>
 struct TraitsDiagonal : TraitsBase<VDimension> {
     typedef TraitsBase<VDimension> Superclass;
-    Redeclare1Type(FromSuperclass,DiscreteType)
+    Redeclare3Types(FromSuperclass,DiscreteType,OffsetType,ScalarType)
     Redeclare1Constant(FromSuperclass,Dimension)
 
-    typedef typename Superclass::template Difference<Dimension> DifferenceType;
-    static const DiscreteType nSymmetric = Dimension;
+    typedef EulerianDifference<OffsetType,ScalarType,Dimension> DifferenceType;
+    typedef EulerianStencil<DifferenceType,Dimension> StencilType;
     
     typedef PeriodicGrid<TraitsDiagonal> DomainType;
 };
@@ -67,7 +65,7 @@ struct StencilDiagonal : HamiltonFastMarching<TraitsDiagonal<VDimension> >::Sten
     
     virtual void SetStencil(const IndexType & index, StencilType & stencil) override {
         for(int i=0; i<Dimension; ++i){
-            auto & diff = stencil.symmetric[i];
+            auto & diff = stencil.symmetric[0][i];
             diff.baseWeight=1./square(param.gridScales[i]);
             diff.offset.fill(0);
             diff.offset[i]=1;

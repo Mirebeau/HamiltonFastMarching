@@ -16,7 +16,7 @@ HamiltonFastMarching<T>::ExtraAlgorithmInterface {
     Redeclare5Types(FromHFM,Traits,RecomputeType,DiscreteFlowType,PointType,IndexDiff)
     Redeclare1Constant(FromHFM,Dimension)
     template<typename E, size_t n> using Array = typename HFM::template Array<E,n>;
-    typedef typename std::conditional<HFM::hasMultiplier, typename HFM::MultiplierType, ScalarType>::type MultType;
+    typedef typename std::conditional<HFM::policy==SSP::Share, typename HFM::MultiplierType, ScalarType>::type MultType;
     
     ScalarType * pCurrentTime=nullptr;
     struct NeighborType {IndexType index; ScalarType weight;};
@@ -30,7 +30,7 @@ HamiltonFastMarching<T>::ExtraAlgorithmInterface {
     virtual bool ImplementIn(HFM*_pFM) override {pFM=_pFM; return true;}
 protected:
     const HFM * pFM;
-    template<size_t VMultSize=DifferenceType::multSize, typename Dummy=void> struct _DiffHelper;
+    template<size_t VMultSize=std::max(0,DifferenceType::multSize), typename Dummy=void> struct _DiffHelper;
     typedef _DiffHelper<> DiffHelper;
     typedef typename Array<ScalarType, Dimension+1>::IndexType DeepIndexType;
     DeepIndexType DeepIndex(IndexType index, DiscreteType k) const {
@@ -39,33 +39,12 @@ protected:
         result[Dimension]=k;
         return result;
     };
+    template<bool b=HFM::policy==SSP::Lag2, typename Dummy=void> struct ValueVariationHelper;
+    
 //    template<bool b=HFM::hasMultiplier, typename Dummy=void> struct MultArrayIO;
 };
 
 // --------- Export -------
-/*
-template<typename T> template<typename Dummy>
-struct FirstVariation<T>::MultArrayIO<true,Dummy> {
-    typedef typename FirstVariation<T>::HFM HFM;
-    Redeclare2Types(FromHFM,HFMI,MultiplierType)
-    Redeclare1Constant(FromHFM,Dimension)
-    template<typename E,size_t n> using Array = typename T::template Array<E,n>; 
-    static void Set(HFMI*that,std::string name,const Array<MultiplierType,Dimension> & a){
-        that->io.SetArray(name,a);}
-    static Array<MultiplierType,Dimension+1> Get(HFMI*that,std::string name){
-        return that->io.template GetArray<MultiplierType,Dimension+1>(name);}
-};
-
-template<typename T> template<typename Dummy>
-struct FirstVariation<T>::MultArrayIO<false,Dummy> {
-    typedef typename FirstVariation<T>::HFM HFM;
-    Redeclare2Types(FromHFM,HFMI,MultiplierType)
-    Redeclare1Constant(FromHFM,Dimension)
-    template<typename E,size_t n> using Array = typename T::template Array<E,n>; 
-    static void Set(HFMI*that,std::string name,const Array<MultiplierType,Dimension> & a){}
-    static Array<MultiplierType,Dimension+1> Get(HFMI*that,std::string name){return Array<MultiplierType,Dimension+1>();}
-};
-*/
 
 template<typename T> void FirstVariation<T>::Finally(HFMI*that){
     auto & io = that->io;
@@ -174,6 +153,126 @@ struct FirstVariation<TTraits>::_DiffHelper<0,Dummy> {
 
 // ----------- Differentiation at a single point -----------
 
+
+
+template<typename T> template<typename Dummy> struct
+FirstVariation<T>::ValueVariationHelper<true,Dummy> {
+    const HFM * pFM;
+    MultType operator()(IndexCRef index, ActiveNeighborsType & neighbors) const {
+        assert(neighbors.empty());
+        DiscreteFlowType flow;
+        const RecomputeType rec = pFM->Recompute(index, flow);
+        
+        typedef typename DiscreteFlowType::value_type FlowElementType;
+        assert(std::fabs(std::accumulate(flow.begin(), flow.end(), 0.,[](ScalarType a, const FlowElementType & b){return a+b.weight;})-1.)<0.001);
+        
+        ScalarType valueDiff = rec.value; // equivalently pFM->values(index)
+        // valueDiff accounts for f(xMin) in the semi-Lagrangian optimization inf f(xMin) + u(x)
+        // over the neighborhood boundary
+        
+        for(const auto & flowElem : flow){
+            const ScalarType weight = flowElem.weight;
+            IndexType neigh = index+IndexDiff::CastCoordinates(flowElem.offset);
+            const auto transform = pFM->dom.Periodize(neigh, index);
+            assert(transform.IsValid());
+            neighbors.push_back({neigh,weight});
+            valueDiff -= weight*pFM->values(neigh);
+        }
+        
+        assert(valueDiff>=0);
+        return MultType{valueDiff};
+    }
+};
+
+template<typename T> template<typename Dummy> struct
+FirstVariation<T>::ValueVariationHelper<false,Dummy> {
+    const HFM * pFM;
+    MultType operator()(IndexCRef index, ActiveNeighborsType & neighbors) const {
+        
+        assert(neighbors.empty());
+        const auto & values = pFM->values;
+        const ScalarType value = values(index);
+        
+        MultType var = DiffHelper::NullMult();
+        ScalarType weightSum=0;
+        const auto & data = pFM->stencilData.RecomputeData(index);
+        const ActiveNeighFlagType active = pFM->activeNeighs(index);
+        
+        auto func = [&,this](DiscreteType s, const DifferenceType & diff){
+            IndexType neighIndex=index;
+            neighIndex+=s*IndexDiff::CastCoordinates(diff.offset);
+            const auto transform = pFM->dom.Periodize(neighIndex,index);
+            assert(transform.IsValid()); (void)transform;
+            const ScalarType neighValue = values(neighIndex);
+            const ScalarType valueDiff = std::max(0., value-neighValue);
+            const ScalarType w = diff.Weight(data.mult)*valueDiff;
+            weightSum+=w;
+            neighbors.push_back({neighIndex,w});
+            DiffHelper::Elem(var,diff)+=w*valueDiff;
+        };
+        
+        const int iMax = HFM::StencilType::GetIMax(active);
+        int iNeigh = iMax*HFM::StencilType::nSingleNeigh;
+        const auto & forward = data.stencil.forward[iMax];
+        const auto & symmetric = data.stencil.symmetric[iMax];
+        
+        for(const auto & diff : forward){
+            if(active[iNeigh]){
+                func( 1,diff);}
+            ++iNeigh;
+        }
+        for(const auto & diff : symmetric){
+            if(active[iNeigh]){
+                assert(!active[iNeigh+1]);
+                func( 1,diff);}
+            if(active[iNeigh+1]){
+                assert(!active[iNeigh]);
+                func(-1,diff);}
+            iNeigh+=2;
+        }
+        
+        
+        if(weightSum==0) return var;
+        const ScalarType invWeight = 1./weightSum;
+        for(auto & neigh : neighbors){neigh.weight*=invWeight;}
+        return DiffHelper::Times(invWeight,DiffHelper::Times(data.mult,var));
+    }
+};
+
+
+template<typename T> auto FirstVariation<T>::
+ValueVariation(IndexCRef index, ActiveNeighborsType & neighbors) const ->MultType {
+    return ValueVariationHelper<>{pFM}(index,neighbors);
+}
+
+/*
+template<typename T> auto FirstVariation<T>::
+ValueVariation(IndexCRef index, ActiveNeighborsType & neighbors) const ->MultType {
+    assert(neighbors.empty());
+    DiscreteFlowType flow;
+    const RecomputeType rec = pFM->Recompute(index, flow);
+    
+    typedef typename DiscreteFlowType::value_type FlowElementType;
+    assert(std::fabs(std::accumulate(flow.begin(), flow.end(), 0.,[](ScalarType a, const FlowElementType & b){return a+b.weight;})-1.)<0.001);
+
+    ScalarType valueDiff = rec.value; // equivalently pFM->values(index)
+    // valueDiff accounts for f(xMin) in the semi-Lagrangian optimization inf f(xMin) + u(x)
+    // over the neighborhood boundary
+    
+    for(const auto & flowElem : flow){
+        const ScalarType weight = flowElem.weight;
+        IndexType neigh = index+IndexDiff::CastCoordinates(flowElem.offset);
+        const auto transform = pFM->dom.Periodize(neigh, index);
+        assert(transform.IsValid());
+        neighbors.push_back({neigh,weight});
+        valueDiff -= weight*pFM->values(neigh);
+    }
+    
+    assert(valueDiff>=0);
+    return MultType{valueDiff};
+}*/
+
+/*
 template<typename T> auto FirstVariation<T>::
 ValueVariation(IndexCRef index, ActiveNeighborsType & neighbors) const ->MultType {
     assert(neighbors.empty());
@@ -198,60 +297,17 @@ ValueVariation(IndexCRef index, ActiveNeighborsType & neighbors) const ->MultTyp
         DiffHelper::Elem(var,diff)+=w*valueDiff;
     };
     
-    /*
-    int iNeigh=0;
-    for(const auto & diff : data.stencil.forward){
-        if(active[iNeigh]){
-            func( 1,diff);}
-        ++iNeigh;}
-    for(const auto & diff : data.stencil.symmetric){
-        if(active[iNeigh]){
-            assert(!active[iNeigh+1]);
-            func( 1,diff);}
-        if(active[iNeigh+1]){
-            assert(!active[iNeigh]);
-            func(-1,diff);}
-        iNeigh+=2;
-    }
-    
-    int iMax=0;
-    for(int i=0; i<HFM::nMaxBits; ++i){
-        if(active[HFM::nNeigh+i]) iMax |= (1<<i);}
-    iNeigh+=iMax*(T::nMaxForward+2*T::nMaxSymmetric);
-    const auto & maxForward = data.stencil.maxForward[iMax];
-    const auto & maxSymmetric = data.stencil.maxSymmetric[iMax];
-    
-    for(const auto & diff : maxForward){
-        if(active[iNeigh]){
-            func( 1,diff);}
-        ++iNeigh;
-    }
-    for(const auto & diff : maxSymmetric){
-        if(active[iNeigh]){
-            assert(!active[iNeigh+1]);
-            func( 1,diff);}
-        if(active[iNeigh+1]){
-            assert(!active[iNeigh]);
-            func(-1,diff);}
-        iNeigh+=2;
-    }
-    */
-    
     const int iMax = HFM::StencilType::GetIMax(active);
     int iNeigh = iMax*HFM::StencilType::nSingleNeigh;
-/*    int iMax=0;
-    for(int i=0; i<HFM::nMaxBits; ++i){
-        if(active[HFM::nNeigh+i]) iMax |= (1<<i);}
-    int iNeigh=iMax*(T::nMaxForward+2*T::nMaxSymmetric);*/
-    const auto & maxForward = data.stencil.forward[iMax];
-    const auto & maxSymmetric = data.stencil.symmetric[iMax];
+    const auto & forward = data.stencil.forward[iMax];
+    const auto & symmetric = data.stencil.symmetric[iMax];
     
-    for(const auto & diff : maxForward){
+    for(const auto & diff : forward){
         if(active[iNeigh]){
             func( 1,diff);}
         ++iNeigh;
     }
-    for(const auto & diff : maxSymmetric){
+    for(const auto & diff : symmetric){
         if(active[iNeigh]){
             assert(!active[iNeigh+1]);
             func( 1,diff);}
@@ -267,6 +323,7 @@ ValueVariation(IndexCRef index, ActiveNeighborsType & neighbors) const ->MultTyp
     for(auto & neigh : neighbors){neigh.weight*=invWeight;}
     return DiffHelper::Times(invWeight,DiffHelper::Times(data.mult,var));
 }
+*/
 
 // ---------- Reverse auto diff ------------
 

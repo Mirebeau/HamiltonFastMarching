@@ -34,7 +34,7 @@ dom(_stencilData.dims), stencilData(_stencilData){
     acceptedFlags.resize(values.size(),false);
     
     activeNeighs.dims = values.dims;
-    activeNeighs.resize(values.size(),0);
+    activeNeighs.resize(values.size());
     
     stencilData.Initialize(this);
 };
@@ -154,11 +154,13 @@ template<typename T> void HamiltonFastMarching<T>::
 Update(FullIndexCRef updated, OffsetCRef offset, ScalarType acceptedValue){
     auto & active = activeNeighs[updated.linear];
 
+    /*
     auto data = stencilData.UpdateData(updated);
     if(data.quad.minVal==-Traits::Infinity()){
         assert(active==0);
         data.quad.minVal = acceptedValue;
     }
+     */
 
     /*
     DiscreteType iNeigh=0;
@@ -219,6 +221,7 @@ Update(FullIndexCRef updated, OffsetCRef offset, ScalarType acceptedValue){
     }
     */
     
+    /*
     DiscreteType iNeigh=0;
     for(int iMax=0; iMax<StencilType::nMax; ++iMax){
         for(const auto & diff : data.stencil.forward[iMax]){
@@ -250,18 +253,21 @@ Update(FullIndexCRef updated, OffsetCRef offset, ScalarType acceptedValue){
     }
     
     const std::pair<ScalarType,int> result = data.quad.Solve();
-    
+     StencilType::SetIMax(active,result.second);
+
+    */
 /*    // Alternatively, only insert in queue if value is strictly decreased.
     ScalarType & val = values[updatedLinearIndex];
     if(result.first>=val) return;*/
-       
-    values[updated.linear] = result.first;
-    StencilType::SetIMax(active,result.second);
-//    for(int i=0; i<nMaxBits; ++i) active[nNeigh+i] = result.second & (1<<i);
-    queue.push({updated.linear,result.first});
+    
+    const ScalarType updatedValue =
+    stencilData.HopfLaxUpdate(updated,offset,acceptedValue,active);
+    values[updated.linear] = updatedValue;
+    queue.push({updated.linear,updatedValue});
     
 }
 
+/*
 template<typename T> template<size_t n>
 struct HamiltonFastMarching<T>::_QuadType {
     ScalarType minVal=-Traits::Infinity();
@@ -296,7 +302,7 @@ HamiltonFastMarching<T>::_QuadType<n>::Solve() const -> std::pair<ScalarType, in
         const ScalarType delta2 = d.b*d.b - d.a*d.c;
         const ScalarType delta = sqrt(std::max(0.,delta2));
         d.result = (d.b+delta)/d.a;
-//        d.result = std::min(d.result,LargeValue());  // Needed ?
+        //        d.result = std::min(d.result,LargeValue());  // Needed ?
     }
     if(n==0) return {minVal+data[0].result,0};
     int iMin(0);
@@ -330,14 +336,13 @@ Add(ScalarType value, ScalarType weight) {
     //  assert(Traits::sndOrder || v>=0);
     const ScalarType wv=w*v, wv2 = (w*v)*v;
     for(auto & d : data){
-//        assert(Traits::sndOrder || d.result>=v);
+        //        assert(Traits::sndOrder || d.result>=v);
         d.a+=w;
         d.b+=wv;
         d.c+=wv2;
     }
 }
-
-
+*/
 
 // ----------------- Boundary conditions -------------------
 
@@ -355,19 +360,46 @@ VisibleOffset(const IndexType & acceptedIndex, const OffsetType & offset, IndexT
 // ---------- Recompute ----------
 
 template<typename T> auto HamiltonFastMarching<T>::
-Recompute(const IndexType & updatedIndex, DiscreteFlowType & discreteFlow) const -> RecomputeType {
-    for(ExtraAlgorithmInterface * p : extras.beforeRecompute) p->BeforeRecompute(updatedIndex);
+Recompute(IndexCRef updatedIndex, DiscreteFlowType & discreteFlow) const -> RecomputeType {
     assert(discreteFlow.empty());
+    for(ExtraAlgorithmInterface * p : extras.beforeRecompute) {p->BeforeRecompute(updatedIndex);}
     const DiscreteType updatedLinearIndex = values.Convert(updatedIndex);
     const ActiveNeighFlagType active = activeNeighs[updatedLinearIndex];
-//    if(active.none()) return values[updatedLinearIndex]; // Handled below
+    if(active.none()) return {values[updatedLinearIndex],0.}; // Handled below
     
+    auto GetValue = [this,&updatedIndex](OffsetType offset, int & snd) -> ScalarType {
+        //snd code : -1 -> invalid, 0 -> first order, 1 -> sndOrder.
+        
+        IndexType acceptedIndex = updatedIndex+IndexDiff::CastCoordinates(offset);
+        const auto transform = dom.Periodize(acceptedIndex,updatedIndex);
+        if(!transform.IsValid()) {snd=-1; return -Traits::Infinity();}
+        const ScalarType acceptedValue = values(acceptedIndex);
+        
+        const bool trySnd = sndOrder && snd;
+        snd=0;
+        if(!trySnd) return acceptedValue;
+        OffsetType offset2 = offset;
+        transform.PullVector(offset2);
+        IndexType acceptedIndex2;
+        if(!VisibleOffset(acceptedIndex, offset2, acceptedIndex2).IsValid()) return acceptedValue;
+        
+        const DiscreteType acceptedLinearIndex2 = values.Convert(acceptedIndex2);
+        if(!acceptedFlags[acceptedLinearIndex2]) return acceptedValue;
+        const ScalarType acceptedValue2 = values(acceptedIndex2);
+        if(acceptedValue2>acceptedValue) return acceptedValue;
+        return (4./3.)*acceptedValue - (1./3.)*acceptedValue2;
+        snd=1;
+    };
+    
+    return stencilData.HopfLaxRecompute(GetValue,updatedIndex,active,discreteFlow);
+    
+    /*
+        
     const auto & data = stencilData.RecomputeData(updatedIndex);
     
     std::bitset<nActiveNeigh> sndOrderNeighs;
     auto PushValueDiff = [this,&updatedIndex, &discreteFlow, &sndOrderNeighs](OffsetType offset){
-        IndexType acceptedIndex;
-        for(int i=0; i<Dimension; ++i) {acceptedIndex[i] = updatedIndex[i]+offset[i];}
+        IndexType acceptedIndex = updatedIndex+IndexDiff::CastCoordinates(offset);
         const auto transform = dom.Periodize(acceptedIndex,updatedIndex);
         assert(transform.IsValid());
         
@@ -389,64 +421,11 @@ Recompute(const IndexType & updatedIndex, DiscreteFlowType & discreteFlow) const
         sndOrderNeighs[discreteFlow.size()-1]=1;
     };
     
+    
+    
+    
     CappedVector<ScalarType, nActiveNeigh> weights;
-    /*
-    int iNeigh=0;
-    for(const auto & diff : data.stencil.forward){
-        if(active[iNeigh]){
-            weights.push_back(diff.Weight(data.mult));
-            PushValueDiff(diff.offset);
-        }
-        ++iNeigh;
-    }
-    for(const auto & diff : data.stencil.symmetric){
-        if(active[iNeigh]){
-            assert(!active[iNeigh+1]);
-            weights.push_back(diff.Weight(data.mult));
-            PushValueDiff( diff.offset);
-        }
-        if(active[iNeigh+1]){
-            assert(!active[iNeigh]);
-            weights.push_back(diff.Weight(data.mult));
-            PushValueDiff(-diff.offset);
-        }
-        iNeigh+=2;
-    }
-     
     
-    int iMax=0;
-    for(int i=0; i<nMaxBits; ++i){
-        if(active[nNeigh+i]) iMax |= (1<<i);}
-    iNeigh+=iMax*(T::nMaxForward+2*T::nMaxSymmetric);
-    const auto & maxForward = data.stencil.maxForward[iMax];
-    const auto & maxSymmetric = data.stencil.maxSymmetric[iMax];
-    
-    for(const auto & diff : maxForward){
-        if(active[iNeigh]){
-            weights.push_back(diff.Weight(data.mult));
-            PushValueDiff(diff.offset);
-        }
-        ++iNeigh;
-    }
-    for(const auto & diff : maxSymmetric){
-        if(active[iNeigh]){
-            assert(!active[iNeigh+1]);
-            weights.push_back(diff.Weight(data.mult));
-            PushValueDiff(diff.offset);
-        }
-        if(active[iNeigh+1]){
-            assert(!active[iNeigh]);
-            weights.push_back(diff.Weight(data.mult));
-            PushValueDiff(-diff.offset);
-        }
-        iNeigh+=2;
-    }
-    */
-    /*int iMax=0;
-    for(int i=0; i<nMaxBits; ++i){
-        if(active[nNeigh+i]) iMax |= (1<<i);}
-     int iNeigh=iMax*(T::nMaxForward+2*T::nMaxSymmetric);
-*/
     const int iMax = StencilType::GetIMax(active);
     int iNeigh = iMax * StencilType::nSingleNeigh;
     
@@ -475,7 +454,7 @@ Recompute(const IndexType & updatedIndex, DiscreteFlowType & discreteFlow) const
     }
     
     
-    _QuadType<1> quad; quad.minVal = Traits::Infinity();
+    QuadraticMax<ScalarType, 1> quad; quad.minVal = Traits::Infinity();
     for(const auto & offsetValue : discreteFlow){
         quad.minVal=std::min(quad.minVal, offsetValue.weight);}
     
@@ -484,15 +463,6 @@ Recompute(const IndexType & updatedIndex, DiscreteFlowType & discreteFlow) const
                  (sndOrder && sndOrderNeighs[i]) ?
                  (9./4.)* weights[i] : weights[i]);
     }
-
-/*    if(discreteFlow.empty()){
-        std::cout
-        ExportVarArrow(iNeigh)
-        ExportArrayArrow(weights)
-        ExportVarArrow(active)
-        ExportVarArrow(iMax)
-        << "\n";
-    }*/
 
     if(discreteFlow.empty()) return {values[updatedLinearIndex],0.};
     RecomputeType result;
@@ -509,6 +479,7 @@ Recompute(const IndexType & updatedIndex, DiscreteFlowType & discreteFlow) const
     const ScalarType weightsSum = std::accumulate(weights.begin(), weights.end(), 0.);
     if(weightsSum>0) {result.width/=weightsSum;}
     return result;
+     */
 }
 
 template<typename Traits> auto HamiltonFastMarching<Traits>::

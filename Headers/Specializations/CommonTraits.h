@@ -11,7 +11,7 @@
 
 #include "Base/BaseGrid.h"
 #include "Base/PeriodicGrid.h" //Boundary_AllClosed.
-#include "Base/StencilType.h"
+#include "Base/EulerianStencil.h"
 
 #ifdef HighVoronoi // Will need high dimensional Voronoi reduction
 #include <type_traits> // std::conditional

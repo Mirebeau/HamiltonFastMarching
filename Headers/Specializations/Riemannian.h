@@ -8,11 +8,12 @@
 template<size_t VDimension>
 struct TraitsRiemann : TraitsBase<VDimension> {
     typedef TraitsBase<VDimension> Superclass;
-    Redeclare1Type(FromSuperclass,DiscreteType)
+    Redeclare2Types(FromSuperclass,OffsetType,ScalarType)
     Redeclare1Constant(FromSuperclass,Dimension)
 
-    typedef typename Superclass::template Difference<0> DifferenceType;
-    static const DiscreteType nSymmetric = (Dimension*(Dimension+1))/2;
+    typedef EulerianDifference<OffsetType,ScalarType,0> DifferenceType;
+    typedef EulerianStencil<DifferenceType,(Dimension*(Dimension+1))/2> StencilType;
+
     typedef PeriodicGrid<TraitsRiemann> DomainType;
 };
 
@@ -32,10 +33,10 @@ struct StencilRiemann : HamiltonFastMarching<TraitsRiemann<VDimension> >::Stenci
     std::unique_ptr<MetricType> pMetric;
     
     virtual void SetStencil(const IndexType & index, StencilType & stencil) override {
-        Voronoi1Mat<ReductionType>(&stencil.symmetric[0],
+        Voronoi1Mat<ReductionType>(&stencil.symmetric[0][0],
                                    pDualMetric ? (*pDualMetric)(index) : (*pMetric)(index).Inverse() );
         const ScalarType hm2 = 1/square(param.gridScale);
-        for(auto & diff : stencil.symmetric) diff.baseWeight*=hm2;
+        for(auto & diff : stencil.symmetric[0]) diff.baseWeight*=hm2;
     }
     virtual const ParamInterface & Param() const override {return param;}
     virtual void Setup(HFMI *that) override {

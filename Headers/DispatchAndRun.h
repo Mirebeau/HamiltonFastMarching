@@ -152,7 +152,9 @@ if(model== #modelName){ \
 #ifdef Custom
 //#include "Experimental/Differentiable.h"
 //#include "Experimental/RiemannLifted.h"
-#include "Experimental/AlignedBillard.h"
+
+//#include "Experimental/AlignedBillard.h"
+#include "Base/Lagrangian2Stencil.h"
 #endif
 /*
 #ifdef AllBaseModels
@@ -207,10 +209,30 @@ void Run(IO & io){
 #ifdef Custom
 // This custom executable is here to let the user choose the adequate combination of (FastMarchingClass, Model) for his/her application.
 
-    HFMSpecializationMacro(AlignedBillard)
+//    HFMSpecializationMacro(AlignedBillard)
     
 //    HFMSpecializationMacro(IsotropicDiff<2>)
 //    HFMSpecializationMacro(RiemannLifted2<Boundary::Closed>)
+    {
+        typedef HFMInterface<TraitsLagrangian2> HFMI;
+        typedef StencilRanderLag2 StencilDataType;
+        if(model== "RanderLag2"){
+            io.currentSetter=IO::SetterTag::Compute;
+            StencilDataType stencil;
+            HFMI(io, stencil).Run();
+            io.currentSetter=IO::SetterTag::User; return;}
+    }
+    
+    {
+        typedef HFMInterface<TraitsLagrangian2> HFMI;
+        typedef StencilAsymmetricQuadraticLag2 StencilDataType;
+        if(model== "AsymmetricQuadraticLag2"){
+            io.currentSetter=IO::SetterTag::Compute;
+            StencilDataType stencil;
+            HFMI(io, stencil).Run();
+            io.currentSetter=IO::SetterTag::User; return;}
+    }
+
     
 #endif
     

@@ -10,7 +10,7 @@
 // ------------- R3S2 Traits ---------------
 
 struct TraitsR3S2 : TraitsBase<5> {
-    typedef Difference<1> DifferenceType;
+    typedef EulerianDifference<OffsetType,ScalarType,1> DifferenceType;
     static const DiscreteType nStencilDependencies=2;
     constexpr static std::array<DiscreteType, nStencilDependencies>
     stencilDependencies = {{3,4}};
@@ -27,7 +27,7 @@ constexpr decltype(TraitsR3S2::boundaryConditions) TraitsR3S2::boundaryCondition
 // ---------- 3D ReedsSheppForward. Includes the dual torsion-like model. ----------
 
 struct TraitsReedsShepp3 : TraitsR3S2 {
-    static const DiscreteType nSymmetric=8;
+    typedef EulerianStencil<DifferenceType,6+2> StencilType;
 };
 
 struct StencilReedsShepp3
@@ -51,14 +51,14 @@ struct StencilReedsShepp3
         const Sym m = dual ?
         (square(eps)-1.)*Sym::RankOneTensor(v)+ Sym::Identity() :
         (1.-square(eps))*Sym::RankOneTensor(v)+square(eps)*Sym::Identity();
-        Voronoi1Mat<ReductionType>(&stencil.symmetric[0], m/square(param.gridScale));
-        //        Voronoi1Vec<ReductionType>(&stencil.symmetric[0], v/param.gridScale, eps);
+        auto & symmetric = stencil.symmetric[0];
+        Voronoi1Mat<ReductionType>(&symmetric[0], m/square(param.gridScale));
 
-        stencil.symmetric[6].offset = OffsetType{0,0,0,1,0};
-        stencil.symmetric[6].baseWeight = 1./square(xi*param.dependScale);
+        symmetric[6].offset = OffsetType{0,0,0,1,0};
+        symmetric[6].baseWeight = 1./square(xi*param.dependScale);
         
-        stencil.symmetric[7].offset = OffsetType{0,0,0,0,1};
-        stencil.symmetric[7].baseWeight = 1./square(sin(theta)*xi*param.dependScale);
+        symmetric[7].offset = OffsetType{0,0,0,0,1};
+        symmetric[7].baseWeight = 1./square(sin(theta)*xi*param.dependScale);
     }
     virtual const ParamInterface & Param() const override {return param;}
     virtual void Setup(HFMI *that) override {auto & io = that->io;
@@ -79,7 +79,7 @@ struct StencilReedsShepp3
 // ---------- 3D ReedsSheppForward model ----------
 
 struct TraitsReedsSheppForward3 : TraitsR3S2 {
-    static const DiscreteType nForward=6, nSymmetric=2;
+    typedef EulerianStencil<DifferenceType,2,6> StencilType;
 };
 
 struct StencilReedsSheppForward3
@@ -97,13 +97,16 @@ struct StencilReedsSheppForward3
         typedef typename ReductionType::VectorType VectorType;
         const VectorType v =
         (VectorType{cos(theta), sin(theta)*cos(phi), sin(theta)*sin(phi)})/param.gridScale;
-        Voronoi1Vec<ReductionType>(&stencil.forward[0], v, eps);
         
-        stencil.symmetric[0].offset = OffsetType{0,0,0,1,0};
-        stencil.symmetric[0].baseWeight = 1./square(xi*param.dependScale);
+        auto & forward = stencil.forward[0];
+        Voronoi1Vec<ReductionType>(&forward[0], v, eps);
         
-        stencil.symmetric[1].offset = OffsetType{0,0,0,0,1};
-        stencil.symmetric[1].baseWeight = 1./square(sin(theta)*xi*param.dependScale);
+        auto & symmetric = stencil.symmetric[0];
+        symmetric[0].offset = OffsetType{0,0,0,1,0};
+        symmetric[0].baseWeight = 1./square(xi*param.dependScale);
+        
+        symmetric[1].offset = OffsetType{0,0,0,0,1};
+        symmetric[1].baseWeight = 1./square(sin(theta)*xi*param.dependScale);
     }
     virtual const ParamInterface & Param() const override {return param;}
     virtual void Setup(HFMI *that) override {auto & io = that->io;

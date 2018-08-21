@@ -22,11 +22,11 @@
 template<size_t VDimension>
 struct TraitsIsotropicDiff : TraitsBase<VDimension> {
     typedef TraitsBase<VDimension> Superclass;
-    Redeclare1Type(FromSuperclass,DiscreteType)
+    Redeclare3Types(FromSuperclass,DiscreteType,ScalarType,OffsetType)
     Redeclare1Constant(FromSuperclass,Dimension)
 
-    typedef typename Superclass::template Difference<1> DifferenceType;
-    static const DiscreteType nForward = 2*Dimension;
+    typedef EulerianDifference<OffsetType,ScalarType,1> DifferenceType;
+    typedef EulerianStencil<DifferenceType,0,2*Dimension> StencilType;
     
     typedef PeriodicGrid<TraitsIsotropicDiff> DomainType;
 };
@@ -43,7 +43,7 @@ struct StencilIsotropicDiff : HamiltonFastMarching<TraitsIsotropicDiff<VDimensio
         int n=0;
         for(int i=0; i<Dimension; ++i){
             for(int s=-1; s<=1; s+=2){
-                auto & diff = stencil.forward[n]; ++n;
+                auto & diff = stencil.forward[0][n]; ++n;
                 diff.baseWeight=1./square(param.gridScale);
                 diff.offset.fill(0);
                 diff.offset[i]=s;
@@ -60,9 +60,10 @@ struct StencilIsotropicDiff : HamiltonFastMarching<TraitsIsotropicDiff<VDimensio
 
 // ------------- 2D Riemannian metrics ------------
 struct TraitsRiemannDiff2 : TraitsBase<2> {
-    typedef Difference<3> DifferenceType;
-    static const DiscreteType nSymmetric = 3, nStencilDependencies=2;
-    
+    typedef EulerianDifference<OffsetType,ScalarType,3> DifferenceType;
+    typedef EulerianStencil<DifferenceType,3> StencilType;
+
+    static const DiscreteType nStencilDependencies=2;
     constexpr static const std::array<Boundary, Dimension>  boundaryConditions =
     {{Boundary::Closed, Boundary::Closed}};
     
@@ -93,10 +94,11 @@ struct StencilRiemannDiff2 : HamiltonFastMarching<TraitsRiemannDiff2>::StencilDa
         const auto diff = (*pDualMetric)(index);
         auto sb = ReductionType::CanonicalSuperBase();
         ReductionType::ObtuseSuperbase(diff, sb);
-        auto & st=stencil.symmetric;
+        auto & st=stencil.symmetric[0];
         for(int i=0; i<3; ++i)
-            st[i]={-diff.ScalarProduct(sb[PosMod(i+1,3)], sb[PosMod(i+2,3)]),
-                OffsetType{(ShortType)-sb[i][1],(ShortType)sb[i][0]}, (ShortType)i};
+            st[i]={OffsetType{(ShortType)-sb[i][1],(ShortType)sb[i][0]},
+                -diff.ScalarProduct(sb[PosMod(i+1,3)], sb[PosMod(i+2,3)]),
+                (ShortType)i};
         
         ScalarType maxWeight=0;
         for(auto & diff : st){maxWeight=std::max(maxWeight,diff.baseWeight);}
@@ -115,8 +117,6 @@ void StencilRiemannDiff2::Setup(HFMI*that){
     param.Setup(that);
     pMultSource = std::unique_ptr<MultSourceType>(new HFMI::template DataSource_Value<MultiplierType>(MultiplierType::Constant(1)));
     pDualMetric = that->template GetField<SymmetricMatrixType>("dualMetric");
-    
-    //        stencil.pMultSource = that->template GetField<MultiplierType>("speed");
     minWeightRatio = io.template Get<ScalarType>("minWeightRatio",minWeightRatio);
     
     if(io.HasField("dualMetricVariation")){
@@ -131,11 +131,12 @@ void StencilRiemannDiff2::Setup(HFMI*that){
         const DiscreteType nPts = a.dims.ProductOfCoordinates();
         for(int linearIndex=0; linearIndex<nPts; ++linearIndex){
             const IndexType index = a.Convert(linearIndex);
-            StencilType st;
-            SetStencil(index,st);
+            StencilType stencil;
+            SetStencil(index,stencil);
+            auto & symmetric = stencil.symmetric[0];
             typename ReductionType::SuperbaseType sb;
             for(int k=0; k<3; ++k) {
-                const OffsetType o=st.symmetric[k].offset;
+                const OffsetType o=symmetric[k].offset;
                 sb[k] = {(DiscreteType)o[1],(DiscreteType)-o[0]};
             }
             
@@ -147,7 +148,7 @@ void StencilRiemannDiff2::Setup(HFMI*that){
                 for(int k=0; k<3; ++k){
                     variation(deepIndex)[k] =
                     dDiff.ScalarProduct(sb[PosMod(k+1,3)],sb[PosMod(k+2,3)])
-                    / (2.*st.symmetric[k].baseWeight*square(param.gridScale));
+                    / (2.*symmetric[k].baseWeight*square(param.gridScale));
                 } // for k
             } // for j
         } // for linearIndex

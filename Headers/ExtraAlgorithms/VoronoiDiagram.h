@@ -25,7 +25,7 @@ HamiltonFastMarching<T>::ExtraAlgorithmInterface {
 protected:
     virtual int PostProcessWithRecompute(IndexCRef, const RecomputeType &, const DiscreteFlowType &) override;
     const HFM * pFM=nullptr;
-    template<bool b=HFM::hasMultiplier,typename Dummy=void> struct OppositeIndex;
+    template<bool b=HFM::hasBundle,typename Dummy=void> struct OppositeIndex;
 };
 
 template<typename T> void VoronoiDiagram<T>::

@@ -57,10 +57,11 @@ protected:
 // ------------- Riemannian metric on such a domain ------------
 struct TraitsAlignedBillard : TraitsBase<2> {
     typedef TraitsBase<2> Superclass;
-    typedef Superclass::Difference<0> DifferenceType;
-    static const DiscreteType nSymmetric = (Dimension*(Dimension+1))/2;
+    typedef EulerianDifference<OffsetType,ScalarType,0> DifferenceType;
+    typedef EulerianStencil<DifferenceType,(Dimension*(Dimension+1))/2> StencilType;
     typedef AlignedBillardGrid<TraitsAlignedBillard> DomainType;
 };
+
 
 
 struct StencilAlignedBillard : HamiltonFastMarching<TraitsAlignedBillard>::StencilDataType {
@@ -77,9 +78,9 @@ struct StencilAlignedBillard : HamiltonFastMarching<TraitsAlignedBillard>::Stenc
     std::unique_ptr<MetricType> pDualMetric;
 
     virtual void SetStencil(const IndexType & index, StencilType & stencil) override {
-        Voronoi1Mat<ReductionType>(&stencil.symmetric[0],(*pDualMetric)(index));
+        Voronoi1Mat<ReductionType>(&stencil.symmetric[0][0],(*pDualMetric)(index));
         const ScalarType hm2 = 1/square(param.gridScale);
-        for(auto & diff : stencil.symmetric) diff.baseWeight*=hm2;
+        for(auto & diff : stencil.symmetric[0]) diff.baseWeight*=hm2;
     }
     virtual const ParamInterface & Param() const override {return param;}
     virtual void Setup(HFMI *that) override {

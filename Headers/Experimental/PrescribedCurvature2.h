@@ -25,7 +25,7 @@
 // --------------- R2S1NonShared Traits ---------------
 
 struct TraitsR2S1NonShared : TraitsBase<3> {
-    typedef Difference<0> DifferenceType;
+    typedef EulerianDifference<OffsetType, ScalarType, 0> DifferenceType;
     constexpr static std::array<Boundary, Dimension> boundaryConditions =
     {{Boundary::Closed, Boundary::Closed, Boundary::Periodic}};
     
@@ -39,7 +39,7 @@ constexpr decltype(TraitsR2S1NonShared::stencilDependencies) TraitsR2S1NonShared
 
 // ----------- 2D Reeds-Shepp Extended model ---------
 struct TraitsReedsSheppExt2 : TraitsR2S1NonShared {
-    static const DiscreteType nSymmetric = 6+1;
+    typedef EulerianStencil<DifferenceType,6+1> StencilType;
     typedef PeriodicGrid<TraitsReedsSheppExt2> DomainType;
 };
 
@@ -61,11 +61,12 @@ struct StencilReedsSheppExt2
         const ScalarType c = cos(theta), s=sin(theta);
         const VectorType v{c/gS,s/gS,kappa/tS};
         
+        auto & symmetric = stencil.symmetric[0];
         typedef Traits::BasisReduction<3> ReductionType;
-        Voronoi1Vec<ReductionType>(&stencil.symmetric[0], speed*v, eps);
+        Voronoi1Vec<ReductionType>(&symmetric[0], speed*v, eps);
         
-        stencil.symmetric[6].offset = OffsetType{0,0,1};
-        stencil.symmetric[6].baseWeight = square(speed/(xi*tS));
+        symmetric[6].offset = OffsetType{0,0,1};
+        symmetric[6].baseWeight = square(speed/(xi*tS));
     }
     virtual const ParamInterface & Param() const override {return param;}
     virtual void Setup(HFMI *that) override {
@@ -82,7 +83,7 @@ struct StencilReedsSheppExt2
 // ----------- 2D Reeds-Shepp Forward Extended model ---------
 
 struct TraitsReedsSheppForwardExt2 : TraitsR2S1NonShared {
-    static const DiscreteType nSymmetric = 1, nForward=6;
+    typedef EulerianStencil<DifferenceType,1,6> StencilType;
     typedef PeriodicGrid<TraitsReedsSheppForwardExt2> DomainType;
 };
 
@@ -104,11 +105,13 @@ struct StencilReedsSheppForwardExt2
         const ScalarType c = cos(theta), s=sin(theta);
         const VectorType v{c/gS,s/gS,kappa/tS};
         
+        auto & forward = stencil.forward[0];
         typedef Traits::BasisReduction<3> ReductionType;
-        Voronoi1Vec<ReductionType>(&stencil.forward[0], speed*v, eps);
+        Voronoi1Vec<ReductionType>(&forward[0], speed*v, eps);
         
-        stencil.symmetric[0].offset = OffsetType{0,0,1};
-        stencil.symmetric[0].baseWeight = square(speed/(xi*tS));
+        auto & symmetric = stencil.symmetric[0];
+        symmetric[0].offset = OffsetType{0,0,1};
+        symmetric[0].baseWeight = square(speed/(xi*tS));
     }
     virtual const ParamInterface & Param() const override {return param;}
     virtual void Setup(HFMI *that) override {
@@ -126,7 +129,7 @@ struct StencilReedsSheppForwardExt2
 // ---------- 2D Dubins Extended model -------------
 
 struct TraitsDubinsExt2 : TraitsR2S1NonShared {
-    static const DiscreteType nMax=2, nMaxForward=6;
+    typedef EulerianStencil<DifferenceType,0,6,2> StencilType;
     typedef PeriodicGrid<TraitsDubinsExt2> DomainType;
 };
 
@@ -151,8 +154,8 @@ struct StencilDubinsExt2
         vR{c/gS,s/gS,(kappa-1./xi)/tS};
         
         typedef Traits::BasisReduction<3> ReductionType;
-        Voronoi1Vec<ReductionType>(&stencil.maxForward[0][0], speed*vL, eps);
-        Voronoi1Vec<ReductionType>(&stencil.maxForward[1][0], speed*vR, eps);
+        Voronoi1Vec<ReductionType>(&stencil.forward[0][0], speed*vL, eps);
+        Voronoi1Vec<ReductionType>(&stencil.forward[1][0], speed*vR, eps);
     }
     virtual const ParamInterface & Param() const override {return param;}
     virtual void Setup(HFMI *that) override {
@@ -171,7 +174,7 @@ struct StencilDubinsExt2
 
 template<int nFejer>
 struct TraitsElasticaExt2 : TraitsR2S1NonShared {
-    static const DiscreteType nForward=6*nFejer;
+    typedef EulerianStencil<DifferenceType,0,6*nFejer> StencilType;
 };
 
 template<int nFejer>
@@ -194,13 +197,14 @@ struct StencilElasticaExt2
         const ScalarType theta = index[2]*tS;
         const ScalarType cT = cos(theta), sT=sin(theta);
         
+        auto & forward = stencil.forward[0];
         for(int l=0; l<nFejer; ++l){
             const ScalarType phi = mathPi*(l+0.5)/nFejer;
             const ScalarType cP = cos(phi), sP=sin(phi);
             const VectorType v{sP*cT/gS,sP*sT/gS,(sP*kappa+cP/xi)/tS};
             typedef typename Traits::template BasisReduction<3> ReductionType;
-            Voronoi1Vec<ReductionType>(&stencil.forward[6*l], v*speed, eps);
-            for(int i=0; i<6; ++i) stencil.forward[6*l+i].baseWeight*=StencilElastica2<nFejer>::fejerWeights[l];
+            Voronoi1Vec<ReductionType>(&forward[6*l], v*speed, eps);
+            for(int i=0; i<6; ++i) forward[6*l+i].baseWeight*=StencilElastica2<nFejer>::fejerWeights[l];
         }
     }
     virtual const ParamInterface & Param() const override {return param;}

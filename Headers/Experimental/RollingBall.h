@@ -28,7 +28,9 @@
 
 // Begin with a projective orientation space, which makes sense for the Reeds shepp model. Hence no need for weird boundary conditions
 struct TraitsReedsSheppS2 : TraitsBase<3> {
-    typedef Difference<1> DifferenceType;
+    typedef EulerianDifference<OffsetType,ScalarType,1> DifferenceType;
+    typedef EulerianStencil<DifferenceType,6> StencilType;
+
     constexpr static const std::array<Boundary, Dimension>  boundaryConditions =
     {{Boundary::Sphere2_0, Boundary::Sphere2_1, Boundary::Periodic}};
     
@@ -36,8 +38,6 @@ struct TraitsReedsSheppS2 : TraitsBase<3> {
     constexpr static std::array<DiscreteType, nStencilDependencies>
     stencilDependencies = {{0,2}};
     // TODO : allow 'stencil dependencies' to be distinct from 'speed dependencies' (?)
-    
-    static const DiscreteType nSymmetric = 6;
 };
 // Linker wants the following line for some obscure reason.
 constexpr const decltype(TraitsReedsSheppS2::boundaryConditions) TraitsReedsSheppS2::boundaryConditions;
@@ -73,7 +73,9 @@ struct StencilReedsSheppS2
         for(int i=0; i<Dimension; ++i){
             for(int j=0; j<=i; ++j){
                 m(i,j)/=scales[i]*scales[j];}}
-        Voronoi1Mat<ReductionType>(&stencil.symmetric[0],m);
+        
+        auto & symmetric = stencil.symmetric[0];
+        Voronoi1Mat<ReductionType>(&symmetric[0],m);
     }
     virtual const ParamInterface & Param() const override {return param;}
     virtual void Setup(HFMI *that) override {
@@ -87,15 +89,15 @@ struct StencilReedsSheppS2
 
 // ---------------- Dubins on the sphere -------------
 struct TraitsDubinsS2 : TraitsBase<3> {
-    typedef Difference<1> DifferenceType;
+    typedef EulerianDifference<OffsetType,ScalarType,1> DifferenceType;
+    typedef EulerianStencil<DifferenceType,0,6,2> StencilType;
+    
     constexpr static const std::array<Boundary, Dimension>  boundaryConditions =
     {{Boundary::Sphere2_0, Boundary::Sphere2_1, Boundary::Sphere2_Hopf}};
 
     static const DiscreteType nStencilDependencies=2;
     constexpr static std::array<DiscreteType, nStencilDependencies>
     stencilDependencies = {{0,2}};
-    
-    static const DiscreteType nMax = 2, nMaxForward = 6;
 };
 constexpr const decltype(TraitsDubinsS2::boundaryConditions) TraitsDubinsS2::boundaryConditions;
 constexpr const decltype(TraitsDubinsS2::stencilDependencies) TraitsDubinsS2::stencilDependencies;
@@ -118,7 +120,7 @@ struct StencilDubinsS2
             ReductionType::VectorType
             v{cos(psi),sin(psi)/sin(theta),-sin(psi)*cos(theta)/sin(theta)+(i==0 ? -1 : 1)/xi};
             for(int j=0; j<Dimension; ++j) v[j]/=scales[j];
-            Voronoi1Vec<ReductionType>(&stencil.maxForward[i][0],v,eps);
+            Voronoi1Vec<ReductionType>(&stencil.forward[i][0],v,eps);
         }
     }
     virtual const ParamInterface & Param() const override {return param;}
@@ -133,7 +135,9 @@ struct StencilDubinsS2
 
 // ----------------- Rolling ball on the plane -------
 struct TraitsRollingBall : TraitsBase<5> {
-    typedef  Difference<0> DifferenceType;
+    typedef EulerianDifference<OffsetType,ScalarType,0> DifferenceType;
+    typedef EulerianStencil<DifferenceType,15> StencilType;
+    
     constexpr static const std::array<Boundary,Dimension> boundaryConditions = {{
         Boundary::Closed, Boundary::Closed, // x,y
         Boundary::Sphere2_0, Boundary::Sphere2_1, Boundary::Sphere2_Hopf //theta,phi,psi
@@ -142,8 +146,6 @@ struct TraitsRollingBall : TraitsBase<5> {
     static const DiscreteType nStencilDependencies = 3;
     constexpr static std::array<DiscreteType,nStencilDependencies>
     stencilDependencies = {{2,3,4}};
-    
-    static const DiscreteType nSymmetric = 15;
 };
 constexpr const decltype(TraitsRollingBall::boundaryConditions) TraitsRollingBall::boundaryConditions;
 constexpr const decltype(TraitsRollingBall::stencilDependencies) TraitsRollingBall::stencilDependencies;

@@ -1,16 +1,19 @@
 //
-//  StencilType.h
+//  EulerianStencil.h
 //  FileHFM
 //
 //  Created by Jean-Marie Mirebeau on 16/08/2018.
 //
 
-#ifndef StencilType_h
-#define StencilType_h
+#ifndef EulerianStencil_h
+#define EulerianStencil_h
 
 #include "Output/ExportMacros.h"
+#include "LinearAlgebra/SquareCube.h"
 
 // ------------ Eulerian scheme -------------
+
+template<typename TS, size_t n> struct QuadraticMax;
 
 // Silly replacement for a constexpr log. TODO : hide somewhere.
 
@@ -23,39 +26,46 @@ public:
 };
 
 
-// Stencil
+// --- Stencil --
+
+#define FromDifferenceType(x) DifferenceType:: x
+
 template<typename TDiff, int nSym, int nFor=0, int nM=1> struct
 EulerianStencil {
     typedef TDiff DifferenceType;
     static const int nForward = nFor, nSymmetric = nSym, nMax = nM;
 
+    // All data
     std::array<std::array<DifferenceType, nSymmetric>, nMax> symmetric;
     std::array<std::array<DifferenceType, nForward>, nMax> forward;
     PrintSelfMacro(EulerianStencil);
 
+    
     /// Largest number of simultaneously active neighbors
     static const int nActiveNeigh = nForward+nSymmetric;
     /// Number of neighbors for a single value of iMax
     static const int nSingleNeigh = nForward+2*nSymmetric;
     /// Total number of neighbors
     static const int nNeigh = nMax*nSingleNeigh;
-    
-    /// Flat to store simultaneously active neighbors
     static const int nMaxBits = CeilLog2<nMax>::value;
+    
+    /// Encodes which neighbors are active at a given point
     typedef std::bitset<nNeigh+nMaxBits> ActiveNeighFlagType;
-    static int GetIMax(ActiveNeighFlagType b) {
-        int iMax=0;
-        for(int i=0; i<nMaxBits; ++i) if(b[nNeigh+i]) iMax += (1<<i);
-        assert(0<=iMax && iMax<nMax);
-        return iMax;
-    }
-    static void SetIMax(ActiveNeighFlagType & b, int iMax) {
-        assert(0<=iMax && iMax<nMax);
-        for(int i=0; i<nMaxBits; ++i) b[nNeigh+i] = iMax & (1<<i);
-    }
+    static int GetIMax(ActiveNeighFlagType b);
+    static void SetIMax(ActiveNeighFlagType & b, int iMax);
+    
+    Redeclare3Types(FromDifferenceType, ScalarType,OffsetType,MultiplierType)
+    typedef QuadraticMax<ScalarType,nMax> QuadType;
+    ScalarType HopfLaxUpdate(OffsetType, ScalarType, const MultiplierType &,
+                             QuadType &, ActiveNeighFlagType &) const;
+    
+    struct DiscreteFlowElement {OffsetType offset; ScalarType weight;};
+    typedef CappedVector<DiscreteFlowElement, nActiveNeigh> DiscreteFlowType;
+    struct RecomputeType {ScalarType value,width;};
+    template<typename F> RecomputeType HopfLaxRecompute(const F &, const MultiplierType &, ActiveNeighFlagType, DiscreteFlowType &) const;
 };
 
-// Enhanced offsets, referred to as differences (define the finite difference scheme)
+// ---- Enhanced offsets, referred to as differences (define the finite difference scheme) ---
 template<typename TOff, typename TScal, int VMult>
 struct EulerianDifference {
     typedef TOff OffsetType;
@@ -99,55 +109,28 @@ struct EulerianDifference<TOff,TScal,0> {
     ScalarType Weight(MultiplierType) const {return baseWeight;}
 };
 
-// Printing
 
+// ---- Data structure related to the max of a series of quadratic form. -----
+// ----- Used to solve the numerical scheme -----
 
-template<typename TDiff, int nFor, int nSym, int nM> void
-EulerianStencil<TDiff,nFor,nSym,nM>::PrintSelf(std::ostream & os) const {
-    os << "{"
-    ExportArrayRecursiveArrow(forward, 1)
-    ExportArrayRecursiveArrow(symmetric, 1)
-    << "}";
-}
-
-template<typename TOff, typename TScal, int VMult> std::ostream &
-operator << (std::ostream & os, const EulerianDifference<TOff, TScal, VMult> & diff){
-    return os << "{" << diff.baseWeight << "," << diff.offset  << "}";
-}
-
-// ----------- Semi-Lagrangian scheme ------------
-
-enum class LagrangianStencilPeriodicity {None, Simple, Double};
-
-template<typename TOff, typename TIndDiff, LagrangianStencilPeriodicity VPer>
-struct LagrangianStencil {
-    typedef TOff OffsetType;
-    typedef TIndDiff IndexDiff;
-    typedef typename IndexDiff::ComponentType DiscreteType;
-    static const DiscreteType Dimension = IndexDiff::Dimension;
-    static const LagrangianStencilPeriodicity Periodicity;
+template<typename TS, size_t n>
+struct QuadraticMax {
+    typedef TS ScalarType;
+    static constexpr ScalarType Infinity() {return std::numeric_limits<ScalarType>::infinity();}
     
-    DiscreteType NSectors(){
-        switch(Periodicity){
-            case LagrangianStencilPeriodicity::None:    return nOffsets-1;
-            case LagrangianStencilPeriodicity::Simple:  return nOffsets;
-            case LagrangianStencilPeriodicity::Double:  return 2*nOffsets;
-        }
-    }
-    IndexDiff Sector(DiscreteType n, DiscreteType k){
-        assert(0<=n && n<=NSectors())
-        assert(0<=k && k<Dimension);
-        const DiscreteType m = n+k;
-        switch(Periodicity){
-            case LagrangianStencilPeriodicity::None: return IndexDiff::CastCoordinates(_begin[m]);
-            case LagrangianStencilPeriodicity::Simple: return IndexDiff::CastCoordinates(_begin[m%nOffsets]);
-            case LagrangianStencilPeriodicity::Double: return IndexDiff::CastCoordinates(m<nOffsets ? _begin[m] : -_begin[m-nOffsets]);
-        }
-    }
+    ScalarType minVal=-Infinity();
     
+    std::pair<ScalarType, int> Solve() const;
+    void Add(ScalarType value, ScalarType weight, int);
+    void Add(ScalarType value, ScalarType weight);
+    PrintSelfMacro(QuadraticMax);
 protected:
-    OffsetType * _begin;
-    DiscreteType nOffsets;
+    // Note : result is not really needed, except for some assertions.
+    struct DataType {ScalarType a=0, b=0, c=-1; PrintSelfMacro(DataType);};
+    std::array<DataType,n> data;
 };
 
-#endif /* StencilType_h */
+
+#include "EulerianStencil.hxx"
+
+#endif /* EulerianStencil_h */
