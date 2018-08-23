@@ -20,7 +20,7 @@ HamiltonFastMarching<T>::ExtraAlgorithmInterface {
     
     ScalarType * pCurrentTime=nullptr;
     struct NeighborType {IndexType index; ScalarType weight;};
-    typedef CappedVector<NeighborType, HFM::nActiveNeigh> ActiveNeighborsType;
+    typedef CappedVector<NeighborType, HFM::StencilType::nActiveNeigh> ActiveNeighborsType;
     MultType ValueVariation(IndexCRef, ActiveNeighborsType &) const; // Elementary differentiation
     std::vector<std::pair<IndexType,ScalarType> >
     BackwardVariation(const std::vector<std::pair<IndexType,ScalarType> > &, Array<MultType, Dimension> &) const;

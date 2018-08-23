@@ -213,6 +213,10 @@ void Run(IO & io){
     
 //    HFMSpecializationMacro(IsotropicDiff<2>)
 //    HFMSpecializationMacro(RiemannLifted2<Boundary::Closed>)
+    
+    HFMSpecializationMacro(RanderLag2)
+    HFMSpecializationMacro(AsymmetricQuadraticLag2)
+/*
     {
         typedef HFMInterface<TraitsLagrangian2> HFMI;
         typedef StencilRanderLag2 StencilDataType;
@@ -231,7 +235,7 @@ void Run(IO & io){
             StencilDataType stencil;
             HFMI(io, stencil).Run();
             io.currentSetter=IO::SetterTag::User; return;}
-    }
+    }*/
 
     
 #endif

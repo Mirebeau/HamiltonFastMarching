@@ -32,20 +32,22 @@ WallObstructionTest<T>::Setup(HFMI*that){
         pWalls = that->template GetIntegralField<bool>("walls");}
 }
 
-// ------------ Running a Dikjstra to compute the distance to walls ---------
 
 template<typename T> bool
 WallObstructionTest<T>::ImplementIn(HFM*_pFM) {
     if(pWalls==nullptr) return false;
     assert(_pFM!=nullptr);
     pFM=_pFM;
+    _pFM->extras.visible.push_back(this);
     const IndexType dims = pFM->values.dims;
     if(!pWalls->CheckDims(dims)) ExceptionMacro("Error : walls have inconsistent dims");
     
+    // ------------ Running a Dikjstra to compute the distance to walls ---------
+
     wallDist.dims = dims;
     wallDist.resize(dims.ProductOfCoordinates(),std::numeric_limits<ShortType>::max());
     const ShortType maxDist = pFM->MaxStencilWidth();
-    
+
     struct QueueElementType {
         ShortType val;
         DiscreteType linearIndex;
@@ -81,7 +83,7 @@ WallObstructionTest<T>::ImplementIn(HFM*_pFM) {
                 queue.push({neighBound, neighLinearIndex});
             }
     }
-    _pFM->extras.visible.push_back(this);
+    
     return true;
 }
 

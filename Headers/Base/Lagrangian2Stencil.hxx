@@ -8,9 +8,17 @@
 #ifndef Lagrangian2Stencil_hxx
 #define Lagrangian2Stencil_hxx
 
-template<typename TNorm, typename TNorm1> void
-StencilLagrangian2<TNorm,TNorm1>::
-SetNeighbors(const IndexType & index, std::vector<OffsetType> & stencil) {
+template<typename T> auto StencilQuadLinLag2<T>::
+GetGuess(IndexCRef index) const -> DistanceGuess {
+    NormType norm = GetNorm(index);
+    const ScalarType h = param.gridScale;
+    norm.m *= square(h);
+    norm.w *= h;
+    return norm;
+}
+
+template<typename T> void StencilQuadLinLag2<T>::
+SetNeighbors(IndexCRef index, std::vector<OffsetType> & stencil) {
     const NormType & norm = GetNorm(index);
     l.clear();
     l.insert_after(l.before_begin(),{OffsetType(1,0),OffsetType(0,1),OffsetType(-1,0),OffsetType(0,-1),OffsetType(1,0)});
@@ -20,8 +28,7 @@ SetNeighbors(const IndexType & index, std::vector<OffsetType> & stencil) {
     stencil.pop_back();
 }
 
-template<typename TNorm, typename TNorm1> auto
-StencilLagrangian2<TNorm,TNorm1>::
+template<typename T> auto StencilQuadLinLag2<T>::
 HopfLaxUpdate(IndexCRef index, const OffsetVal3 & offsetVal) -> std::pair<ScalarType,int> {
     const NormType & base = GetNorm(index);
     const ScalarType h = param.gridScale;
@@ -83,8 +90,7 @@ HopfLaxUpdate(IndexCRef index, const OffsetVal3 & offsetVal) -> std::pair<Scalar
     return {value,active};
 }
 
-template<typename TNorm, typename TNorm1> auto
-StencilLagrangian2<TNorm,TNorm1>::
+template<typename T> auto StencilQuadLinLag2<T>::
 HopfLaxRecompute(IndexCRef index, DiscreteFlowType & flow) -> RecomputeType {
     const NormType & base = GetNorm(index);
     const ScalarType h = param.gridScale;

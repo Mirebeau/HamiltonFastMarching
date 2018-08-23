@@ -82,13 +82,24 @@ Lagrangian2Stencil<TO,TID,VPer>::PrintSelf(std::ostream & os) const {
 
 // -----
 
-struct TraitsLagrangian2 : TraitsBase<2> {
-    typedef TraitsBase<2> Superclass;
+struct TraitsRanderLag2 : TraitsBase<2> {
     typedef Lagrangian2Stencil<OffsetType,IndexDiff,Lagrangian2StencilPeriodicity::Simple> StencilType;
-    typedef PeriodicGrid<TraitsLagrangian2> DomainType;
-    
+    typedef PeriodicGrid<TraitsRanderLag2> DomainType;
     struct DifferenceType {static const int multSize = -1; struct MultiplierType {};};
+    
+    typedef LinearAlgebra::RanderNorm<ScalarType,2> NormType;
+    typedef LinearAlgebra::RanderNorm<ScalarType,1> NormType1;
+    typedef NormType DistanceGuess;
+};
 
+struct TraitsAsymmetricQuadraticLag2 : TraitsBase<2> {
+    typedef Lagrangian2Stencil<OffsetType,IndexDiff,Lagrangian2StencilPeriodicity::Simple> StencilType;
+    typedef PeriodicGrid<TraitsAsymmetricQuadraticLag2> DomainType;
+    struct DifferenceType {static const int multSize = -1; struct MultiplierType {};};
+    
+    typedef LinearAlgebra::AsymmetricQuadraticNorm<ScalarType,2> NormType;
+    typedef LinearAlgebra::AsymmetricQuadraticNorm<ScalarType,1> NormType1;
+    typedef NormType DistanceGuess;
 };
 
 template<typename TPred, typename TVec>
@@ -105,39 +116,43 @@ void SternBrocotRefine(const TPred & stop, std::forward_list<TVec> & l){
         } else {
             it1 = l.insert_after(it0,u+v);
             ++size;
-            if(size>=127){ExceptionMacro("Stern-Brocot refine error : excessive stencil size");}
+            if(size>=127){ExceptionMacro("Stern-Brocot refine error : excessive stencil size. "
+                                         "Metric is either non-definite or too anisotropic.");}
         }            
     }
 }
 
 
-template<typename TNorm, typename TNorm1>
-struct StencilLagrangian2 : HamiltonFastMarching<TraitsLagrangian2>::StencilDataType {
-    typedef HamiltonFastMarching<TraitsLagrangian2> HFM;
+/// Stencil for metrics built of a quadratic and a linear part
+template<typename T>
+struct StencilQuadLinLag2 : HamiltonFastMarching<T>::StencilDataType {
+    typedef HamiltonFastMarching<T> HFM;
     typedef typename HFM::StencilDataType Superclass;
-    Redeclare8Types(FromHFM,ParamDefault,IndexType,StencilType,ParamInterface,
-                    HFMI,OffsetType,DiscreteFlowType,RecomputeType)
+    Redeclare6Types(FromHFM,ParamDefault,ParamInterface,HFMI,DiscreteFlowType,RecomputeType,Traits)
+    Redeclare5Types(FromHFM,IndexCRef,VectorType,ScalarType,DiscreteType,OffsetCRef)
+    Redeclare6Types(FromTraits,NormType,NormType1,IndexType,StencilType,OffsetType,DistanceGuess)
+    Redeclare1Type(FromSuperclass,OffsetVal3)
     Redeclare1Constant(FromHFM,Dimension)
     
     // Specific to this model
     virtual std::pair<ScalarType,int> HopfLaxUpdate(IndexCRef, const OffsetVal3 &) override;
     virtual RecomputeType HopfLaxRecompute(IndexCRef,DiscreteFlowType &) override;
 
-    // Generic
-    typedef TNorm NormType;
     typedef typename NormType::SymmetricMatrixType SymmetricMatrixType;
     typedef LinearAlgebra::VectorPair<SymmetricMatrixType,VectorType> MetricElementType; // Allows averaging
+    
+    // Generic
     typedef typename Traits::template DataSource<MetricElementType> MetricType;
     std::unique_ptr<MetricType> pMetric;
     ParamDefault param;
 
-    virtual void SetNeighbors(const IndexType & index, std::vector<OffsetType> & stencil) override;
+    virtual void SetNeighbors(IndexCRef index, std::vector<OffsetType> & stencil) override;
     virtual const ParamInterface & Param() const override {return param;}
     virtual void Setup(HFMI *that) override {Superclass::Setup(that); param.Setup(that);
         pMetric = that->template GetField<MetricElementType>("metric",false);
     }
+    virtual DistanceGuess GetGuess(IndexCRef index) const override;
 private:
-    typedef TNorm1 NormType1;
     std::forward_list<OffsetType> l;
     NormType GetNorm(IndexCRef index) const {
         const MetricElementType data = (*pMetric)(index);
@@ -145,12 +160,8 @@ private:
 };
 
 
-typedef StencilLagrangian2<LinearAlgebra::RanderNorm<TraitsLagrangian2::ScalarType,2>,
-LinearAlgebra::RanderNorm<TraitsLagrangian2::ScalarType,1> > StencilRanderLag2;
-
-typedef StencilLagrangian2<LinearAlgebra::AsymmetricQuadraticNorm<TraitsLagrangian2::ScalarType,2>,
-LinearAlgebra::AsymmetricQuadraticNorm<TraitsLagrangian2::ScalarType,1> > StencilAsymmetricQuadraticLag2;
-
+typedef StencilQuadLinLag2<TraitsRanderLag2> StencilRanderLag2;
+typedef StencilQuadLinLag2<TraitsAsymmetricQuadraticLag2> StencilAsymmetricQuadraticLag2;
 
 #include "Lagrangian2Stencil.hxx"
 

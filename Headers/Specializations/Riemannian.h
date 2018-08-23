@@ -21,7 +21,8 @@ template<size_t VDimension>
 struct StencilRiemann : HamiltonFastMarching<TraitsRiemann<VDimension> >::StencilDataType {
     typedef HamiltonFastMarching<TraitsRiemann<VDimension> > HFM;
     typedef typename HFM::StencilDataType Superclass;
-    Redeclare7Types(FromHFM,ParamDefault,IndexType,StencilType,ParamInterface,HFMI,Traits,ScalarType)
+    Redeclare6Types(FromHFM,ParamDefault,IndexType,StencilType,ParamInterface,HFMI,Traits)
+    Redeclare3Types(FromHFM,ScalarType,IndexCRef,DistanceGuess)
     Redeclare1Constant(FromHFM,Dimension)
     ParamDefault param;
 
@@ -32,7 +33,7 @@ struct StencilRiemann : HamiltonFastMarching<TraitsRiemann<VDimension> >::Stenci
     std::unique_ptr<MetricType> pDualMetric;
     std::unique_ptr<MetricType> pMetric;
     
-    virtual void SetStencil(const IndexType & index, StencilType & stencil) override {
+    virtual void SetStencil(IndexCRef index, StencilType & stencil) override {
         Voronoi1Mat<ReductionType>(&stencil.symmetric[0][0],
                                    pDualMetric ? (*pDualMetric)(index) : (*pMetric)(index).Inverse() );
         const ScalarType hm2 = 1/square(param.gridScale);
@@ -45,5 +46,8 @@ struct StencilRiemann : HamiltonFastMarching<TraitsRiemann<VDimension> >::Stenci
         if(that->io.HasField("dualMetric")) pDualMetric = that->template GetField<MetricElementType>("dualMetric");
         else pMetric = that->template GetField<MetricElementType>("metric");
     }
+    virtual DistanceGuess GetGuess(IndexCRef index) const override {
+        const SymmetricMatrixType m = pDualMetric ? (*pDualMetric)(index).Inverse() : (*pMetric)(index);
+        return m*square(param.gridScale);}
 };
 

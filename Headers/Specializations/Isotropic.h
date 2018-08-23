@@ -25,10 +25,11 @@ struct StencilIsotropic : HamiltonFastMarching<TraitsIsotropic<VDimension> >::St
     typedef HamiltonFastMarching<TraitsIsotropic<VDimension> > HFM;
     typedef typename HFM::StencilDataType Superclass;
     Redeclare5Types(FromHFM,ParamDefault,IndexType,StencilType,ParamInterface,HFMI)
+    Redeclare3Types(FromHFM,DistanceGuess,ScalarType,IndexCRef)
     Redeclare1Constant(FromHFM,Dimension)
     ParamDefault param;
     
-    virtual void SetStencil(const IndexType & index, StencilType & stencil) override {
+    virtual void SetStencil(IndexCRef index, StencilType & stencil) override {
         auto & differences = stencil.symmetric[0];
         for(int i=0; i<Dimension; ++i){
             auto & diff = differences[i];
@@ -39,6 +40,9 @@ struct StencilIsotropic : HamiltonFastMarching<TraitsIsotropic<VDimension> >::St
     }
     virtual const ParamInterface & Param() const override {return param;}
     virtual void Setup(HFMI *that) override {Superclass::Setup(that); param.Setup(that);}
+    virtual DistanceGuess GetGuess(IndexCRef index) const override {
+        const ScalarType h = param.gridScale, s=(*this->pMultSource)(index);
+        return DistanceGuess::Identity() * square(h/s);}
 };
 
 // ----------- Diagonal metrics ------------
@@ -60,6 +64,7 @@ struct StencilDiagonal : HamiltonFastMarching<TraitsDiagonal<VDimension> >::Sten
     typedef HamiltonFastMarching<TraitsDiagonal<VDimension> > HFM;
     typedef typename HFM::StencilDataType Superclass;
     Redeclare4Types(FromHFM,IndexType,StencilType,ParamInterface,HFMI)
+    Redeclare5Types(FromHFM,DistanceGuess,ScalarType,IndexCRef,VectorType,PointType)
     Redeclare1Constant(FromHFM,Dimension)
     typename HFM::template _ParamDefault<2> param;
     
@@ -74,6 +79,11 @@ struct StencilDiagonal : HamiltonFastMarching<TraitsDiagonal<VDimension> >::Sten
     }
     virtual const ParamInterface & Param() const override {return param;}
     virtual void Setup(HFMI *that) override {Superclass::Setup(that); param.Setup(that);}
+    virtual DistanceGuess GetGuess(IndexCRef index) const override {
+        const PointType h = param.gridScales;
+        const PointType s=(*this->pMultSource)(index);
+        VectorType diag; for(int i=0; i<Dimension; ++i) diag[i] = square(h[i]/s[i]);
+        return DistanceGuess::Diagonal(diag);}
 };
 
 #endif /* Isotropic_h */

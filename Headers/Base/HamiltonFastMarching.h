@@ -22,6 +22,7 @@
 #define FromStencilType(x) StencilType:: x
 
 template<typename T> struct HFMInterface;
+template<typename T> struct DynamicFactoring;
 
 enum class StencilStoragePolicy {Share,Recomp,Lag2};
 enum class Lagrangian2StencilPeriodicity {None, Simple, Double}; // Should have been in Lagrangian2Stencil.h ...
@@ -30,7 +31,7 @@ template<typename TTraits>
 struct HamiltonFastMarching {
     typedef TTraits Traits;
     Redeclare1Constant(FromTraits,Dimension)
-    Redeclare5Types(FromTraits,ScalarType,DiscreteType,ShortType,DomainType,StencilType)
+    Redeclare6Types(FromTraits,ScalarType,DiscreteType,ShortType,DomainType,StencilType,DistanceGuess)
     Redeclare6Types(FromTraits,PointType,VectorType,IndexType,OffsetType,DifferenceType,IndexDiff)
     
     typedef const IndexType & IndexCRef;
@@ -45,7 +46,6 @@ struct HamiltonFastMarching {
     template<size_t n> using BasisReduction=typename Traits::template BasisReduction<n>;
 
     // Domain and Running
-//    typedef PeriodicGrid<Traits> DomainType;
     typedef typename DomainType::Transform DomainTransformType;
     const DomainType dom;
     virtual DomainTransformType VisibleOffset(IndexCRef, OffsetCRef, IndexType &) const;
@@ -64,7 +64,6 @@ struct HamiltonFastMarching {
     Redeclare4Types(FromStencilType,ActiveNeighFlagType,DiscreteFlowElement,DiscreteFlowType,RecomputeType)
     Array<ActiveNeighFlagType,Dimension> activeNeighs;
     
-    static const int nActiveNeigh = StencilType::nActiveNeigh;
 //    struct DiscreteFlowElement {OffsetType offset; ScalarType weight;};
 //    typedef CappedVector<DiscreteFlowElement, nActiveNeigh> DiscreteFlowType;
 //    struct RecomputeType {ScalarType value,width;};
@@ -77,7 +76,6 @@ struct HamiltonFastMarching {
     DifferenceType::multSize>0 ? StencilStoragePolicy::Share :
     DifferenceType::multSize==0 ? StencilStoragePolicy::Recomp :
     StencilStoragePolicy::Lag2;
-//    static const bool hasMultiplier = DifferenceType::multSize>0;
     template<StencilStoragePolicy pol=policy, typename Dummy=void> struct _StencilDataType;
     typedef _StencilDataType<> StencilDataType;
     DiscreteType MaxStencilWidth() const;
@@ -95,6 +93,9 @@ struct HamiltonFastMarching {
     ExtraAlgorithmPtrs extras;
     
     HamiltonFastMarching(StencilDataType &);
+    
+    typedef DynamicFactoring<Traits> DynamicFactoringType;
+    std::unique_ptr<DynamicFactoringType> dynamicFactoring = nullptr;
 protected:
     struct QueueElement;
     std::priority_queue<QueueElement> queue;
@@ -158,8 +159,8 @@ typedef StencilStoragePolicy SSP;
 template<typename T> template<typename Dummy>
 struct HamiltonFastMarching<T>::_StencilDataType<SSP::Share,Dummy>{
     typedef HamiltonFastMarching<T> HFM;
-    Redeclare7Types(FromHFM,IndexCRef,OffsetCRef,StencilType,DifferenceType,MultiplierType,Traits,FullIndexCRef)
-    Redeclare3Types(FromHFM,ParamInterface,HFMI,DomainType)
+    Redeclare6Types(FromHFM,IndexCRef,OffsetCRef,StencilType,DifferenceType,MultiplierType,Traits)
+    Redeclare5Types(FromHFM,ParamInterface,HFMI,DomainType,FullIndexCRef,DistanceGuess)
     Redeclare6Types(FromTraits,DiscreteType,ScalarType,PointType,VectorType,IndexType,OffsetType)
     Redeclare1Type(FromStencilType,QuadType)
     Redeclare2Constants(FromTraits,Dimension,mathPi)
@@ -174,6 +175,7 @@ struct HamiltonFastMarching<T>::_StencilDataType<SSP::Share,Dummy>{
     
     virtual void Setup(HFMI *);
     virtual const ParamInterface & Param() const = 0;
+    virtual DistanceGuess GetGuess(IndexCRef) const {ExceptionMacro("Dynamic factoring error : no guess");};
 protected:
     friend struct HamiltonFastMarching<Traits>;
     void EraseCache(DiscreteType index) {shallowMultQuads.erase(index);}
@@ -199,8 +201,8 @@ private:
 template<typename T> template<typename Dummy>
 struct HamiltonFastMarching<T>::_StencilDataType<SSP::Recomp,Dummy>{
     typedef HamiltonFastMarching<T> HFM;
-    Redeclare7Types(FromHFM,IndexCRef,OffsetCRef,StencilType,DifferenceType,Traits,FullIndexCRef,DomainType)
-    Redeclare3Types(FromHFM,ParamInterface,HFMI,MultiplierType)
+    Redeclare6Types(FromHFM,IndexCRef,OffsetCRef,StencilType,DifferenceType,Traits,FullIndexCRef)
+    Redeclare5Types(FromHFM,ParamInterface,HFMI,MultiplierType,DomainType,DistanceGuess)
     Redeclare6Types(FromTraits,DiscreteType,ScalarType,PointType,VectorType,IndexType,OffsetType)
     Redeclare1Type(FromStencilType,QuadType)
     Redeclare2Constants(FromTraits,Dimension,mathPi)
@@ -211,6 +213,7 @@ struct HamiltonFastMarching<T>::_StencilDataType<SSP::Recomp,Dummy>{
     virtual const ParamInterface & Param() const = 0;
     struct RecomputeDataType {StencilType stencil; MultiplierType mult;}; // mult is dummy here
     RecomputeDataType RecomputeData(IndexCRef);
+    virtual DistanceGuess GetGuess(IndexCRef) const {ExceptionMacro("Dynamic factoring error : no guess");};
 protected:
     friend struct HamiltonFastMarching<Traits>;
     void EraseCache(DiscreteType index) {shallowStencilQuads.erase(index);}
@@ -231,8 +234,8 @@ private:
 template<typename T> template<typename Dummy>
 struct HamiltonFastMarching<T>::_StencilDataType<SSP::Lag2,Dummy>{
     typedef HamiltonFastMarching<T> HFM;
-    Redeclare7Types(FromHFM,IndexCRef,OffsetCRef,StencilType,DifferenceType,Traits,FullIndexCRef,DomainType)
-    Redeclare3Types(FromHFM,ParamInterface,HFMI,MultiplierType)
+    Redeclare6Types(FromHFM,IndexCRef,OffsetCRef,StencilType,DifferenceType,Traits,FullIndexCRef)
+    Redeclare5Types(FromHFM,ParamInterface,HFMI,MultiplierType,DomainType,DistanceGuess)
     Redeclare6Types(FromTraits,DiscreteType,ScalarType,PointType,VectorType,IndexType,OffsetType)
     Redeclare1Constant(FromTraits,Dimension)
     
@@ -243,7 +246,7 @@ struct HamiltonFastMarching<T>::_StencilDataType<SSP::Lag2,Dummy>{
     virtual void Initialize(const HFM *);
 
     virtual void SetNeighbors(IndexCRef, std::vector<OffsetType> &) = 0;
-
+    virtual DistanceGuess GetGuess(IndexCRef) const {ExceptionMacro("Dynamic factoring error : no guess");};
 protected:
     friend struct HamiltonFastMarching<Traits>;
     ScalarType HopfLaxUpdate(FullIndexCRef, OffsetCRef, ScalarType, ActiveNeighFlagType &);

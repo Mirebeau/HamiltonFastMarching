@@ -27,6 +27,8 @@ public:
 
 
 // --- Stencil --
+/** A PDE discretization is specified via a set of differences, of several types,
+ which number is fixed in advance by the following parameters.*/
 
 #define FromDifferenceType(x) DifferenceType:: x
 
@@ -66,6 +68,9 @@ EulerianStencil {
 };
 
 // ---- Enhanced offsets, referred to as differences (define the finite difference scheme) ---
+/** A Difference is a basic component of a PDE scheme. It is the data of an offset and weight.
+ The weight which is either specified directly or as a baseweight and a multiplier index, within [0,VMultSize[.*/
+
 template<typename TOff, typename TScal, int VMult>
 struct EulerianDifference {
     typedef TOff OffsetType;

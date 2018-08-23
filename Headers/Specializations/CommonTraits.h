@@ -42,20 +42,7 @@ template<int VDim> struct TraitsBase {
     template<size_t n> using
     BasisReduction=LinearAlgebra::BasisReduction<ScalarType, DiscreteType, n>;
 #endif
-    
-    
-    /** A Difference is a basic component of a PDE scheme. It is the data of an offset and weight.
-     The weight which is either specified directly or as a baseweight and a multiplier index, within [0,VMultSize[.*/
-/*    template<size_t VMultSize, typename Dummy=void> struct Difference;*/
-
-    
-    /** A PDE discretization is specified via a set of differences, of several types, 
-     which number is fixed in advance by the following parameters.
-     These (empty) defaults need to be redefined (=shadowed) in a subclass.*/
-/*    static const DiscreteType
-    nForward=0, nSymmetric=0,
-    nMax=1, nMaxForward=0, nMaxSymmetric=0;*/
-    
+        
     /** On which coordinates do the adaptive stencils depend (default : none)
      Only applies if there is a multiplier field*/
     static const DiscreteType nStencilDependencies=0;
@@ -73,49 +60,14 @@ template<int VDim> struct TraitsBase {
         virtual bool CheckDims(const IndexType &) const = 0;
         virtual ReturnType operator()(const IndexType &) const = 0;
     };
+    
+    typedef LinearAlgebra::SymmetricMatrix<ScalarType,Dimension> DistanceGuess;
 };
 // Linker wants the following two lines for some obscure reason.
 template<int VD> constexpr const typename TraitsBase<VD>::StencilDepType_None TraitsBase<VD>::stencilDependencies;
 template<int VD> constexpr const Boundary_AllClosed TraitsBase<VD>::boundaryConditions;
 
-/*
-template<int VDim> template<size_t VMultSize, typename Dummy> struct TraitsBase<VDim>::Difference {
-    typedef TraitsBase<VDim> T; typedef T::ScalarType ScalarType; typedef T::OffsetType OffsetType;
-    typedef T::ShortType ShortType;
-        ScalarType baseWeight; OffsetType offset; ShortType multIndex; static constexpr size_t multSize=VMultSize;
-        typedef LinearAlgebra::Point<ScalarType, multSize> MultiplierType;
-        ScalarType Weight(const MultiplierType & mult) const {return baseWeight*square(mult[multIndex]);}
-//        PrintSelfMacro(Difference);
-};
 
-template<int VDim> template<typename Dummy> struct TraitsBase<VDim>::Difference<1,Dummy> {
-    typedef TraitsBase<VDim> T; typedef T::ScalarType ScalarType; typedef T::OffsetType OffsetType;
-    ScalarType baseWeight; OffsetType offset; static constexpr size_t multSize=1;
-    typedef ScalarType MultiplierType;
-    ScalarType Weight(const MultiplierType & mult) const {
-        return baseWeight*square(mult);}
-};
-
-template<int VDim> template<typename Dummy> struct TraitsBase<VDim>::Difference<0,Dummy> {
-    typedef TraitsBase<VDim> T; typedef T::ScalarType ScalarType; typedef T::OffsetType OffsetType;
-    ScalarType baseWeight; OffsetType offset; static constexpr size_t multSize=0;
-    struct MultiplierType {};
-    ScalarType Weight(MultiplierType) const {return baseWeight;}
-};*/
-
-/* // Print differences
- // GCC cannot match the following template in a template, so a macro is used instead
-template<int VDim,int k> std::ostream & operator <<
-(std::ostream & os, const typename TraitsBase<VDim>::template Difference<k> & diff) {
-     return os << "{" << diff.baseWeight << "," << diff.offset  << "}";}*/
-/*
-#define __PrintDiff(__VDim) \
-template<size_t k> std::ostream & operator << \
-(std::ostream & os, const TraitsBase<__VDim>::Difference<k> & diff) { \
-    return os << "{" << diff.baseWeight << "," << diff.offset  << "}";}
-
-__PrintDiff(2) __PrintDiff(3) __PrintDiff(4) __PrintDiff(5)
-*/
 // --------------------- Tensor decomposition ---------------------
 
 /** PDE discretization helper.
@@ -124,8 +76,9 @@ __PrintDiff(2) __PrintDiff(3) __PrintDiff(4) __PrintDiff(5)
  rank one tensors with integer coefficients. D = sum_i lambda_i e_i x e_i.
  The (lambda_i, e_i) are returned as baseweight and offset of differences (pDiff).
  Excessively small lambda_i are erased, based on tol parameter.
- See : Jean-Marie Mirebeau, (preprint available on Arxiv)
- Anisotropic fast-marching on cartesian grids using Voronoi’s first reduction of quadratic forms */
+ See : Jean-Marie Mirebeau,
+ Anisotropic fast-marching on cartesian grids using Voronoi’s first reduction of quadratic forms,
+ (preprint available on Arxiv) */
 template<typename ReductionType, int VDimShift=0, typename DiffType,
 typename SymmetricMatrixType = typename ReductionType::SymmetricMatrixType,
 typename ScalarType = typename ReductionType::ScalarType>
@@ -160,8 +113,54 @@ DiffType * Voronoi1Mat(DiffType * pDiff,
  <grad u(x),v>_+^2 ~ sum_i lambda_i (g(x) - g(x+e_i))_+^2
  
  See : Jean-Marie Mirebeau,
- Fast Marching methods for Curvature Penalized Shortest Paths,
- (preprint available on Arxiv) */
+ Fast Marching methods for Curvature Penalized Shortest Paths, 2017
+*/
+template<typename ReductionType, int VDimShift=0> struct Voronoi1Vec2 {
+    typedef typename ReductionType::VectorType VectorType;
+    typedef typename ReductionType::ScalarType ScalarType;
+    static const int Dimension = VectorType::Dimension;
+    ScalarType
+    eps=0.1, //
+    angleTol=1./sqrt(ScalarType(Dimension-1)), // Eliminate offsets e s.t. |e| |v| > sqrt(1+angleTol^2) <e,v>
+    weightTol=1000*std::numeric_limits<ScalarType>::epsilon(); // Eliminate excessively small weights.
+    
+    template<typename DiffType>
+    DiffType * operator()(DiffType * pDiff, const VectorType & v){
+        // Build tensor
+        typedef typename ReductionType::SymmetricMatrixType SymmetricMatrixType;
+        const SymmetricMatrixType exact = SymmetricMatrixType::RankOneTensor(v);
+        const SymmetricMatrixType relaxed =
+        exact*(1.-square(eps))
+        +v.SquaredNorm()*SymmetricMatrixType::Identity()*square(eps);
+        // Get decomposition
+        const auto & decomp = ReductionType::TensorDecomposition(relaxed);
+        
+        auto offsetIt = decomp.offsets.begin();
+        auto weightIt = decomp.weights.begin();
+        // Fill in the scheme, omitting excessively low values, with reorientation
+        const ScalarType vNorm2 = v.SquaredNorm();
+        const ScalarType wTol = vNorm2*weightTol; // Absolute tolerance on weights
+        const ScalarType angTol = (1+square(angleTol))/vNorm2;
+
+        for(; weightIt!=decomp.weights.end(); ++weightIt, ++offsetIt){
+            const ScalarType weight = *weightIt;
+            const auto & offset = *offsetIt;
+            
+            const VectorType off = VectorType::CastCoordinates(offset);
+            
+            const ScalarType scal = v.ScalarProduct(off);
+            pDiff->baseWeight = (weight<wTol || square(scal)*angTol<off.SquaredNorm()) ? 0. : weight;
+            
+            pDiff->offset.fill(0);
+            for(int i=0; i<offset.size(); ++i) {
+                pDiff->offset[VDimShift+i]= scal<=0 ? offset[i] : -offset[i];} // Note : <v,e_i> <= 0
+            ++pDiff;
+        }
+        return pDiff;
+    }
+};
+
+/*
 template<typename ReductionType, int VDimShift=0, typename DiffType,
 typename VectorType = typename ReductionType::VectorType,
 typename ScalarType = typename ReductionType::ScalarType
@@ -197,6 +196,6 @@ DiffType * Voronoi1Vec(DiffType * pDiff,
     }
     return pDiff;
 };
-
+*/
 
 #endif /* CommonTraits_h */

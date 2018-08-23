@@ -10,6 +10,7 @@
 #include "GeodesicODESolver.h"
 #include "GeodesicDiscreteSolver.h"
 #include "ExtraAlgorithms/TimeDependentFields.h"
+#include "ExtraAlgorithms/DynamicFactoring.h"
 
 template<typename TTraits> struct HFMInterface {
     typedef TTraits Traits;
@@ -70,6 +71,9 @@ Run_SetupExtraAlgorithms(){
     auto pVar = SetupSingleAlgorithm<FirstVariation<T> >();
     if(!pTime->ImplementIn(pFM.get())) pTime.reset();
     if(pVar && pTime) pVar->pCurrentTime = &(pTime->currentTime);
+    
+    auto pFact = std::unique_ptr<DynamicFactoring<T> >(new DynamicFactoring<T>);
+    if(pFact->Setup(this)) pFM->dynamicFactoring = std::move(pFact);
 }
 
 #include "HFMInterface.hxx"

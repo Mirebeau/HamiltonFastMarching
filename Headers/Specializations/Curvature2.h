@@ -34,17 +34,21 @@ struct StencilReedsShepp2
     typedef HamiltonFastMarching<TraitsReedsShepp2> HFM;
     typedef HFM::StencilDataType Superclass;
     HFM::ParamDefault param;
-    ScalarType eps=0.1, xi=1; // xi is the typical curvature radius
+    ScalarType xi=1; // xi is the typical curvature radius
     bool projective=false;
+    
+    typedef Traits::BasisReduction<2> ReductionType;
+    Voronoi1Vec<ReductionType> reduc;
+    
     virtual void SetStencil(const IndexType & index, StencilType & stencil) override {
         const ScalarType theta = index[2]*param.dependScale;
-        typedef Traits::BasisReduction<2> ReductionType;
         const ReductionType::VectorType v{cos(theta),sin(theta)};
         typedef ReductionType::SymmetricMatrixType Sym;
         
         auto & symmetric = stencil.symmetric[0];
-        Voronoi1Mat<ReductionType>(&symmetric[0],
-        (Sym::RankOneTensor(v)*(1.-square(eps)) + Sym::Identity() * square(eps))/square(param.gridScale) );
+        reduc(&symmetric[0],v/param.gridScale);
+//        Voronoi1Mat<ReductionType>(&symmetric[0],
+//        (Sym::RankOneTensor(v)*(1.-square(eps)) + Sym::Identity() * square(eps))/square(param.gridScale) );
         
         symmetric[3].offset = OffsetType{0,0,1};
         symmetric[3].baseWeight = 1./square(xi*param.dependScale);
@@ -52,7 +56,7 @@ struct StencilReedsShepp2
     virtual const ParamInterface & Param() const override {return param;}
     virtual void Setup(HFMI *that) override {
         Superclass::Setup(that);
-        eps=that->io.template Get<ScalarType>("eps",eps);
+        reduc.eps = that->io.template Get<ScalarType>("eps",reduc.eps);
         xi=that->io.template Get<ScalarType>("xi",xi);
         projective=(bool)that->io.template Get<ScalarType>("projective",(ScalarType)projective);
         param.Setup(that,(projective ? mathPi : 2*mathPi)/dims.back());}
@@ -68,11 +72,13 @@ struct StencilReedsSheppForward2
     typedef HamiltonFastMarching<TraitsReedsSheppForward2> HFM;
     typedef HFM::StencilDataType Superclass;
     HFM::ParamDefault param;
-    ScalarType eps=0.1, xi=1; // xi is the typical curvature radius
+    ScalarType xi=1; // xi is the typical curvature radius
+    
+    typedef Traits::BasisReduction<2> ReductionType;
+    Voronoi1Vec<ReductionType> reduc;
     
     virtual void SetStencil(const IndexType & index, StencilType & stencil) override {
         const ScalarType theta = index[2]*param.dependScale;
-        typedef Traits::BasisReduction<2> ReductionType;
         const typename ReductionType::VectorType v{cos(theta),sin(theta)};
         
         auto &forward = stencil.forward[0];
