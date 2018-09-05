@@ -1,7 +1,10 @@
 #include <iostream>
 #include <vector>
-#include "Output/ExportMacros.h"
-#include "Output/PythonIO.h"
+#include "JMM_CPPLibs/Output/ExportMacros.h"
+#include "JMM_CPPLibs/Output/PythonIO.h"
+
+#define STRINGIFY(x) #x
+#define TOSTRING(x) STRINGIFY(x)
 
 typedef IO_<PythonIO> IO;
 #define FromIO(a) IO:: a
@@ -28,54 +31,22 @@ struct HFMIO {
     bool EraseField(KeyCRef key) {return io.EraseField(key);}
 };
 
-
-int add(int i, int j) {return i + j+1; }
-
 PYBIND11_MODULE(PythonModuleName, m){
     py::register_exception<JMMCppException>(m, "PyExp");
 
-    m.doc() = "pybind11 example plugin"; // optional module docstring
-    m.def("add", &add, "A function which adds two numbers");
-    
-    py::class_<HFMIO>(m, "Build")
+    m.doc() = "HFM python plugin"; // optional module docstring
+
+    py::class_<HFMIO>(m, "HFMIO")
     .def(py::init<>())
-    .def("Run",&HFMIO::Run)
-    .def("GetString",&HFMIO::GetString)
-    .def("SetString",&HFMIO::SetString)
-    .def("GetScalar",&HFMIO::GetScalar)
-    .def("SetScalar",&HFMIO::SetScalar)
-    .def("GetArray", &HFMIO::GetArray)
-    .def("SetArray", &HFMIO::SetArray)
-    .def("GetComputedKeys", &HFMIO::GetComputedKeys)
-    .def("HasField", &HFMIO::HasField)
-    .def("EraseField",&HFMIO::EraseField)
+    .def("run",&HFMIO::Run)
+    .def("get_string",&HFMIO::GetString)
+    .def("set_string",&HFMIO::SetString)
+    .def("get_scalar",&HFMIO::GetScalar)
+    .def("set_scalar",&HFMIO::SetScalar)
+    .def("get_array", &HFMIO::GetArray)
+    .def("set_array", &HFMIO::SetArray)
+    .def("computed_keys", &HFMIO::GetComputedKeys)
+    .def("has_field", &HFMIO::HasField)
+    .def("erase_field",&HFMIO::EraseField)
     ;
 }
-
-/*
-
-
- 
-
-
-void translator(JMMCppException const & e) {
-    PyErr_SetString(PyExc_UserWarning, (std::string("HFMIO Exception caught ! ")+e.what()).c_str());}
-
-BOOST_PYTHON_MODULE(PythonModuleName)
-{
-    boost::python::numpy::initialize(); // Required !
-    boost::python::register_exception_translator<JMMCppException>(translator);
-
-    boost::python::class_<HFMIO, boost::noncopyable>("HFMIO")
-    .def("Run",&HFMIO::Run)
-    .def("GetString",&HFMIO::GetString)
-    .def("SetString",&HFMIO::SetString)
-    .def("GetScalar",&HFMIO::GetScalar)
-    .def("SetScalar",&HFMIO::SetScalar)
-    .def("GetArray", &HFMIO::GetArray)
-    .def("SetArray", &HFMIO::SetArray)
-    .def("GetComputedKeys", &HFMIO::GetComputedKeys)
-    .def("HasField", &HFMIO::HasField)
-    .def("EraseField",&HFMIO::EraseField)
-    ;
-}*/

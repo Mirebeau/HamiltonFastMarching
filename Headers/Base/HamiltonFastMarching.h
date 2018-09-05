@@ -12,11 +12,11 @@
 #include <cmath>
 #include <memory>
 
-#include "DataStructures/ShallowMap.h"
-#include "DataStructures/RangeAccessor.h"
-#include "DataStructures/CappedVector.h"
+#include "JMM_CPPLibs/DataStructures/ShallowMap.h"
+#include "JMM_CPPLibs/DataStructures/RangeAccessor.h"
+#include "JMM_CPPLibs/DataStructures/CappedVector.h"
 #include "PeriodicGrid.h"
-#include "Output/ExportMacros.h"
+#include "JMM_CPPLibs/Output/ExportMacros.h"
 
 /*
 // TODO : remove unnecessary virtual tags.
