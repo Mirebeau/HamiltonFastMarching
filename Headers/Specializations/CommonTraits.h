@@ -6,10 +6,10 @@
 #define CommonTraits_h
 
 #include "Base/HFMInterface.h"
-#include "LinearAlgebra/SymmetricMatrixType.h"
-#include "LinearAlgebra/ArrayType.h"
-#include "LinearAlgebra/BasisReduction.h"
-#include "LinearAlgebra/SquareCube.h"
+#include "JMM_CPPLibs/LinearAlgebra/SymmetricMatrixType.h"
+#include "JMM_CPPLibs/LinearAlgebra/ArrayType.h"
+#include "JMM_CPPLibs/LinearAlgebra/BasisReduction.h"
+#include "JMM_CPPLibs/LinearAlgebra/SquareCube.h"
 
 #ifdef HighVoronoi // Will need high dimensional Voronoi reduction
 #include <type_traits> // std::conditional

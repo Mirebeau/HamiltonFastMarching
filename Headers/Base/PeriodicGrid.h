@@ -5,9 +5,9 @@
 #ifndef PeriodicGrid_h
 #define PeriodicGrid_h
 
-#include "DataStructures/RedeclareTypesMacro.h"
-#include "Output/ExceptionMacro.h"
-#include "LinearAlgebra/SquareCube.h"
+#include "JMM_CPPLibs/DataStructures/RedeclareTypesMacro.h"
+#include "JMM_CPPLibs/Output/ExceptionMacro.h"
+#include "JMM_CPPLibs/LinearAlgebra/SquareCube.h"
 
 // Spherical boundary conditions correspond to the parametrization (here in dim 4)
 //( cos(t1), sin(t1) cos(t2), sin(t1) sin(t2) cos(t3), sin(t1) sin(t2) sin(t3))
