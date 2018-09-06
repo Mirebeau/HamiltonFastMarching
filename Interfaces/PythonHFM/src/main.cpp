@@ -36,7 +36,7 @@ PYBIND11_MODULE(PythonModuleName, m){
 
     m.doc() = "HFM python plugin"; // optional module docstring
 
-    py::class_<HFMIO>(m, TOSTRING(PythonModuleName))
+    py::class_<HFMIO>(m, "HFMIO")
     .def(py::init<>())
     .def("run",&HFMIO::Run)
     .def("get_string",&HFMIO::GetString)

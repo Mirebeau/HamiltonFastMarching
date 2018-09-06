@@ -2,7 +2,6 @@
 
 import numpy as np
 from HFMpy import HFM_Isotropic2
-from HFMpy import HFM_Elastica2
 
 hfm = HFM_Isotropic2.HFMIO()
 
