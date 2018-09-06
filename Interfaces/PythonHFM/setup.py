@@ -60,10 +60,10 @@ class CMakeBuild(build_ext):
 
 setup(
     name=PKG_NAME,
-    version='0.0.1',
+    version='0.1.1',
     author='Jean-Marie Mirebeau',
-    author_email='dean0x7d@gmail.com',
-    description='A test project using pybind11 and CMake',
+    author_email='jm.mirebeau@gmail.com',
+    description='HFM python wrapper',
     long_description='',
     ext_modules=[CMakeExtension(PKG_NAME)],
     cmdclass=dict(build_ext=CMakeBuild),
