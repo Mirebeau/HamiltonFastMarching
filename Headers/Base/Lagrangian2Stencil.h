@@ -129,7 +129,7 @@ struct StencilQuadLinLag2 : HamiltonFastMarching<T>::StencilDataType {
     typedef HamiltonFastMarching<T> HFM;
     typedef typename HFM::StencilDataType Superclass;
     Redeclare6Types(FromHFM,ParamDefault,ParamInterface,HFMI,DiscreteFlowType,RecomputeType,Traits)
-    Redeclare5Types(FromHFM,IndexCRef,VectorType,ScalarType,DiscreteType,OffsetCRef)
+    Redeclare7Types(FromHFM,IndexCRef,VectorType,ScalarType,DiscreteType,OffsetCRef,DomainType,IndexDiff)
     Redeclare6Types(FromTraits,NormType,NormType1,IndexType,StencilType,OffsetType,DistanceGuess)
     Redeclare1Type(FromSuperclass,OffsetVal3)
     Redeclare1Constant(FromHFM,Dimension)
@@ -148,15 +148,21 @@ struct StencilQuadLinLag2 : HamiltonFastMarching<T>::StencilDataType {
 
     virtual void SetNeighbors(IndexCRef index, std::vector<OffsetType> & stencil) override;
     virtual const ParamInterface & Param() const override {return param;}
-    virtual void Setup(HFMI *that) override {Superclass::Setup(that); param.Setup(that);
-        pMetric = that->template GetField<MetricElementType>("metric",false);
-    }
+    virtual void Setup(HFMI *) override;
     virtual DistanceGuess GetGuess(IndexCRef index) const override;
 private:
     std::forward_list<OffsetType> l;
     NormType GetNorm(IndexCRef index) const {
         const MetricElementType data = (*pMetric)(index);
         return NormType{data.first,data.second};}
+    
+    // Refinement near walls
+    ScalarType wallBoundaryAngularResolution = 0.2;
+    typename Traits::template Array<bool,Dimension> walls;
+/*    typedef typename HFM::template DataSource<bool> BoolField;
+    std::unique_ptr<BoolField> pWalls = nullptr;*/
+    const DomainType * pDom = nullptr;
+    bool OnWallBoundary(IndexCRef) const;
 };
 
 

@@ -115,7 +115,7 @@ DiffType * Voronoi1Mat(DiffType * pDiff,
  See : Jean-Marie Mirebeau,
  Fast Marching methods for Curvature Penalized Shortest Paths, 2017
 */
-template<typename ReductionType, int VDimShift=0> struct Voronoi1Vec2 {
+template<typename ReductionType, int VDimShift=0> struct Voronoi1Vec {
     typedef typename ReductionType::VectorType VectorType;
     typedef typename ReductionType::ScalarType ScalarType;
     static const int Dimension = VectorType::Dimension;

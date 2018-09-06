@@ -31,7 +31,7 @@ struct DynamicFactoring {
     typedef HamiltonFastMarching<Traits> HFM;
     Redeclare6Types(FromHFM,IndexCRef,FullIndexCRef,DiscreteFlowType,OffsetType,ScalarType,DiscreteType)
     Redeclare6Types(FromHFM,IndexType,IndexDiff,DomainTransformType,VectorType,HFMI,PointType)
-    Redeclare2Types(FromHFM,DistanceGuess,DiscreteFlowElement)
+    Redeclare3Types(FromHFM,DistanceGuess,DiscreteFlowElement,DomainType)
     Redeclare1Constant(FromHFM,Dimension)
     template<typename E, size_t n> using Array = typename Traits::template Array<E,n>;
     
@@ -57,6 +57,7 @@ protected:
     // Used at setup only
     std::vector<DiscreteType> SelectKeypoints(HFMI*);
     std::vector<std::pair<IndexDiff,ScalarType> > edges;
+    bool OnBoundary(IndexCRef,const DomainType &) const;
 };
 
 template<typename T>

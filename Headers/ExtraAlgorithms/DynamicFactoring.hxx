@@ -295,12 +295,13 @@ SelectKeypoints(HFMI * that) -> std::vector<DiscreteType> {
         }
     }
     
+    
     const ScalarType factoringWallExtractionThreshold = io.template Get<ScalarType>("factoringWallExtractionThreshold", factoringRadius*sqrt(factoringRadius), 2);
     for(const auto & indexScore : score){
-        if(indexScore.second>factoringWallExtractionThreshold){
+        if(indexScore.second>factoringWallExtractionThreshold && !OnBoundary(done.Convert(indexScore.first), dom)){
             result.push_back(indexScore.first); } }
     
-    // TODO : eliminate erroneous keypoints, lying on the boundary
+    // Eliminate erroneous keypoints, lying on the boundary
     // Alternatively, regard the boundary as an obstacle.
     
 /*    std::cout
@@ -310,6 +311,19 @@ SelectKeypoints(HFMI * that) -> std::vector<DiscreteType> {
     
     std::fill(done.begin(),done.end(),false); // reset this array for future use
     return result;
+}
+
+template<typename T> bool
+DynamicFactoring<T>::
+OnBoundary(IndexCRef index, const DomainType & dom) const {
+    for(int i=0; i<Dimension; ++i){
+        for(int eps=-1; eps<=1; eps+=2){
+            IndexType neigh=index;
+            neigh[i]+=eps;
+            if(!dom.Periodize(neigh,index).IsValid()) return true;
+        }
+    }
+    return false;
 }
 
 #endif /* DynamicFactoring_hxx */

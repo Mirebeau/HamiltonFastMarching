@@ -43,7 +43,6 @@ struct StencilReedsShepp2
     virtual void SetStencil(const IndexType & index, StencilType & stencil) override {
         const ScalarType theta = index[2]*param.dependScale;
         const ReductionType::VectorType v{cos(theta),sin(theta)};
-        typedef ReductionType::SymmetricMatrixType Sym;
         
         auto & symmetric = stencil.symmetric[0];
         reduc(&symmetric[0],v/param.gridScale);
@@ -82,8 +81,9 @@ struct StencilReedsSheppForward2
         const typename ReductionType::VectorType v{cos(theta),sin(theta)};
         
         auto &forward = stencil.forward[0];
-        Voronoi1Vec<ReductionType>(&forward[0],v,eps);
-        for(auto & diff : forward) {diff.baseWeight/=square(param.gridScale);}
+        reduc(&forward[0],v/param.gridScale);
+//        Voronoi1Vec<ReductionType>(&forward[0],v,eps);
+//        for(auto & diff : forward) {diff.baseWeight/=square(param.gridScale);}
         
         auto &symmetric = stencil.symmetric[0];
         symmetric[0].offset = OffsetType{0,0,1};
@@ -92,7 +92,7 @@ struct StencilReedsSheppForward2
     virtual const ParamInterface & Param() const override {return param;}
     virtual void Setup(HFMI *that) override {
         Superclass::Setup(that);
-        eps=that->io.template Get<ScalarType>("eps",eps);
+        reduc.eps=that->io.template Get<ScalarType>("eps",reduc.eps);
         xi=that->io.template Get<ScalarType>("xi",xi);
         param.Setup(that,2*mathPi/dims.back());}
 };
@@ -110,15 +110,19 @@ struct StencilDubins2
     typedef HamiltonFastMarching<TraitsDubins2> HFM;
     typedef HFM::StencilDataType Superclass;
     HFM::ParamDefault param;
-    ScalarType eps=0.1, xi=1.;
+    ScalarType xi=1.;
+    
+    typedef Traits::BasisReduction<3> ReductionType;
+    Voronoi1Vec<ReductionType> reduc;
     
     virtual void SetStencil(const IndexType & index, StencilType & stencil) override {
         const ScalarType theta = index[2]*param.dependScale;
         const VectorType
         v{cos(theta)/param.gridScale,sin(theta)/param.gridScale,1./(xi*param.dependScale)};
-        typedef Traits::BasisReduction<3> ReductionType;
         
-        Voronoi1Vec<ReductionType>(&stencil.forward[0][0], v, eps);
+        reduc(&stencil.forward[0][0],v);
+//        Voronoi1Vec<ReductionType>(&stencil.forward[0][0], v, eps);
+        
         for(int i=0; i<6; ++i) {
             stencil.forward[1][i]=stencil.forward[0][i];
             stencil.forward[1][i].offset[2]*=-1;}
@@ -126,7 +130,7 @@ struct StencilDubins2
     virtual const ParamInterface & Param() const override {return param;}
     virtual void Setup(HFMI *that) override {
         Superclass::Setup(that);
-        eps=that->io.template Get<ScalarType>("eps",eps);
+        reduc.eps=that->io.template Get<ScalarType>("eps",reduc.eps);
         xi=that->io.template Get<ScalarType>("xi",xi);
         param.Setup(that,2*mathPi/dims.back());}
 };
@@ -152,6 +156,11 @@ struct StencilElastica2
     ScalarType eps=0.1, xi=1.;
     static const std::array<ScalarType,nFejer> fejerWeights;
     
+    template<size_t n> using BasisReduction = typename Traits::template BasisReduction<n>;
+    Voronoi1Vec<BasisReduction<2> > reduc2;
+    Voronoi1Vec<BasisReduction<3> > reduc3;
+
+    
     virtual void SetStencil(const IndexType & index, StencilType & stencil) override {
         const ScalarType theta = (2.*mathPi*index[2])/this->dims[2];
         auto & forward = stencil.forward[0];
@@ -162,9 +171,10 @@ struct StencilElastica2
                 sin(phi)*sin(theta)/this->param.gridScale,
                 cos(phi)/(xi*this->param.dependScale)
             };
-            typedef typename Traits::template BasisReduction<3> ReductionType;
+
             const int s0=2*l,s1=2*l+1;
-            Voronoi1Vec<ReductionType>(&forward[6*s0], v, eps);
+            reduc3(&forward[6*s0], v);
+//            Voronoi1Vec<ReductionType>(&forward[6*s0], v, eps);
             for(int i=0; i<6; ++i) {
                 forward[6*s0+i].baseWeight*=fejerWeights[l];
                 forward[6*s1+i] = forward[6*s0+i];
@@ -176,7 +186,8 @@ struct StencilElastica2
             typename ReductionType::VectorType
             v{cos(theta)/this->param.gridScale,sin(theta)/this->param.gridScale};
             const int s = nFejer-1;
-            Voronoi1Vec<ReductionType>(&forward[6*s], v, eps);
+            reduc2(&forward[6*s], v);
+//            Voronoi1Vec<ReductionType>(&forward[6*s], v, eps);
             for(int i=0; i<3; ++i){
                 forward[6*s+i].baseWeight*=fejerWeights[nFejer/2];}
         } // if odd
@@ -184,7 +195,8 @@ struct StencilElastica2
     virtual const ParamInterface & Param() const override {return param;}
     virtual void Setup(HFMI *that) override {
         Superclass::Setup(that);
-        eps=that->io.template Get<ScalarType>("eps",eps);
+        reduc3.eps=that->io.template Get<ScalarType>("eps",reduc3.eps);
+        reduc2.eps=reduc3.eps;
         xi=that->io.template Get<ScalarType>("xi",xi);
         param.Setup(that,2*mathPi/this->dims.back());}
 };

@@ -24,12 +24,15 @@ protected:
     const HFM * pFM=nullptr;
     typedef typename HFM::template Array<ShortType,Dimension> ShortArray;
     ShortArray wallDist;
+    bool refineStencilAtWallBoundary = false;
 };
 
 template<typename T> void
 WallObstructionTest<T>::Setup(HFMI*that){
     if(that->io.HasField("walls")){
         pWalls = that->template GetIntegralField<bool>("walls");}
+    refineStencilAtWallBoundary = (bool)
+    that->io.template Get<ScalarType>("refineStencilAtWallBoundary",false,3);
 }
 
 
@@ -98,6 +101,8 @@ WallObstructionTest<T>::Visible(IndexCRef base, OffsetCRef v, IndexCRef sum) con
     if(wd==std::numeric_limits<ShortType>::max()) return true;
     else if(wd==0) return false;
     
+    // If stencil is refined at wall boundary, then these cases pass though
+    if(refineStencilAtWallBoundary && wallDist(base)==1) return true;
     
     // Begin walking on the line from source to target
     OffsetType vSign = OffsetType::Constant(0);

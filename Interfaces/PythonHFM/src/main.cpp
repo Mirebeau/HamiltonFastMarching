@@ -37,7 +37,7 @@ PYBIND11_MODULE(PythonModuleName, m){
     m.doc() = "pybind11 example plugin"; // optional module docstring
     m.def("add", &add, "A function which adds two numbers");
     
-    py::class_<HFMIO>(m, "Build")
+    py::class_<HFMIO>(m, "HFMIO")
     .def(py::init<>())
     .def("Run",&HFMIO::Run)
     .def("GetString",&HFMIO::GetString)
