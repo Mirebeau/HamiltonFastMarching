@@ -1,0 +1,1 @@
+/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/c++ -DVERSION_INFO=\"0.1.1\" -O3 -DNDEBUG -bundle -Wl,-headerpad_max_install_names  -o ../lib.macosx-10.7-x86_64-3.6/HFMpy/HFM_Elastica2.cpython-36m-darwin.so CMakeFiles/HFM_Elastica2.dir/src/main.cpp.o -undefined dynamic_lookup -flto 

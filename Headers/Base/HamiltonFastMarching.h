@@ -23,8 +23,6 @@
 // Note : walls must not be taken into account at initialization with mult based.
  */
 
-#define FromHFM(x) HFM:: x
-
 // Silly replacement for a constexpr log. TODO : hide somewhere.
 
 template<size_t i> struct FloorLog2 {static const size_t value = 1+FloorLog2<i/2>::value;};
@@ -40,9 +38,9 @@ template<typename T> struct HFMInterface;
 template<typename TTraits>
 struct HamiltonFastMarching {
     typedef TTraits Traits;
-    Redeclare1Constant(FromTraits,Dimension)
-    Redeclare3Types(FromTraits,ScalarType,DiscreteType,ShortType)
-    Redeclare5Types(FromTraits,PointType,VectorType,IndexType,OffsetType,DifferenceType)
+    Redeclare1Constant(Traits,Dimension)
+    Redeclare3Types(Traits,ScalarType,DiscreteType,ShortType)
+    Redeclare5Types(Traits,PointType,VectorType,IndexType,OffsetType,DifferenceType)
     
     typedef const IndexType & IndexCRef;
     typedef const OffsetType & OffsetCRef;
@@ -179,10 +177,10 @@ StencilType {
 template<typename T> template<typename Dummy>
 struct HamiltonFastMarching<T>::_StencilDataType<true,Dummy>{
     typedef HamiltonFastMarching<T> HFM;
-    Redeclare8Types(FromHFM,IndexCRef,OffsetCRef,StencilType,QuadType,DifferenceType,MultiplierType,Traits,FullIndexCRef)
-    Redeclare3Types(FromHFM,ParamInterface,HFMI,DomainType)
-    Redeclare6Types(FromTraits,DiscreteType,ScalarType,PointType,VectorType,IndexType,OffsetType)
-    Redeclare2Constants(FromTraits,Dimension,mathPi)
+    Redeclare8Types(HFM,IndexCRef,OffsetCRef,StencilType,QuadType,DifferenceType,MultiplierType,Traits,FullIndexCRef)
+    Redeclare3Types(HFM,ParamInterface,HFMI,DomainType)
+    Redeclare6Types(Traits,DiscreteType,ScalarType,PointType,VectorType,IndexType,OffsetType)
+    Redeclare2Constants(Traits,Dimension,mathPi)
     
     typedef HFM::DataSource<MultiplierType> MultSourceType;
     IndexType dims; // Needs value
@@ -221,10 +219,10 @@ private:
 template<typename T> template<typename Dummy>
 struct HamiltonFastMarching<T>::_StencilDataType<false,Dummy>{
     typedef HamiltonFastMarching<T> HFM;
-    Redeclare8Types(FromHFM,IndexCRef,OffsetCRef,StencilType,QuadType,DifferenceType,Traits,FullIndexCRef,DomainType)
-    Redeclare3Types(FromHFM,ParamInterface,HFMI,MultiplierType)
-    Redeclare6Types(FromTraits,DiscreteType,ScalarType,PointType,VectorType,IndexType,OffsetType)
-    Redeclare2Constants(FromTraits,Dimension,mathPi)
+    Redeclare8Types(HFM,IndexCRef,OffsetCRef,StencilType,QuadType,DifferenceType,Traits,FullIndexCRef,DomainType)
+    Redeclare3Types(HFM,ParamInterface,HFMI,MultiplierType)
+    Redeclare6Types(Traits,DiscreteType,ScalarType,PointType,VectorType,IndexType,OffsetType)
+    Redeclare2Constants(Traits,Dimension,mathPi)
 
     IndexType dims; // Needs value
     virtual void SetStencil(IndexCRef, StencilType &) = 0; // Needs specialization

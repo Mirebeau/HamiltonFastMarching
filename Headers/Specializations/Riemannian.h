@@ -8,8 +8,8 @@
 template<size_t VDimension>
 struct TraitsRiemann : TraitsBase<VDimension> {
     typedef TraitsBase<VDimension> Superclass;
-    Redeclare1Type(FromSuperclass,DiscreteType)
-    Redeclare1Constant(FromSuperclass,Dimension)
+    Redeclare1Type(Superclass,DiscreteType)
+    Redeclare1Constant(Superclass,Dimension)
 
     typedef typename Superclass::template Difference<0> DifferenceType;
     static const DiscreteType nSymmetric = (Dimension*(Dimension+1))/2;
@@ -19,8 +19,8 @@ template<size_t VDimension>
 struct StencilRiemann : HamiltonFastMarching<TraitsRiemann<VDimension> >::StencilDataType {
     typedef HamiltonFastMarching<TraitsRiemann<VDimension> > HFM;
     typedef typename HFM::StencilDataType Superclass;
-    Redeclare7Types(FromHFM,ParamDefault,IndexType,StencilType,ParamInterface,HFMI,Traits,ScalarType)
-    Redeclare1Constant(FromHFM,Dimension)
+    Redeclare7Types(HFM,ParamDefault,IndexType,StencilType,ParamInterface,HFMI,Traits,ScalarType)
+    Redeclare1Constant(HFM,Dimension)
     ParamDefault param;
 
     typedef typename Traits::template BasisReduction<Dimension> ReductionType;

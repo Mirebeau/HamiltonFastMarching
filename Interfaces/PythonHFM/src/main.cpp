@@ -7,13 +7,12 @@
 #define TOSTRING(x) STRINGIFY(x)
 
 typedef IO_<PythonIO> IO;
-#define FromIO(a) IO:: a
-Redeclare2Types(FromIO,Msg,WarnMsg)
+Redeclare2Types(IO,Msg,WarnMsg)
 #include "DispatchAndRun.h"
 
 
 struct HFMIO {
-    Redeclare3Types(FromIO,ScalarType,KeyCRef,ndarray);
+    Redeclare3Types(IO,ScalarType,KeyCRef,ndarray);
     IO io;
     void Run(){::Run(io); io.UsageReport();}
     

@@ -14,9 +14,9 @@
 template<typename TTraits> struct HFMInterface {
     typedef TTraits Traits;
     typedef HamiltonFastMarching<Traits> HFM;
-    Redeclare4Types(FromHFM,ActiveNeighFlagType,StencilDataType,ExtraAlgorithmInterface,GeodesicSolverInterface);
-    Redeclare5Types(FromTraits,DiscreteType,ScalarType,PointType,VectorType,IndexType);
-    Redeclare2Constants(FromTraits,Dimension,mathPi)
+    Redeclare4Types(HFM,ActiveNeighFlagType,StencilDataType,ExtraAlgorithmInterface,GeodesicSolverInterface);
+    Redeclare5Types(Traits,DiscreteType,ScalarType,PointType,VectorType,IndexType);
+    Redeclare2Constants(Traits,Dimension,mathPi)
 
     template<typename E, size_t n> using Array = typename Traits::template Array<E,n>;
     template<typename E> using DataSource = typename Traits::template DataSource<E>;

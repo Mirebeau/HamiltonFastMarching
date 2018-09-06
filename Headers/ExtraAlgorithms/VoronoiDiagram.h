@@ -10,9 +10,9 @@ template<typename T> struct VoronoiDiagram :
 HamiltonFastMarching<T>::ExtraAlgorithmInterface {
     typedef HamiltonFastMarching<T> HFM;
     typedef typename HFM::ExtraAlgorithmInterface Superclass;
-    Redeclare8Types(FromHFM,IndexCRef,IndexType,ScalarType,Traits,HFMI,PointType,DiscreteType,ShortType)
-    Redeclare6Types(FromHFM,OffsetCRef,VectorType,DiscreteFlowType,RecomputeType,DiscreteFlowElement,Decision)
-    Redeclare1Constant(FromHFM,Dimension)
+    Redeclare8Types(HFM,IndexCRef,IndexType,ScalarType,Traits,HFMI,PointType,DiscreteType,ShortType)
+    Redeclare6Types(HFM,OffsetCRef,VectorType,DiscreteFlowType,RecomputeType,DiscreteFlowElement,Decision)
+    Redeclare1Constant(HFM,Dimension)
     
     enum StoppingCriterionEnum {kVoronoiNone,kVoronoiRegionsMeeting,kVoronoiOppositesMeeting};
     StoppingCriterionEnum stoppingCriterion = kVoronoiNone;
@@ -99,7 +99,7 @@ Finally(HFMI*that){
 
 template<typename Traits> template<typename Dummy>
 struct VoronoiDiagram<Traits>::OppositeIndex<true,Dummy>{
-    Redeclare2Types(FromTraits,IndexType,DiscreteType);
+    Redeclare2Types(Traits,IndexType,DiscreteType);
     IndexType operator()(IndexType index,IndexType dims) const {  // Only works for R^n x S^d, d in {1,2}
             IndexType result=index;
             const auto & dep = Traits::stencilDependencies;
@@ -113,7 +113,7 @@ struct VoronoiDiagram<Traits>::OppositeIndex<true,Dummy>{
 
 template<typename Traits> template<typename Dummy>
 struct VoronoiDiagram<Traits>::OppositeIndex<false,Dummy>{
-    Redeclare1Type(FromTraits,IndexType);
+    Redeclare1Type(Traits,IndexType);
     IndexType operator()(IndexType,IndexType) const {assert(false); return IndexType();}
 };
 

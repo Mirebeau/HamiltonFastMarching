@@ -31,7 +31,7 @@ struct StencilIsotropicBox2
 : HamiltonFastMarching<TraitsIsotropicBox2<cond> >::StencilDataType {
     typedef HamiltonFastMarching<TraitsIsotropicBox2<cond> > HFM;
     typedef typename HFM::StencilDataType Superclass;
-    Redeclare4Types(FromSuperclass,IndexType,StencilType,ParamInterface,HFMI)
+    Redeclare4Types(Superclass,IndexType,StencilType,ParamInterface,HFMI)
     typedef typename HFM::ParamDefault ParamType;
     ParamType param;
     virtual void SetStencil(const IndexType & index, StencilType & stencil) override {
@@ -111,7 +111,7 @@ struct StencilIsotropicBox3
 : HamiltonFastMarching<TraitsIsotropicBox3<cond> >::StencilDataType {
     typedef HamiltonFastMarching<TraitsIsotropicBox3<cond> > HFM;
     typedef typename HFM::StencilDataType Superclass;
-    Redeclare4Types(FromSuperclass,IndexType,StencilType,ParamInterface,HFMI)
+    Redeclare4Types(Superclass,IndexType,StencilType,ParamInterface,HFMI)
     typedef typename HFM::ParamDefault ParamType;
     ParamType param;
     virtual void SetStencil(const IndexType & index, StencilType & stencil) override {

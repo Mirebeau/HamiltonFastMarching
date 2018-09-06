@@ -11,8 +11,8 @@ template<typename T> struct CommonStoppingCriteria :
 HamiltonFastMarching<T>::ExtraAlgorithmInterface {
     typedef HamiltonFastMarching<T> HFM;
     typedef typename HFM::ExtraAlgorithmInterface Superclass;
-    Redeclare7Types(FromHFM,IndexCRef,IndexType,ScalarType,Traits,Decision,HFMI,PointType)
-    Redeclare1Constant(FromHFM,Dimension)
+    Redeclare7Types(HFM,IndexCRef,IndexType,ScalarType,Traits,Decision,HFMI,PointType)
+    Redeclare1Constant(HFM,Dimension)
     
     virtual void Setup(HFMI*) override;
     virtual void Finally(HFMI*) override;

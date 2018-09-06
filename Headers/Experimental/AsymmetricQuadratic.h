@@ -103,8 +103,8 @@ void HalfDisk(ScalarType r, ScalarType delta, SymmetricMatrixType & D, VectorTyp
 template<size_t VDimension>
 struct TraitsAsymmetricQuadratic : TraitsBase<VDimension> {
     typedef TraitsBase<VDimension> Superclass;
-    Redeclare1Type(FromSuperclass,DiscreteType)
-    Redeclare1Constant(FromSuperclass,Dimension)
+    Redeclare1Type(Superclass,DiscreteType)
+    Redeclare1Constant(Superclass,Dimension)
     typedef typename Superclass::template Difference<0> DifferenceType;
     static const DiscreteType SymDimension = (Dimension*(Dimension+1))/2;
     static const DiscreteType nSymmetric=SymDimension, nForward=SymDimension;
@@ -114,9 +114,9 @@ template<size_t VDimension>
 struct StencilAsymmetricQuadratic : HamiltonFastMarching<TraitsAsymmetricQuadratic<VDimension> >::StencilDataType {
     typedef HamiltonFastMarching<TraitsAsymmetricQuadratic<VDimension> > HFM;
     typedef typename HFM::StencilDataType Superclass;
-    Redeclare5Types(FromHFM,ParamDefault,ScalarType,Traits,VectorType,IndexType)
-    Redeclare4Types(FromHFM,StencilType,ParamInterface,HFMI,IndexCRef)
-    Redeclare1Constant(FromHFM,Dimension)
+    Redeclare5Types(HFM,ParamDefault,ScalarType,Traits,VectorType,IndexType)
+    Redeclare4Types(HFM,StencilType,ParamInterface,HFMI,IndexCRef)
+    Redeclare1Constant(HFM,Dimension)
     ParamDefault param;
     ScalarType eps = 0.3, epsRev = 0.2;
     

@@ -22,8 +22,8 @@
 template<size_t VDimension>
 struct TraitsIsotropicDiff : TraitsBase<VDimension> {
     typedef TraitsBase<VDimension> Superclass;
-    Redeclare1Type(FromSuperclass,DiscreteType)
-    Redeclare1Constant(FromSuperclass,Dimension)
+    Redeclare1Type(Superclass,DiscreteType)
+    Redeclare1Constant(Superclass,Dimension)
 
     typedef typename Superclass::template Difference<1> DifferenceType;
     static const DiscreteType nForward = 2*Dimension;
@@ -33,8 +33,8 @@ template<size_t VDimension>
 struct StencilIsotropicDiff : HamiltonFastMarching<TraitsIsotropicDiff<VDimension> >::StencilDataType {
     typedef HamiltonFastMarching<TraitsIsotropicDiff<VDimension> > HFM;
     typedef typename HFM::StencilDataType Superclass;
-    Redeclare5Types(FromHFM,ParamDefault,IndexType,StencilType,ParamInterface,HFMI)
-    Redeclare1Constant(FromHFM,Dimension)
+    Redeclare5Types(HFM,ParamDefault,IndexType,StencilType,ParamInterface,HFMI)
+    Redeclare1Constant(HFM,Dimension)
     ParamDefault param;
     
     virtual void SetStencil(const IndexType & index, StencilType & stencil) override {
@@ -157,7 +157,7 @@ void StencilRiemannDiff2::Setup(HFMI*that){
  HFMInterface<TS,TH>::SpecializedStencil<StencilRiemannDiff2,Dummy> {
  typedef HFMInterface<TS,TH> HFMI;
  typedef TH HFM; typedef TS StencilDataType;
- Redeclare5Types(FromHFM,StencilType,ScalarType,PointType,MultiplierType,OffsetType)
+ Redeclare5Types(HFM,StencilType,ScalarType,PointType,MultiplierType,OffsetType)
  typedef HFMI::template DataSource<MultiplierType> MultSourceType;
  typedef typename StencilDataType::ReductionType ReductionType;
  typedef typename StencilDataType::SymmetricMatrixType SymmetricMatrixType;

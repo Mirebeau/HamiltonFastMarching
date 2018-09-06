@@ -52,8 +52,8 @@ struct Boundary_AllClosed {
 
 template<typename TTraits> struct PeriodicGrid {
     typedef TTraits Traits;
-    Redeclare4Types(FromTraits,DiscreteType,ScalarType,IndexType,PointType);
-    Redeclare1Constant(FromTraits,Dimension);
+    Redeclare4Types(Traits,DiscreteType,ScalarType,IndexType,PointType);
+    Redeclare1Constant(Traits,Dimension);
     typedef const IndexType & IndexCRef;
     
     DiscreteType LinearFromIndex(IndexCRef) const;

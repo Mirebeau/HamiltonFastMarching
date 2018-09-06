@@ -11,8 +11,8 @@ template<typename T> template<typename Dummy> struct
 HFMInterface<T>::SpecializationsDefault<true,Dummy> {
     typedef HFMInterface<T> HFMI;
     typedef typename HFMI::HFM HFM;
-    Redeclare6Types(FromHFM,ScalarType,Traits,MultiplierType,PointType,IndexType,DiscreteType)
-    Redeclare2Constants(FromTraits,mathPi,Dimension)
+    Redeclare6Types(HFM,ScalarType,Traits,MultiplierType,PointType,IndexType,DiscreteType)
+    Redeclare2Constants(Traits,mathPi,Dimension)
     
     static const int DimDep =Traits::nStencilDependencies, DimIndep = Dimension-DimDep;
     template<typename E> using DataSource = typename HFM::template DataSource<E>;
@@ -95,8 +95,8 @@ template<typename T> template<typename Dummy> struct
 HFMInterface<T>::SpecializationsDefault<false,Dummy> {
     typedef HFMInterface<T> HFMI;
     typedef typename HFMI::HFM HFM;
-    Redeclare3Types(FromHFM,ScalarType,PointType,IndexType)
-    Redeclare1Constant(FromHFM,Dimension)
+    Redeclare3Types(HFM,ScalarType,PointType,IndexType)
+    Redeclare1Constant(HFM,Dimension)
     
     template<typename E> using DataSource = typename HFM::template DataSource<E>;
     template<typename E> using DataSource_Value = typename HFMI::template DataSource_Value<E>;
@@ -172,8 +172,8 @@ template<typename T> template<typename E> struct
 HFMInterface<T>::DataSource_Indep<E,true> : DataSource<E> {
     typedef typename HFMInterface<T>::HFM HFM;
     typedef typename HFM::template DataSource<E>::ReturnType ReturnType;
-    Redeclare2Types(FromHFM,Traits,IndexType)
-    Redeclare1Constant(FromHFM,Dimension)
+    Redeclare2Types(HFM,Traits,IndexType)
+    Redeclare1Constant(HFM,Dimension)
     typedef HFMInterface<T>::Array<E, Dimension-Traits::nStencilDependencies> ArrayType;
     ArrayType values;
     DataSource_Indep(ArrayType && _values):values(std::move(_values)){};
@@ -198,8 +198,8 @@ template<typename T> template<typename E> struct
 HFMInterface<T>::DataSource_Dep<E,true> : DataSource<E> {
     typedef typename HFMInterface<T>::HFM HFM;
     typedef typename HFM::template DataSource<E>::ReturnType ReturnType;
-    Redeclare2Types(FromHFM,Traits,IndexType)
-    Redeclare1Constant(FromHFM,Dimension)
+    Redeclare2Types(HFM,Traits,IndexType)
+    Redeclare1Constant(HFM,Dimension)
     typedef HFMInterface<T>::Array<E, Traits::nStencilDependencies> ArrayType;
     ArrayType values;
     DataSource_Dep(ArrayType && _values):values(std::move(_values)){};

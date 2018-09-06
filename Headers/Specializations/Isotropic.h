@@ -11,8 +11,8 @@
 template<size_t VDimension>
 struct TraitsIsotropic : TraitsBase<VDimension> {
     typedef TraitsBase<VDimension> Superclass;
-    Redeclare1Type(FromSuperclass,DiscreteType)
-    Redeclare1Constant(FromSuperclass,Dimension)
+    Redeclare1Type(Superclass,DiscreteType)
+    Redeclare1Constant(Superclass,Dimension)
     typedef typename Superclass::template Difference<1> DifferenceType;
     static const DiscreteType nSymmetric = Dimension;
 };
@@ -21,8 +21,8 @@ template<size_t VDimension>
 struct StencilIsotropic : HamiltonFastMarching<TraitsIsotropic<VDimension> >::StencilDataType {
     typedef HamiltonFastMarching<TraitsIsotropic<VDimension> > HFM;
     typedef typename HFM::StencilDataType Superclass;
-    Redeclare5Types(FromHFM,ParamDefault,IndexType,StencilType,ParamInterface,HFMI)
-    Redeclare1Constant(FromHFM,Dimension)
+    Redeclare5Types(HFM,ParamDefault,IndexType,StencilType,ParamInterface,HFMI)
+    Redeclare1Constant(HFM,Dimension)
     ParamDefault param;
     
     virtual void SetStencil(const IndexType & index, StencilType & stencil) override {
@@ -42,8 +42,8 @@ struct StencilIsotropic : HamiltonFastMarching<TraitsIsotropic<VDimension> >::St
 template<size_t VDimension>
 struct TraitsDiagonal : TraitsBase<VDimension> {
     typedef TraitsBase<VDimension> Superclass;
-    Redeclare1Type(FromSuperclass,DiscreteType)
-    Redeclare1Constant(FromSuperclass,Dimension)
+    Redeclare1Type(Superclass,DiscreteType)
+    Redeclare1Constant(Superclass,Dimension)
 
     typedef typename Superclass::template Difference<Dimension> DifferenceType;
     static const DiscreteType nSymmetric = Dimension;
@@ -53,8 +53,8 @@ template<size_t VDimension>
 struct StencilDiagonal : HamiltonFastMarching<TraitsDiagonal<VDimension> >::StencilDataType {
     typedef HamiltonFastMarching<TraitsDiagonal<VDimension> > HFM;
     typedef typename HFM::StencilDataType Superclass;
-    Redeclare4Types(FromHFM,IndexType,StencilType,ParamInterface,HFMI)
-    Redeclare1Constant(FromHFM,Dimension)
+    Redeclare4Types(HFM,IndexType,StencilType,ParamInterface,HFMI)
+    Redeclare1Constant(HFM,Dimension)
     typename HFM::template _ParamDefault<2> param;
     
     virtual void SetStencil(const IndexType & index, StencilType & stencil) override {

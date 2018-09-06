@@ -165,7 +165,7 @@ if(model== #modelName){ \
 template<typename TTraits> struct HFMInterface2 {
     typedef TTraits Traits;
     typedef HamiltonFastMarching<Traits> HFM;
-    Redeclare4Types(FromHFM,ActiveNeighFlagType,StencilDataType,ExtraAlgorithmInterface,GeodesicSolverInterface);
+    Redeclare4Types(HFM,ActiveNeighFlagType,StencilDataType,ExtraAlgorithmInterface,GeodesicSolverInterface);
     
     template<typename E, size_t n> using Array = typename Traits::template Array<E,n>;
     template<typename E> using DataSource = typename Traits::template DataSource<E>;
