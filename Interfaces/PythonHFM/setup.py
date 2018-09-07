@@ -42,7 +42,7 @@ class CMakeBuild(build_ext):
         build_args = ['--config', cfg]
 
         if platform.system() == "Windows":
-            cmake_args += ['-DCMAKE_LIBRARY_OUTPUT_DIRECTORY_{}={}'.format(cfg.upper(), extdir)]
+            cmake_args += ['-DCMAKE_LIBRARY_OUTPUT_DIRECTORY_{}={}'.format(cfg.upper(), extdir + '/' + PKG_NAME)]
             if sys.maxsize > 2**32:
                 cmake_args += ['-A', 'x64']
             build_args += ['--', '/m']
@@ -60,7 +60,7 @@ class CMakeBuild(build_ext):
 
 setup(
     name=PKG_NAME,
-    version='0.1.1',
+    version='0.1.3',
     author='Jean-Marie Mirebeau',
     author_email='jm.mirebeau@gmail.com',
     description='HFM python wrapper',
