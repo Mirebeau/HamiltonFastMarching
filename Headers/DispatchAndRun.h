@@ -5,11 +5,8 @@
 #ifndef DispatchAndRun_h
 #define DispatchAndRun_h
 
-#define PPCAT_NX(A, B) A ## B
-#define PPCAT(A, B) PPCAT_NX(A, B)
-#define STRING_NX(s) #s
-#define STRING(s) STRING_NX(s)
-
+#include "JMM_CPPLibs/Macros/String.h"
+#include "JMM_CPPLibs/Macros/PPCat.h"
 // **** Do we need high dimensional Voronoi reduction ***
 
 #define HighVoronoi_Riemann4                1

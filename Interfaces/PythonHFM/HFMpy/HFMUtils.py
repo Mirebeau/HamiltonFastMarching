@@ -6,7 +6,6 @@ import ast
 
 # Choose between Python library or command line executables
 FileHFM_binary_dir=None
-FileIO_dir=None
 
 # ----- Basic utilities functions -----
 
@@ -147,14 +146,7 @@ def Run(params):
 		hfm.run()
 		return GetOutput(hfm)
 	else:
-		if FileIO_dir is None:
-			import FileIO
-		else:
-			import os
-			cwd=os.getcwd()
-			os.chdir(FileIO_dir)
-			import FileIO
-			os.chdir(cwd)
+		import FileIO
 		execName = 'FileHFM_'+modelName
 		return FileIO.WriteCallRead(params, execName, FileHFM_binary_dir)
 

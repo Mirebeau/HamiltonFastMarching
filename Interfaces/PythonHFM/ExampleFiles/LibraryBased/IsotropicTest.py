@@ -1,9 +1,13 @@
 #!/usr/bin/env python
 
 import numpy as np
+
 from HFMpy import HFM_Isotropic2
 
 hfm = HFM_Isotropic2.HFMIO()
+
+from HFMpy import HFM_Riemann2
+hfm2 = HFM_Riemann2.HFMIO()
 
 # Demonstrating basic input output
 
