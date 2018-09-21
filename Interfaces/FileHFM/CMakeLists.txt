@@ -10,6 +10,7 @@ add_subdirectory("${JMM_CPPLibs_dir}/include_NoConda" "${DummyBinDir}/JMM_CPPLib
 add_subdirectory("../../Headers" "${DummyBinDir}/HFMHeaders")
 
 include(${CMAKE_CURRENT_SOURCE_DIR}/../common.cmake)
+include(ide_headers_layout.cmake)
 include_directories(${PROJECT_DIR} ${CMAKE_CURRENT_SOURCE_DIR})
 
 

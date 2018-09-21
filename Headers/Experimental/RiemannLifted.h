@@ -6,7 +6,7 @@
 #define RiemannLifted_h
 
 #include "Specializations/CommonTraits.h"
-#include "LinearAlgebra/VectorPairType.h"
+#include "JMM_CPPLibs/LinearAlgebra/VectorPairType.h"
 
 template<Boundary cond>
 struct TraitsRiemannLifted2 : TraitsBase<3> {

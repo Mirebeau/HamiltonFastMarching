@@ -1,3 +1,5 @@
+Please ignore these notes, written by the developper for his own interest.
+
 ---- Windows compilation notes, using mingw gcc:
 
 Following headers are not included by default:
@@ -32,6 +34,10 @@ Executable should not be preceded with "./"
 - make install
 - cd HamiltonFastMarching/Interfaces/Python
 - python setup.py install (build pour compilation seule)
+
+(Remarque)
+- La TestCompilation limite à deux les modèles compilés.
+- Supprimer le répertoire build pour reprendre en compte common.cmake
 
 (Quand tout marche)
 - commit sur les deux sources
