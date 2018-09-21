@@ -65,6 +65,7 @@ setup(
     author_email='jm.mirebeau@gmail.com',
     description='HFM python wrapper',
     long_description='',
+    package = find_packages(),
     ext_modules=[CMakeExtension(PKG_NAME)],
     cmdclass=dict(build_ext=CMakeBuild),
     zip_safe=False,
