@@ -21,7 +21,7 @@ HamiltonFastMarching<T>::ExtraAlgorithmInterface {
     std::set<IndexType> stopWhenAnyAccepted;
     std::set<IndexType> stopWhenAllAccepted;
     
-    typedef typename HFMI::template SpecializationsDefault<> HFMIS;
+    typedef typename HFMI::template SpecializationsDefault HFMIS;
     typedef typename HFMIS::UnorientedIndexType UnorientedIndexType;
     std::set<UnorientedIndexType> stopWhenAnyAccepted_Unoriented;
     std::set<UnorientedIndexType> stopWhenAllAccepted_Unoriented;
@@ -51,7 +51,7 @@ CommonStoppingCriteria<T>::ImplementIn(HFM * _pFM) {
     _pFM->extras.postProcess.push_back(this);
     pFM = _pFM;
     for(auto it=progressReportLandmarks.rbegin(); it!=progressReportLandmarks.rend(); ++it)
-        nAcceptedLandmarks.push_back(pFM->values.size()* *it);
+        nAcceptedLandmarks.push_back(size_t(pFM->values.size()* *it));
     return true;
 }
 
@@ -100,7 +100,7 @@ CommonStoppingCriteria<T>::Setup(HFMI*that){
     // Stopping criteria
     
     if(io.HasField("nMaxAccepted"))
-        nMaxAccepted = io.template Get<ScalarType>("nMaxAccepted");
+        nMaxAccepted = (size_t)io.template Get<ScalarType>("nMaxAccepted");
     
     if(io.HasField("stopWhenAnyAccepted")){
         const auto & targets = io.template GetVector<PointType>("stopWhenAnyAccepted");
@@ -154,7 +154,7 @@ CommonStoppingCriteria<T>::Setup(HFMI*that){
 
 template<typename T> void
 CommonStoppingCriteria<T>::Finally(HFMI*that){
-    if(pFM!=nullptr) that->io.template Set<ScalarType>("nAccepted",nAccepted);
+    if(pFM!=nullptr) that->io.template Set<ScalarType>("nAccepted",(ScalarType)nAccepted);
 };
 
 

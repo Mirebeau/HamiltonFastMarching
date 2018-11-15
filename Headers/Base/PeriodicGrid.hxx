@@ -19,7 +19,7 @@ template<typename T> auto PeriodicGrid<T>::
 IndexFromPoint(const PointType & p) const -> IndexType {
     IndexType result;
     for(int i=0; i<Dimension; ++i){
-        result[i] = std::floor(p[i]);}
+        result[i] = (DiscreteType)std::floor(p[i]);}
     return result;
 }
 

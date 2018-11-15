@@ -35,11 +35,12 @@ template<typename TTraits> struct HFMInterface {
     template<typename E> std::unique_ptr<DataSource<E> > GetIntegralField(std::string s);
     void ExportGeodesics(std::string, const std::vector<PointType> &);
     template<typename E> struct DataSource_Inverse; // A data source which inverses the values of another data source.
-    template<bool b=HFM::hasBundle, typename Dummy=void> struct SpecializationsDefault; // Mostly internal methods
+    template<bool b, typename Dummy> struct SpecializationsDefault_; // Mostly internal methods
+	typedef SpecializationsDefault_<HFM::hasBundle,void> SpecializationsDefault;
 protected:
     template<typename E> struct DataSource_Array;
-    template<typename E, bool b=HFM::hasBundle> struct DataSource_Indep; // A data source independent of the "bundle" coords.
-    template<typename E, bool b=HFM::hasBundle> struct DataSource_Dep;   // A data source depending only on the "bundle" coords.
+    template<typename E, bool=HFM::hasBundle> struct DataSource_Indep; // A data source independent of the "bundle" coords.
+    template<typename E, bool=HFM::hasBundle> struct DataSource_Dep;   // A data source depending only on the "bundle" coords.
     template<typename E> struct TimeDependentSource;
 
 //    std::unique_ptr<StencilDataType> _pStencil;

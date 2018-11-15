@@ -9,7 +9,7 @@ typedef typename IO::Msg Msg;
 typedef typename IO::WarnMsg WarnMsg;
 #include "DispatchAndRun.h"
 
-int main(int argc, const char * argv[]) {
+int main(int argc, const char * argv[]) { 
     std::string inputPrefix, outputPrefix;
     
     inputPrefix  = argc > 1 ? argv[1] : "input";

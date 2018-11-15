@@ -87,15 +87,15 @@ struct HamiltonFastMarching {
     typedef ParamInterface_<PointType,VectorType> ParamInterface;
     typedef typename DifferenceType::MultiplierType MultiplierType;
     static const bool hasMultiplier = DifferenceType::multSize>0;
-    template<bool b=hasMultiplier, typename Dummy=void> struct _StencilDataType;
-    typedef _StencilDataType<> StencilDataType;
+    template<bool hasMultiplier_, typename Dummy> struct _StencilDataType;
+    typedef _StencilDataType<hasMultiplier,void> StencilDataType;
     DiscreteType MaxStencilWidth() const;
     StencilDataType & stencilData;
     
     // Default domain parametrization (Currently used in all instantiations)
     static const bool hasBundle = (0<Traits::nStencilDependencies) && (Traits::nStencilDependencies<Dimension);
-    template<int b=int(hasBundle), typename Dummy=void> struct _ParamDefault;
-    typedef _ParamDefault<> ParamDefault;
+    template<int hasBundle_, typename Dummy> struct _ParamDefault;
+    typedef _ParamDefault<int(hasBundle),void> ParamDefault;
     
     // Extra algorithms may be inserted at different points
     enum Decision {kAccept=0, kContinue=1, kTerminate=2, kRecompute=1<<10};
@@ -120,7 +120,7 @@ protected:
     Array<bool,Dimension> acceptedFlags;
     void ConditionalUpdate(IndexCRef,OffsetType,ScalarType);
     void Update(FullIndexCRef, OffsetCRef, ScalarType);
-    friend struct _StencilDataType<>;
+    friend struct StencilDataType;
 };
 
 // ------- Some sub-structures of interest -------

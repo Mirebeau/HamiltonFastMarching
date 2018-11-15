@@ -55,7 +55,7 @@ struct StencilDiagonal : HamiltonFastMarching<TraitsDiagonal<VDimension> >::Sten
     typedef typename HFM::StencilDataType Superclass;
     Redeclare4Types(HFM,IndexType,StencilType,ParamInterface,HFMI)
     Redeclare1Constant(HFM,Dimension)
-    typename HFM::template _ParamDefault<2> param;
+    typename HFM::template _ParamDefault<2,void> param;
     
     virtual void SetStencil(const IndexType & index, StencilType & stencil) override {
         for(int i=0; i<Dimension; ++i){
