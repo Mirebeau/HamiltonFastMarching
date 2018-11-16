@@ -59,7 +59,7 @@ template<int VD, typename TS, typename TD, typename TSh> auto BaseGrid<VD,TS,TD,
 IndexFromPoint(const PointType & p) const -> IndexType {
     IndexType result;
     for(int i=0; i<Dimension; ++i){
-        result[i] = std::floor(p[i]);}
+        result[i] = (DiscreteType)std::floor(p[i]);}
     return result;
 }
 

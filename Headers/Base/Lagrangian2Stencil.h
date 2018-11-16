@@ -35,6 +35,9 @@ struct Lagrangian2Stencil {
             case Lagrangian2StencilPeriodicity::None:    return nOffsets-1;
             case Lagrangian2StencilPeriodicity::Simple:  return nOffsets;
             case Lagrangian2StencilPeriodicity::Double:  return 2*nOffsets;
+			default:
+				assert(false);
+				return 0;
         }
     }
     OffsetType Sector(DiscreteType n, DiscreteType k) const {
@@ -46,6 +49,9 @@ struct Lagrangian2Stencil {
             case Lagrangian2StencilPeriodicity::None:   return pOffsets[m];
             case Lagrangian2StencilPeriodicity::Simple: return pOffsets[m%nOffsets];
             case Lagrangian2StencilPeriodicity::Double: return m<nOffsets ? pOffsets[m] : -pOffsets[m-nOffsets];
+			default:
+				assert(false);
+				return OffsetType();
         }
     }
     

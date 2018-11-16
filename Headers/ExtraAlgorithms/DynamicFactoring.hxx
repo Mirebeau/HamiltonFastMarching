@@ -213,7 +213,7 @@ Setup(HFMI * that){
         }
     }
     
-    if(io.template Get<ScalarType>("exportFactoringRegion",0.,2.)){
+    if(io.template Get<ScalarType>("exportFactoringRegion",0.,2)!=0){
         io.SetArray("factoringRegion",factoringRegion.template Cast<ScalarType>());}
     return true;
 }
