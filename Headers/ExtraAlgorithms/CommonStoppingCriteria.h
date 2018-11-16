@@ -21,7 +21,7 @@ HamiltonFastMarching<T>::ExtraAlgorithmInterface {
     std::set<IndexType> stopWhenAnyAccepted;
     std::set<IndexType> stopWhenAllAccepted;
     
-    typedef typename HFMI::template SpecializationsDefault HFMIS;
+    typedef typename HFMI::SpecializationsDefault HFMIS;
     typedef typename HFMIS::UnorientedIndexType UnorientedIndexType;
     std::set<UnorientedIndexType> stopWhenAnyAccepted_Unoriented;
     std::set<UnorientedIndexType> stopWhenAllAccepted_Unoriented;

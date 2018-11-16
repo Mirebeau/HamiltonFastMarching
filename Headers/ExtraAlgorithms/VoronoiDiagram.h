@@ -51,7 +51,7 @@ Setup(HFMI * that){
     }
     
     if(HFM::hasBundle && io.HasField("seedFlags_Unoriented")) {
-        typedef typename HFMI::template SpecializationsDefault HFMIS;
+        typedef typename HFMI::SpecializationsDefault HFMIS;
         const auto uSeedFlags = io.template GetVector<ScalarType>("seedFlags_Unoriented");
         const auto uSeeds = io.template GetVector<typename HFMIS::UnorientedPointType>("seeds_Unoriented");
         if(uSeeds.size()!=uSeedFlags.size()){

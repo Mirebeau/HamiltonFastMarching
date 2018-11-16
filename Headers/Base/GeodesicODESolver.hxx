@@ -75,7 +75,8 @@ GeodesicFlow(const PointType & p, const Array<ShortType,Dimension> & target, Flo
     // Get the neighbors
     for(int i=0; i< 1<<Dimension; ++i){
         OffsetType offset;
-        for(int j=0; j<Dimension; ++j){offset[j] = (i & (1<<j)) ? OffsetType::ComponentType(sign[j]) : 0;}
+		typedef typename OffsetType::ComponentType OffsetComponentType;
+        for(int j=0; j<Dimension; ++j){offset[j] = (i & (1<<j)) ? OffsetComponentType(sign[j]) : 0;}
         IndexType qIndex;
         const auto reversed = fm.VisibleOffset(pIndex, offset, qIndex);
         if(reversed[Dimension]) {

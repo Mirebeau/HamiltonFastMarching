@@ -120,7 +120,7 @@ protected:
     Array<bool,Dimension> acceptedFlags;
     void ConditionalUpdate(IndexCRef,OffsetType,ScalarType);
     void Update(FullIndexCRef, OffsetCRef, ScalarType);
-    friend struct StencilDataType;
+    friend struct _StencilDataType<hasMultiplier, void>;
 };
 
 // ------- Some sub-structures of interest -------
