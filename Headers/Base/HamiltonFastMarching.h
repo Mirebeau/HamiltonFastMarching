@@ -16,22 +16,11 @@
 #include "JMM_CPPLibs/DataStructures/RangeAccessor.h"
 #include "JMM_CPPLibs/DataStructures/CappedVector.h"
 #include "PeriodicGrid.h"
-#include "JMM_CPPLibs/Output/ExportMacros.h"
-
+#include "JMM_CPPLibs/Macros/ExportArrow.h"
+#include "JMM_CPPLibs/Macros/TemplateLog2.h"
 /*
-// TODO : remove unnecessary virtual tags.
 // Note : walls must not be taken into account at initialization with mult based.
  */
-
-// Silly replacement for a constexpr log. TODO : hide somewhere.
-
-template<size_t i> struct FloorLog2 {static const size_t value = 1+FloorLog2<i/2>::value;};
-template<> struct FloorLog2<1> {static const size_t value = 0;};
-template<size_t i> class CeilLog2 {
-    static const size_t floor = FloorLog2<i>::value;
-public:
-    static const size_t value = (i== (1<<floor) ? floor : (floor+1));
-};
 
 template<typename T> struct HFMInterface;
 
@@ -57,7 +46,7 @@ struct HamiltonFastMarching {
     typedef PeriodicGrid<Traits> DomainType;
     typedef typename DomainType::ReverseFlag ReverseFlag;
     const DomainType dom;
-    virtual ReverseFlag VisibleOffset(IndexCRef, OffsetCRef, IndexType &) const;
+    ReverseFlag VisibleOffset(IndexCRef, OffsetCRef, IndexType &) const;
 
     std::map<IndexType,ScalarType,typename IndexType::LexicographicCompare> seeds;
     void Run();
@@ -111,7 +100,7 @@ protected:
     struct QueueElement;
     std::priority_queue<QueueElement> queue;
     
-    virtual void RunInit();
+    void RunInit();
     bool RunOnce(); // returns true if should stop
     
     int PostProcess(IndexCRef); // returns a combination of decitions. Priority: kTerminate > kContinue > kAccept

@@ -2,7 +2,7 @@
 // Copyright (C) 2017 Jean-Marie Mirebeau, University Paris-Sud, CNRS, University Paris-Saclay.
 // Licence GPU GPL v3 or later, see <http://www.gnu.org/licenses/>. Distributed WITHOUT ANY WARRANTY.
 
-#include "JMM_CPPLibs/Output/ExportMacros.h"
+#include "JMM_CPPLibs/Macros/ExportArrow.h"
 #include "JMM_CPPLibs/Output/FileIO.h"
 typedef IO_<FileIO> IO;
 typedef typename IO::Msg Msg;

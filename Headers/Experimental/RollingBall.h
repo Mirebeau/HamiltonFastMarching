@@ -9,7 +9,7 @@
 #define RollingBall_h
 
 /*
- In this notebook we make a new attempt at problems solving problems involving the which configuration space of the ball S^2.
+ In this notebook we make a new attempt at problems solving problems involving the configuration space of the ball S^2.
  
  A previous experiment involved the group SO3, and its parametrization by quaternions, aka S^4. This turned out to be a failure, due to the difficulty to parametrize S^4 with a cartesian grid.
  
@@ -48,7 +48,7 @@ struct StencilReedsSheppS2
 : HamiltonFastMarching<TraitsReedsSheppS2>::StencilDataType {
     typedef HamiltonFastMarching<TraitsReedsSheppS2> HFM;
     typedef HFM::StencilDataType Superclass;
-    HFM::_ParamDefault<2> param; // Diagonal parametrization
+    HFM::_ParamDefault<2,void> param; // Diagonal parametrization
     ScalarType eps=0.1, xi=1; // xi is the typical curvature radius
     bool projective=false;
     virtual void SetStencil(const IndexType & index, StencilType & stencil) override {
@@ -104,7 +104,7 @@ struct StencilDubinsS2
 : HamiltonFastMarching<TraitsDubinsS2>::StencilDataType {
     typedef HamiltonFastMarching<TraitsDubinsS2> HFM;
     typedef HFM::StencilDataType Superclass;
-    HFM::_ParamDefault<2> param; // Diagonal parametrization
+    HFM::_ParamDefault<2,void> param; // Diagonal parametrization
     ScalarType eps=0.1, xi=1; // xi is the typical curvature radius
     bool projective=false;
     virtual void SetStencil(const IndexType & index, StencilType & stencil) override {
@@ -152,7 +152,7 @@ struct StencilRolling2
 : HamiltonFastMarching<TraitsRollingBall>::StencilDataType {
     typedef HamiltonFastMarching<TraitsRollingBall> HFM;
     typedef HFM::StencilDataType Superclass;
-    HFM::_ParamDefault<2> param; // Diagonal parametrization
+    HFM::_ParamDefault<2,void> param; // Diagonal parametrization
     ScalarType eps=0.1, xi=1;
     bool projective=false;
     virtual void SetStencil(const IndexType & index, StencilType & stencil) override {
