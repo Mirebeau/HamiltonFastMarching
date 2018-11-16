@@ -228,7 +228,7 @@ Update(FullIndexCRef updated, OffsetCRef offset, ScalarType acceptedValue){
        
     values[updated.linear] = result.first;
     
-    for(int i=0; i<nMaxBits; ++i) active[nNeigh+i] = result.second & (1<<i);
+    for(int i=0; i<nMaxBits; ++i) active[nNeigh+i] = (result.second & (1<<i))!=0;
     queue.push({updated.linear,result.first});
     
 }

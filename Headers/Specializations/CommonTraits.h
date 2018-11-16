@@ -86,16 +86,17 @@ template<int VD> constexpr const typename TraitsBase<VD>::StencilDepType_None Tr
 template<int VD> constexpr const Boundary_AllClosed TraitsBase<VD>::boundaryConditions;
 
 template<int VDim> template<size_t VMultSize, typename Dummy> struct TraitsBase<VDim>::Difference {
-    typedef TraitsBase<VDim> T; typedef T::ScalarType ScalarType; typedef T::OffsetType OffsetType;
-    typedef T::ShortType ShortType;
-        ScalarType baseWeight; OffsetType offset; ShortType multIndex; static constexpr size_t multSize=VMultSize;
-        typedef LinearAlgebra::Point<ScalarType, multSize> MultiplierType;
-        ScalarType Weight(const MultiplierType & mult) const {return baseWeight*square(mult[multIndex]);}
+    typedef TraitsBase<VDim> T;
+	Redeclare3Types(T, ScalarType, OffsetType, ShortType);
+	ScalarType baseWeight; OffsetType offset; ShortType multIndex; static constexpr size_t multSize = VMultSize;
+	typedef LinearAlgebra::Point<ScalarType, multSize> MultiplierType;
+	ScalarType Weight(const MultiplierType & mult) const { return baseWeight*square(mult[multIndex]); }
 //        PrintSelfMacro(Difference);
 };
 
 template<int VDim> template<typename Dummy> struct TraitsBase<VDim>::Difference<1,Dummy> {
-    typedef TraitsBase<VDim> T; typedef T::ScalarType ScalarType; typedef T::OffsetType OffsetType;
+    typedef TraitsBase<VDim> T; 
+	Redeclare2Types(T, ScalarType, OffsetType);
     ScalarType baseWeight; OffsetType offset; static constexpr size_t multSize=1;
     typedef ScalarType MultiplierType;
     ScalarType Weight(const MultiplierType & mult) const {
@@ -103,7 +104,8 @@ template<int VDim> template<typename Dummy> struct TraitsBase<VDim>::Difference<
 };
 
 template<int VDim> template<typename Dummy> struct TraitsBase<VDim>::Difference<0,Dummy> {
-    typedef TraitsBase<VDim> T; typedef T::ScalarType ScalarType; typedef T::OffsetType OffsetType;
+    typedef TraitsBase<VDim> T;
+	Redeclare2Types(T, ScalarType, OffsetType);
     ScalarType baseWeight; OffsetType offset; static constexpr size_t multSize=0;
     struct MultiplierType {};
     ScalarType Weight(MultiplierType) const {return baseWeight;}

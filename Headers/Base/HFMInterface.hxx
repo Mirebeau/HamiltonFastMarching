@@ -175,7 +175,7 @@ HFMInterface<T>::DataSource_Indep<E,true> : DataSource<E> {
     typedef typename HFM::template DataSource<E>::ReturnType ReturnType;
     Redeclare2Types(HFM,Traits,IndexType)
     Redeclare1Constant(HFM,Dimension)
-    typedef HFMInterface<T>::Array<E, Dimension-Traits::nStencilDependencies> ArrayType;
+    typedef typename HFMInterface<T>::template Array<E, Dimension-Traits::nStencilDependencies> ArrayType;
     ArrayType values;
     DataSource_Indep(ArrayType && _values):values(std::move(_values)){};
     typedef typename ArrayType::IndexType ShortIndexType;
@@ -201,7 +201,7 @@ HFMInterface<T>::DataSource_Dep<E,true> : DataSource<E> {
     typedef typename HFM::template DataSource<E>::ReturnType ReturnType;
     Redeclare2Types(HFM,Traits,IndexType)
     Redeclare1Constant(HFM,Dimension)
-    typedef HFMInterface<T>::Array<E, Traits::nStencilDependencies> ArrayType;
+    typedef typename HFMInterface<T>::template Array<E, Traits::nStencilDependencies> ArrayType;
     ArrayType values;
     DataSource_Dep(ArrayType && _values):values(std::move(_values)){};
     typedef typename ArrayType::IndexType ShortIndexType;
@@ -320,7 +320,7 @@ template<typename T> void HFMInterface<T>::
 Run_SetupSolver() {
     // ------- Some exports that are independent of the fast marching results -------
     io.Set<ScalarType>("MaxStencilWidth",pFM->MaxStencilWidth());
-    pFM->sndOrder = (bool)io.template Get<ScalarType>("sndOrder",0.);
+    pFM->sndOrder = io.template Get<ScalarType>("sndOrder",0.)!=0;
 
     if(io.HasField("getStencils")) {
         const auto & pts = io.GetVector<PointType>("getStencils");

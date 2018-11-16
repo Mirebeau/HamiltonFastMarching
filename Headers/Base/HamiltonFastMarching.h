@@ -182,7 +182,7 @@ struct HamiltonFastMarching<T>::_StencilDataType<true,Dummy>{
     Redeclare6Types(Traits,DiscreteType,ScalarType,PointType,VectorType,IndexType,OffsetType)
     Redeclare2Constants(Traits,Dimension,mathPi)
     
-    typedef HFM::DataSource<MultiplierType> MultSourceType;
+    typedef typename HFM::template DataSource<MultiplierType> MultSourceType;
     IndexType dims; // Needs value
     virtual void SetStencil(IndexCRef, StencilType &) = 0; // Needs specialization
     std::unique_ptr<MultSourceType> pMultSource = nullptr; // Needs assignment
@@ -204,7 +204,7 @@ protected:
     RangeAccessor<OffsetType*> ReversedOffsets(FullIndexCRef);
     virtual void Initialize(const HFM *);
 private:
-    typedef HFM::Array<StencilType, T::nStencilDependencies> StencilArrayType;
+    typedef typename HFM::template Array<StencilType, T::nStencilDependencies> StencilArrayType;
     StencilArrayType stencils;
     ShallowMap<DiscreteType, std::pair<MultiplierType, QuadType> > shallowMultQuads;
     typedef typename StencilArrayType::IndexType ShortIndexType;
