@@ -8,8 +8,8 @@
 #ifndef BaseGrid_h
 #define BaseGrid_h
 
-#include "LinearAlgebra/ArrayType.h"
-#include "LinearAlgebra/VectorType.h"
+#include "JMM_CPPLibs/LinearAlgebra/ArrayType.h"
+#include "JMM_CPPLibs/LinearAlgebra/VectorType.h"
 
 template<int VDim, typename TScalar, typename TDiscrete, typename TShort> struct BaseGrid {
     static const int Dimension = VDim;

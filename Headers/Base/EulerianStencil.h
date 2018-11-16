@@ -8,29 +8,16 @@
 #ifndef EulerianStencil_h
 #define EulerianStencil_h
 
-#include "Output/ExportMacros.h"
-#include "LinearAlgebra/SquareCube.h"
-
+#include "JMM_CPPLibs/Macros/ExportArrow.h"
+#include "JMM_CPPLibs/LinearAlgebra/SquareCube.h"
+#include "JMM_CPPLibs/Macros/TemplateLog2.h"
 // ------------ Eulerian scheme -------------
 
 template<typename TS, size_t n> struct QuadraticMax;
 
-// Silly replacement for a constexpr log. TODO : hide somewhere.
-
-template<size_t i> struct FloorLog2 {static const size_t value = 1+FloorLog2<i/2>::value;};
-template<> struct FloorLog2<1> {static const size_t value = 0;};
-template<size_t i> class CeilLog2 {
-    static const size_t floor = FloorLog2<i>::value;
-public:
-    static const size_t value = (i== (1<<floor) ? floor : (floor+1));
-};
-
-
 // --- Stencil --
 /** A PDE discretization is specified via a set of differences, of several types,
  which number is fixed in advance by the following parameters.*/
-
-#define FromDifferenceType(x) DifferenceType:: x
 
 template<typename TDiff, int nSym, int nFor=0, int nM=1> struct
 EulerianStencil {
@@ -56,7 +43,7 @@ EulerianStencil {
     static int GetIMax(ActiveNeighFlagType b);
     static void SetIMax(ActiveNeighFlagType & b, int iMax);
     
-    Redeclare3Types(FromDifferenceType, ScalarType,OffsetType,MultiplierType)
+    Redeclare3Types(DifferenceType, ScalarType,OffsetType,MultiplierType)
     typedef QuadraticMax<ScalarType,nMax> QuadType;
     ScalarType HopfLaxUpdate(OffsetType, ScalarType, const MultiplierType &,
                              QuadType &, ActiveNeighFlagType &) const;

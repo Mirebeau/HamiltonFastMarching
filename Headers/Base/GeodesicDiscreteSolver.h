@@ -10,7 +10,7 @@
 template<typename TTraits> struct GeodesicDiscreteSolver
 : HamiltonFastMarching<TTraits>::GeodesicSolverInterface {
     typedef TTraits Traits; typedef HamiltonFastMarching<Traits> HFM;
-    Redeclare7Types(Traits,DiscreteType,ScalarType,ShortType,IndexType,OffsetType,VectorType,PointType)
+    Redeclare8Types(Traits,DiscreteType,ScalarType,ShortType,IndexType,OffsetType,VectorType,PointType,IndexDiff)
     Redeclare6Types(HFM,DiscreteFlowType,MultiplierType,IndexCRef,DifferenceType,HFMI,GeodesicSolverInterface);
     template<typename E, size_t n> using Array = typename Traits::template Array<E,n>;
     Redeclare1Constant(Traits,Dimension);

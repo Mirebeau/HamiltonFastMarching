@@ -11,7 +11,7 @@
 
 
 #include "HamiltonFastMarching.h"
-#include "LinearAlgebra/SquareCube.h"
+#include "JMM_CPPLibs/LinearAlgebra/SquareCube.h"
 
 
 template <typename TTraits> struct GeodesicODESolver

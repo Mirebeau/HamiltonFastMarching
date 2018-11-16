@@ -19,13 +19,11 @@
 #include "LinearAlgebra/VoronoiReduction.h"
 #endif
 
-#define FromBaseDomain(x) BaseDomain:: x
-
 template<int VDim> struct TraitsBase {
     static const int Dimension = VDim;
     typedef BaseGrid<VDim, double, int, int_least8_t> BaseDomain;
-    Redeclare6Types(FromBaseDomain,DiscreteType,IndexType,IndexDiff,IndexCRef,ShortType,OffsetType)
-    Redeclare3Types(FromBaseDomain,ScalarType,PointType,VectorType)
+    Redeclare6Types(BaseDomain,DiscreteType,IndexType,IndexDiff,IndexCRef,ShortType,OffsetType)
+    Redeclare3Types(BaseDomain,ScalarType,PointType,VectorType)
     template<typename T, size_t n> using Array=typename BaseDomain::template Array<T,n>;
     
     static constexpr ScalarType Infinity() {return std::numeric_limits<ScalarType>::infinity();}

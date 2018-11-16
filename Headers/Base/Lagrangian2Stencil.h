@@ -9,13 +9,13 @@
 #define Lagrangian2Stencil_h
 
 #include <forward_list>
-#include "DataStructures/CappedVector.h"
-#include "LinearAlgebra/RanderNorm.h"
-#include "LinearAlgebra/AsymmetricQuadraticNorm.h"
+#include "JMM_CPPLibs/DataStructures/CappedVector.h"
+#include "JMM_CPPLibs/LinearAlgebra/RanderNorm.h"
+#include "JMM_CPPLibs/LinearAlgebra/AsymmetricQuadraticNorm.h"
 
 #include "Specializations/CommonTraits.h"
-#include "LinearAlgebra/HopfLaxMinimize.h"
-#include "LinearAlgebra/VectorPairType.h"
+#include "JMM_CPPLibs/LinearAlgebra/HopfLaxMinimize.h"
+#include "JMM_CPPLibs/LinearAlgebra/VectorPairType.h"
 
 // ----------- Semi-Lagrangian scheme ------------
 
@@ -128,11 +128,13 @@ template<typename T>
 struct StencilQuadLinLag2 : HamiltonFastMarching<T>::StencilDataType {
     typedef HamiltonFastMarching<T> HFM;
     typedef typename HFM::StencilDataType Superclass;
-    Redeclare6Types(FromHFM,ParamDefault,ParamInterface,HFMI,DiscreteFlowType,RecomputeType,Traits)
-    Redeclare7Types(FromHFM,IndexCRef,VectorType,ScalarType,DiscreteType,OffsetCRef,DomainType,IndexDiff)
-    Redeclare6Types(FromTraits,NormType,NormType1,IndexType,StencilType,OffsetType,DistanceGuess)
-    Redeclare1Type(FromSuperclass,OffsetVal3)
-    Redeclare1Constant(FromHFM,Dimension)
+	Redeclare6Types(HFM,ParamDefault,ParamInterface,HFMI,DiscreteFlowType,RecomputeType,Traits)
+    Redeclare7Types(HFM,IndexCRef,VectorType,ScalarType,DiscreteType,OffsetCRef,DomainType,IndexDiff)
+
+Redeclare6Types(Traits,NormType,NormType1,IndexType,StencilType,OffsetType,DistanceGuess)
+	
+	Redeclare1Type(Superclass,OffsetVal3)
+    Redeclare1Constant(HFM,Dimension)
     
     // Specific to this model
     virtual std::pair<ScalarType,int> HopfLaxUpdate(IndexCRef, const OffsetVal3 &) override;

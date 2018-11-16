@@ -29,10 +29,10 @@ template<typename T>
 struct DynamicFactoring {
     typedef T Traits;
     typedef HamiltonFastMarching<Traits> HFM;
-    Redeclare6Types(FromHFM,IndexCRef,FullIndexCRef,DiscreteFlowType,OffsetType,ScalarType,DiscreteType)
-    Redeclare6Types(FromHFM,IndexType,IndexDiff,DomainTransformType,VectorType,HFMI,PointType)
-    Redeclare3Types(FromHFM,DistanceGuess,DiscreteFlowElement,DomainType)
-    Redeclare1Constant(FromHFM,Dimension)
+    Redeclare6Types(HFM,IndexCRef,FullIndexCRef,DiscreteFlowType,OffsetType,ScalarType,DiscreteType)
+    Redeclare6Types(HFM,IndexType,IndexDiff,DomainTransformType,VectorType,HFMI,PointType)
+    Redeclare3Types(HFM,DistanceGuess,DiscreteFlowElement,DomainType)
+    Redeclare1Constant(HFM,Dimension)
     template<typename E, size_t n> using Array = typename Traits::template Array<E,n>;
     
     bool SetIndex(IndexCRef,const DiscreteFlowType &);

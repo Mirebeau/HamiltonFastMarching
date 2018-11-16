@@ -87,20 +87,21 @@ struct StencilReedsSheppForward3
     typedef HamiltonFastMarching<TraitsReedsSheppForward3> HFM;
     typedef HFM::StencilDataType Superclass;
     HFM::ParamDefault param;
-    ScalarType eps=0.1, xi=1;
+    ScalarType xi=1;
+	typedef Traits::BasisReduction<3> ReductionType;
+	Voronoi1Vec<ReductionType> reduc;
     
     virtual void SetStencil(const IndexType & index, StencilType & stencil) override {
         const ScalarType
         theta = mathPi*(index[3]+0.5)/dims[3],
         phi = (2.*mathPi*index[4])/dims[4];
-        typedef Traits::BasisReduction<3> ReductionType;
         typedef typename ReductionType::VectorType VectorType;
         const VectorType v =
         (VectorType{cos(theta), sin(theta)*cos(phi), sin(theta)*sin(phi)})/param.gridScale;
         
         auto & forward = stencil.forward[0];
-        Voronoi1Vec<ReductionType>(&forward[0], v, eps);
-        
+		reduc(&forward[0],v);
+		
         auto & symmetric = stencil.symmetric[0];
         symmetric[0].offset = OffsetType{0,0,0,1,0};
         symmetric[0].baseWeight = 1./square(xi*param.dependScale);
@@ -111,7 +112,7 @@ struct StencilReedsSheppForward3
     virtual const ParamInterface & Param() const override {return param;}
     virtual void Setup(HFMI *that) override {auto & io = that->io;
         Superclass::Setup(that);
-        eps=io.template Get<ScalarType>("eps",eps);
+        reduc.eps=io.template Get<ScalarType>("eps",reduc.eps);
         xi=io.template Get<ScalarType>("xi",xi);
         param.Setup(that,2*mathPi/dims.back());
         if(dims[4]!=2*dims[3])

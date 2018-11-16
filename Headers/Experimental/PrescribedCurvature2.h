@@ -51,7 +51,9 @@ struct StencilReedsSheppExt2
     ScalarType eps=0.1;
     typedef Traits::DataSource<ScalarType> ScalarFieldType;
     std::unique_ptr<ScalarFieldType> pSpeed, pXi, pKappa;
-    
+	typedef Traits::BasisReduction<3> ReductionType;
+	Voronoi1Vec<ReductionType> reduc;
+	
     virtual void SetStencil(IndexCRef index, StencilType & stencil) override {
         assert(pSpeed); assert(pXi); assert(pKappa);
         const ScalarType
@@ -62,8 +64,7 @@ struct StencilReedsSheppExt2
         const VectorType v{c/gS,s/gS,kappa/tS};
         
         auto & symmetric = stencil.symmetric[0];
-        typedef Traits::BasisReduction<3> ReductionType;
-        Voronoi1Vec<ReductionType>(&symmetric[0], speed*v, eps);
+        reduc(&symmetric[0], speed*v);
         
         symmetric[6].offset = OffsetType{0,0,1};
         symmetric[6].baseWeight = square(speed/(xi*tS));
@@ -71,7 +72,7 @@ struct StencilReedsSheppExt2
     virtual const ParamInterface & Param() const override {return param;}
     virtual void Setup(HFMI *that) override {
         Superclass::Setup(that);
-        eps=that->io.template Get<ScalarType>("eps",eps);
+        reduc.eps=that->io.template Get<ScalarType>("eps",reduc.eps);
         typedef typename HFMI::template DataSource_Inverse<ScalarType> SourceInvType;
         if(that->io.HasField("speed")) pSpeed = that->template GetField<ScalarType>("speed",false);
         else pSpeed = std::unique_ptr<SourceInvType>(new SourceInvType(that->template GetField<ScalarType>("cost",false) ) );
@@ -95,7 +96,8 @@ struct StencilReedsSheppForwardExt2
     ScalarType eps=0.1;
     typedef Traits::DataSource<ScalarType> ScalarFieldType;
     std::unique_ptr<ScalarFieldType> pSpeed, pXi, pKappa;
-    
+	typedef Traits::BasisReduction<3> ReductionType;
+	Voronoi1Vec<ReductionType> reduc;
     virtual void SetStencil(IndexCRef index, StencilType & stencil) override {
         assert(pSpeed); assert(pXi); assert(pKappa);
         const ScalarType
@@ -106,8 +108,7 @@ struct StencilReedsSheppForwardExt2
         const VectorType v{c/gS,s/gS,kappa/tS};
         
         auto & forward = stencil.forward[0];
-        typedef Traits::BasisReduction<3> ReductionType;
-        Voronoi1Vec<ReductionType>(&forward[0], speed*v, eps);
+        reduc(&forward[0], speed*v);
         
         auto & symmetric = stencil.symmetric[0];
         symmetric[0].offset = OffsetType{0,0,1};
@@ -116,7 +117,7 @@ struct StencilReedsSheppForwardExt2
     virtual const ParamInterface & Param() const override {return param;}
     virtual void Setup(HFMI *that) override {
         Superclass::Setup(that);
-        eps=that->io.template Get<ScalarType>("eps",eps);
+        reduc.eps=that->io.template Get<ScalarType>("eps",reduc.eps);
         typedef typename HFMI::template DataSource_Inverse<ScalarType> SourceInvType;
         if(that->io.HasField("speed")) pSpeed = that->template GetField<ScalarType>("speed",false);
         else pSpeed = std::unique_ptr<SourceInvType>(new SourceInvType(that->template GetField<ScalarType>("cost",false) ) );
@@ -141,7 +142,9 @@ struct StencilDubinsExt2
     ScalarType eps=0.1;
     typedef Traits::DataSource<ScalarType> ScalarFieldType;
     std::unique_ptr<ScalarFieldType> pSpeed, pXi, pKappa;
-    
+	typedef Traits::BasisReduction<3> ReductionType;
+	Voronoi1Vec<ReductionType> reduc;
+	
     virtual void SetStencil(IndexCRef index, StencilType & stencil) override {
         assert(pSpeed); assert(pXi); assert(pKappa);
         const ScalarType
@@ -153,14 +156,13 @@ struct StencilDubinsExt2
         vL{c/gS,s/gS,(kappa+1./xi)/tS},
         vR{c/gS,s/gS,(kappa-1./xi)/tS};
         
-        typedef Traits::BasisReduction<3> ReductionType;
-        Voronoi1Vec<ReductionType>(&stencil.forward[0][0], speed*vL, eps);
-        Voronoi1Vec<ReductionType>(&stencil.forward[1][0], speed*vR, eps);
+        reduc(&stencil.forward[0][0], speed*vL);
+        reduc(&stencil.forward[1][0], speed*vR);
     }
     virtual const ParamInterface & Param() const override {return param;}
     virtual void Setup(HFMI *that) override {
         Superclass::Setup(that);
-        eps=that->io.template Get<ScalarType>("eps",eps);
+		reduc.eps=that->io.template Get<ScalarType>("eps",reduc.eps);
         typedef typename HFMI::template DataSource_Inverse<ScalarType> SourceInvType;
         if(that->io.HasField("speed")) pSpeed = that->template GetField<ScalarType>("speed",false);
         else pSpeed = std::unique_ptr<SourceInvType>(new SourceInvType(that->template GetField<ScalarType>("cost",false) ) );
@@ -188,7 +190,9 @@ struct StencilElasticaExt2
     ScalarType eps=0.1;
     typedef typename Traits::template DataSource<ScalarType> ScalarFieldType;
     std::unique_ptr<ScalarFieldType> pSpeed, pXi, pKappa;
-
+	typedef typename Traits::template BasisReduction<3> ReductionType;
+	Voronoi1Vec<ReductionType> reduc;
+	
     virtual void SetStencil(IndexCRef index, StencilType & stencil) override {
         assert(pSpeed); assert(pXi); assert(pKappa);
         const ScalarType
@@ -202,15 +206,15 @@ struct StencilElasticaExt2
             const ScalarType phi = mathPi*(l+0.5)/nFejer;
             const ScalarType cP = cos(phi), sP=sin(phi);
             const VectorType v{sP*cT/gS,sP*sT/gS,(sP*kappa+cP/xi)/tS};
-            typedef typename Traits::template BasisReduction<3> ReductionType;
-            Voronoi1Vec<ReductionType>(&forward[6*l], v*speed, eps);
+
+            reduc(&forward[6*l], v*speed);
             for(int i=0; i<6; ++i) forward[6*l+i].baseWeight*=StencilElastica2<nFejer>::fejerWeights[l];
         }
     }
     virtual const ParamInterface & Param() const override {return param;}
     virtual void Setup(HFMI *that) override {
         Superclass::Setup(that);
-        eps=that->io.template Get<ScalarType>("eps",eps);
+        reduc.eps=that->io.template Get<ScalarType>("eps",reduc.eps);
         typedef typename HFMI::template DataSource_Inverse<ScalarType> SourceInvType;
         if(that->io.HasField("speed")) pSpeed = that->template GetField<ScalarType>("speed",false);
         else pSpeed = std::unique_ptr<SourceInvType>(new SourceInvType(that->template GetField<ScalarType>("cost",false) ) );
