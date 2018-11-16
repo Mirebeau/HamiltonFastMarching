@@ -11,9 +11,9 @@ template<typename T> struct WallObstructionTest :
 HamiltonFastMarching<T>::ExtraAlgorithmInterface {
     typedef HamiltonFastMarching<T> HFM;
     typedef typename HFM::ExtraAlgorithmInterface Superclass;
-    Redeclare8Types(FromHFM,IndexCRef,IndexType,ScalarType,Traits,HFMI,PointType,ShortType,DiscreteType)
-    Redeclare3Types(FromHFM,OffsetCRef,OffsetType,DomainTransformType)
-    Redeclare1Constant(FromHFM,Dimension)
+    Redeclare8Types(HFM,IndexCRef,IndexType,ScalarType,Traits,HFMI,PointType,ShortType,DiscreteType)
+    Redeclare3Types(HFM,OffsetCRef,OffsetType,DomainTransformType)
+    Redeclare1Constant(HFM,Dimension)
     
     virtual void Setup(HFMI*) override;
     virtual bool ImplementIn(HFM*) override;

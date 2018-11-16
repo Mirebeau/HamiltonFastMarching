@@ -3,8 +3,16 @@ set (CMAKE_CXX_STANDARD 14)
 
 project(FileHFM)
 
+# Include headers (JMM_CPPLibs and ../../Headers)
+set(JMM_CPPLibs_dir "${CMAKE_CURRENT_SOURCE_DIR}/../../../JMM_CPPLibs-master" CACHE FILEPATH "JMM_CPPLibs directory")
+set(DummyBinDir "${CMAKE_CURRENT_BINARY_DIR}/Dummy")
+add_subdirectory("${JMM_CPPLibs_dir}/include_NoConda" "${DummyBinDir}/JMM_CPPLibs")
+add_subdirectory("../../Headers" "${DummyBinDir}/HFMHeaders")
+
 include(${CMAKE_CURRENT_SOURCE_DIR}/../common.cmake)
+include(ide_headers_layout.cmake)
 include_directories(${PROJECT_DIR} ${CMAKE_CURRENT_SOURCE_DIR})
+
 
 # Single model executables
 

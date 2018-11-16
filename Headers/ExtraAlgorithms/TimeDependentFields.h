@@ -8,7 +8,7 @@
 template<typename T> struct TimeDependentFields :
 HamiltonFastMarching<T>::ExtraAlgorithmInterface {
     typedef HamiltonFastMarching<T> HFM;
-    Redeclare4Types(FromHFM,ScalarType,Traits,IndexCRef,Decision)
+    Redeclare4Types(HFM,ScalarType,Traits,IndexCRef,Decision)
     
     mutable ScalarType currentTime = Traits::Infinity();
     virtual bool ImplementIn(HFM*) override;

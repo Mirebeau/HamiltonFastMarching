@@ -17,12 +17,10 @@
 template <typename TTraits> struct GeodesicODESolver
 : HamiltonFastMarching<TTraits>::GeodesicSolverInterface {
     typedef TTraits Traits; typedef HamiltonFastMarching<Traits> HFM;
-    Redeclare7Types(FromTraits,DiscreteType,ScalarType,ShortType,IndexType,OffsetType,VectorType,PointType)
-    Redeclare3Types(FromHFM,HFMI,GeodesicSolverInterface,DomainTransformType);
-
-    Redeclare1Type(FromHFM, FlowDataType);
+    Redeclare7Types(Traits,DiscreteType,ScalarType,ShortType,IndexType,OffsetType,VectorType,PointType)
+    Redeclare4Types(HFM,HFMI,GeodesicSolverInterface,DomainTransformType,FlowDataType);
     template<typename E, size_t n> using Array = typename Traits::template Array<E,n>;
-    Redeclare1Constant(FromTraits,Dimension);
+    Redeclare1Constant(Traits,Dimension);
     
     ScalarType geodesicStep = 0.25;
     DiscreteType targetTolerance = 6;

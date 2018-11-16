@@ -155,7 +155,6 @@ template<typename T> void HamiltonFastMarching<T>::
 Update(FullIndexCRef updated, OffsetCRef offset, ScalarType acceptedValue){
     auto & active = activeNeighs[updated.linear];
 
-    
 /*    // Alternatively, only insert in queue if value is strictly decreased.
     ScalarType & val = values[updatedLinearIndex];
     if(result.first>=val) return;*/
@@ -163,8 +162,7 @@ Update(FullIndexCRef updated, OffsetCRef offset, ScalarType acceptedValue){
     const ScalarType updatedValue =
     stencilData.HopfLaxUpdate(updated,offset,acceptedValue,active);
     values[updated.linear] = updatedValue;
-    queue.push({updated.linear,updatedValue});
-    
+    queue.push({updated.linear,updatedValue});    
 }
 
 // ----------------- Boundary conditions -------------------

@@ -10,14 +10,15 @@ template<typename T> struct VoronoiDiagram :
 HamiltonFastMarching<T>::ExtraAlgorithmInterface {
     typedef HamiltonFastMarching<T> HFM;
     typedef typename HFM::ExtraAlgorithmInterface Superclass;
-    Redeclare8Types(FromHFM,IndexCRef,IndexType,ScalarType,Traits,HFMI,PointType,DiscreteType,ShortType)
-    Redeclare7Types(FromHFM,OffsetCRef,VectorType,DiscreteFlowType,RecomputeType,DiscreteFlowElement,Decision,IndexDiff)
-    Redeclare1Constant(FromHFM,Dimension)
+    Redeclare8Types(HFM,IndexCRef,IndexType,ScalarType,Traits,HFMI,PointType,DiscreteType,ShortType)
+    Redeclare7Types(HFM,OffsetCRef,VectorType,DiscreteFlowType,RecomputeType,DiscreteFlowElement,Decision,IndexDiff)
+    Redeclare1Constant(HFM,Dimension)
     
     enum StoppingCriterionEnum {kVoronoiNone,kVoronoiRegionsMeeting,kVoronoiOppositesMeeting};
     StoppingCriterionEnum stoppingCriterion = kVoronoiNone;
     IndexType stoppingIndex0=IndexType::Constant(-1), stoppingIndex1=IndexType::Constant(-1); // Set when voronoi regions meet
-    typename HFM::template Array<ShortType,Dimension> voronoiFlags;
+	typedef ShortType VoronoiFlagType;
+    typename HFM::template Array<VoronoiFlagType,Dimension> voronoiFlags;
     
     virtual void Setup(HFMI*) override;
     virtual void Finally(HFMI*) override;
@@ -25,7 +26,8 @@ HamiltonFastMarching<T>::ExtraAlgorithmInterface {
 protected:
     virtual int PostProcessWithRecompute(IndexCRef, const RecomputeType &, const DiscreteFlowType &) override;
     const HFM * pFM=nullptr;
-    template<bool b=HFM::hasBundle,typename Dummy=void> struct OppositeIndex;
+    template<bool hasBundle_,typename Dummy> struct OppositeIndexFunctor_;
+	typedef OppositeIndexFunctor_<HFM::hasBundle, void> OppositeIndexFunctor;
 };
 
 template<typename T> void VoronoiDiagram<T>::
@@ -44,12 +46,13 @@ Setup(HFMI * that){
         for(int i=0; i<seeds.size(); ++i){
             IndexType index = that->pFM->dom.IndexFromPoint(that->stencil.Param().ADim(seeds[i]));
             if(!that->pFM->dom.Periodize(index,index).IsValid()) ExceptionMacro("Error : seed " << seeds[i] << " is out of range.\n");
-            voronoiFlags(index) = seedFlags[i];
+            voronoiFlags(index) = (VoronoiFlagType)seedFlags[i];
+
         }
     }
     
     if(HFM::hasBundle && io.HasField("seedFlags_Unoriented")) {
-        typedef typename HFMI::template SpecializationsDefault<> HFMIS;
+        typedef typename HFMI::SpecializationsDefault HFMIS;
         const auto uSeedFlags = io.template GetVector<ScalarType>("seedFlags_Unoriented");
         const auto uSeeds = io.template GetVector<typename HFMIS::UnorientedPointType>("seeds_Unoriented");
         if(uSeeds.size()!=uSeedFlags.size()){
@@ -61,7 +64,7 @@ Setup(HFMI * that){
             for(const PointType & p : equiv){
                 IndexType index = that->pFM->dom.IndexFromPoint(p);
                 if(!that->pFM->dom.Periodize(index,index).IsValid()) ExceptionMacro("Error : unoriented seed, of index " << i << ", is out of range.\n");
-                voronoiFlags(index) = uSeedFlags[i];
+                voronoiFlags(index) = (VoronoiFlagType)uSeedFlags[i];
             }
         }
     }
@@ -98,8 +101,8 @@ Finally(HFMI*that){
 }
 
 template<typename Traits> template<typename Dummy>
-struct VoronoiDiagram<Traits>::OppositeIndex<true,Dummy>{
-    Redeclare2Types(FromTraits,IndexType,DiscreteType);
+struct VoronoiDiagram<Traits>::OppositeIndexFunctor_<true,Dummy>{
+    Redeclare2Types(Traits,IndexType,DiscreteType);
     IndexType operator()(IndexType index,IndexType dims) const {  // Only works for R^n x S^d, d in {1,2}
             IndexType result=index;
             const auto & dep = Traits::stencilDependencies;
@@ -112,15 +115,15 @@ struct VoronoiDiagram<Traits>::OppositeIndex<true,Dummy>{
 };
 
 template<typename Traits> template<typename Dummy>
-struct VoronoiDiagram<Traits>::OppositeIndex<false,Dummy>{
-    Redeclare1Type(FromTraits,IndexType);
+struct VoronoiDiagram<Traits>::OppositeIndexFunctor_<false,Dummy>{
+    Redeclare1Type(Traits,IndexType);
     IndexType operator()(IndexType,IndexType) const {assert(false); return IndexType();}
 };
 
 template<typename T> int VoronoiDiagram<T>::
 PostProcessWithRecompute(IndexCRef index, const RecomputeType &, const DiscreteFlowType & flow) {
     
-    ShortType & indexFlag = voronoiFlags(index);
+    VoronoiFlagType & indexFlag = voronoiFlags(index);
     ScalarType maxWeight=0;
     for(const DiscreteFlowElement & fl : flow){
         if(fl.weight<=maxWeight) continue;
@@ -138,7 +141,7 @@ PostProcessWithRecompute(IndexCRef index, const RecomputeType &, const DiscreteF
                 neigh[i]+=eps;
                 const auto transform = pFM->dom.Periodize(neigh,index);
                 if(!transform.IsValid()) continue;
-                const ShortType flag = voronoiFlags(neigh);
+                const VoronoiFlagType flag = voronoiFlags(neigh);
                 if(flag==-1 || flag==indexFlag) continue;
                 stoppingIndex0=index;
                 stoppingIndex1=neigh;
@@ -164,8 +167,8 @@ PostProcessWithRecompute(IndexCRef index, const RecomputeType &, const DiscreteF
     }
     
     if(stoppingCriterion==StoppingCriterionEnum::kVoronoiOppositesMeeting){ // Note : only applies to R^n x S^d domains, d in {1,2}
-        const IndexType oppositeIndex = OppositeIndex<>()(index,pFM->stencilData.dims);
-        const ShortType oppositeFlag = voronoiFlags(oppositeIndex);
+        const IndexType oppositeIndex = OppositeIndexFunctor()(index,pFM->stencilData.dims);
+        const VoronoiFlagType oppositeFlag = voronoiFlags(oppositeIndex);
         if(indexFlag!=-1 && oppositeFlag!=-1 && indexFlag!=oppositeFlag){
             stoppingIndex0=index; stoppingIndex1=oppositeIndex;
             return Decision::kTerminate;

@@ -12,14 +12,15 @@
 #include <cmath>
 #include <memory>
 
-#include "DataStructures/ShallowMap.h"
-#include "DataStructures/RangeAccessor.h"
-#include "DataStructures/CappedVector.h"
+#include "JMM_CPPLibs/DataStructures/ShallowMap.h"
+#include "JMM_CPPLibs/DataStructures/RangeAccessor.h"
+#include "JMM_CPPLibs/DataStructures/CappedVector.h"
 #include "BaseGrid.h"
-#include "Output/ExportMacros.h"
-
-#define FromHFM(x) HFM:: x
-#define FromStencilType(x) StencilType:: x
+#include "JMM_CPPLibs/Macros/ExportArrow.h"
+#include "JMM_CPPLibs/Macros/TemplateLog2.h"
+/*
+// Note : walls must not be taken into account at initialization with mult based.
+ */
 
 template<typename T> struct HFMInterface;
 template<typename T> struct DynamicFactoring;
@@ -30,9 +31,9 @@ enum class Lagrangian2StencilPeriodicity {None, Simple, Double}; // Should have 
 template<typename TTraits>
 struct HamiltonFastMarching {
     typedef TTraits Traits;
-    Redeclare1Constant(FromTraits,Dimension)
-    Redeclare6Types(FromTraits,ScalarType,DiscreteType,ShortType,DomainType,StencilType,DistanceGuess)
-    Redeclare6Types(FromTraits,PointType,VectorType,IndexType,OffsetType,DifferenceType,IndexDiff)
+    Redeclare1Constant(Traits,Dimension)
+    Redeclare6Types(Traits,ScalarType,DiscreteType,ShortType,DomainType,StencilType,DistanceGuess)
+    Redeclare6Types(Traits,PointType,VectorType,IndexType,OffsetType,DifferenceType,IndexDiff)
     
     typedef const IndexType & IndexCRef;
     typedef const OffsetType & OffsetCRef;
@@ -48,7 +49,7 @@ struct HamiltonFastMarching {
     // Domain and Running
     typedef typename DomainType::Transform DomainTransformType;
     const DomainType dom;
-    virtual DomainTransformType VisibleOffset(IndexCRef, OffsetCRef, IndexType &) const;
+    DomainTransformType VisibleOffset(IndexCRef, OffsetCRef, IndexType &) const;
 
     std::map<IndexType,ScalarType,typename IndexType::LexicographicCompare> seeds;
     void Run();
@@ -61,7 +62,7 @@ struct HamiltonFastMarching {
     struct FlowDataType;
     FlowDataType GeodesicFlow(IndexCRef) const;
     
-    Redeclare4Types(FromStencilType,ActiveNeighFlagType,DiscreteFlowElement,DiscreteFlowType,RecomputeType)
+    Redeclare4Types(StencilType,ActiveNeighFlagType,DiscreteFlowElement,DiscreteFlowType,RecomputeType)
     Array<ActiveNeighFlagType,Dimension> activeNeighs;
     
 //    struct DiscreteFlowElement {OffsetType offset; ScalarType weight;};
@@ -71,20 +72,20 @@ struct HamiltonFastMarching {
 
     typedef ParamInterface_<PointType,VectorType> ParamInterface;
     typedef typename DifferenceType::MultiplierType MultiplierType;
-    
-    static const auto policy =
+
+    static const StencilStoragePolicy policy =
     DifferenceType::multSize>0 ? StencilStoragePolicy::Share :
     DifferenceType::multSize==0 ? StencilStoragePolicy::Recomp :
     StencilStoragePolicy::Lag2;
-    template<StencilStoragePolicy pol=policy, typename Dummy=void> struct _StencilDataType;
-    typedef _StencilDataType<> StencilDataType;
+    template<StencilStoragePolicy, typename Dummy> struct _StencilDataType;
+    typedef _StencilDataType<policy,void> StencilDataType;
     DiscreteType MaxStencilWidth() const;
     StencilDataType & stencilData;
     
     // Default domain parametrization (Currently used in all instantiations)
     static const bool hasBundle = (0<Traits::nStencilDependencies) && (Traits::nStencilDependencies<Dimension);
-    template<int b=int(hasBundle), typename Dummy=void> struct _ParamDefault;
-    typedef _ParamDefault<> ParamDefault;
+    template<int hasBundle_, typename Dummy> struct _ParamDefault;
+    typedef _ParamDefault<int(hasBundle),void> ParamDefault;
     
     // Extra algorithms may be inserted at different points
     enum Decision {kAccept=0, kContinue=1, kTerminate=2, kRecompute=1<<10};
@@ -100,7 +101,7 @@ protected:
     struct QueueElement;
     std::priority_queue<QueueElement> queue;
     
-    virtual void RunInit();
+    void RunInit();
     bool RunOnce(); // returns true if should stop
     
     int PostProcess(IndexCRef); // returns a combination of decitions. Priority: kTerminate > kContinue > kAccept
@@ -109,7 +110,7 @@ protected:
     Array<bool,Dimension> acceptedFlags;
     void ConditionalUpdate(IndexCRef,OffsetType,ScalarType);
     void Update(FullIndexCRef, OffsetCRef, ScalarType);
-    friend struct _StencilDataType<>;
+    friend struct _StencilDataType<policy, void>;
 };
 
 // ------- Some sub-structures of interest -------
@@ -159,13 +160,13 @@ typedef StencilStoragePolicy SSP;
 template<typename T> template<typename Dummy>
 struct HamiltonFastMarching<T>::_StencilDataType<SSP::Share,Dummy>{
     typedef HamiltonFastMarching<T> HFM;
-    Redeclare6Types(FromHFM,IndexCRef,OffsetCRef,StencilType,DifferenceType,MultiplierType,Traits)
-    Redeclare5Types(FromHFM,ParamInterface,HFMI,DomainType,FullIndexCRef,DistanceGuess)
-    Redeclare6Types(FromTraits,DiscreteType,ScalarType,PointType,VectorType,IndexType,OffsetType)
-    Redeclare1Type(FromStencilType,QuadType)
-    Redeclare2Constants(FromTraits,Dimension,mathPi)
+    Redeclare6Types(HFM,IndexCRef,OffsetCRef,StencilType,DifferenceType,MultiplierType,Traits)
+    Redeclare5Types(HFM,ParamInterface,HFMI,DomainType,FullIndexCRef,DistanceGuess)
+    Redeclare6Types(Traits,DiscreteType,ScalarType,PointType,VectorType,IndexType,OffsetType)
+    Redeclare1Type(StencilType,QuadType)
+    Redeclare2Constants(Traits,Dimension,mathPi)
     
-    typedef HFM::DataSource<MultiplierType> MultSourceType;
+    typedef typename HFM::template DataSource<MultiplierType> MultSourceType;
     IndexType dims; // Needs value
     virtual void SetStencil(IndexCRef, StencilType &) = 0; // Needs specialization
     std::unique_ptr<MultSourceType> pMultSource = nullptr; // Needs assignment
@@ -186,7 +187,7 @@ protected:
     
     virtual void Initialize(const HFM *);
 private:
-    typedef HFM::Array<StencilType, T::nStencilDependencies> StencilArrayType;
+    typedef typename HFM::template Array<StencilType, T::nStencilDependencies> StencilArrayType;
     StencilArrayType stencils;
     ShallowMap<DiscreteType, std::pair<MultiplierType, QuadType> > shallowMultQuads;
     typedef typename StencilArrayType::IndexType ShortIndexType;
@@ -201,11 +202,11 @@ private:
 template<typename T> template<typename Dummy>
 struct HamiltonFastMarching<T>::_StencilDataType<SSP::Recomp,Dummy>{
     typedef HamiltonFastMarching<T> HFM;
-    Redeclare6Types(FromHFM,IndexCRef,OffsetCRef,StencilType,DifferenceType,Traits,FullIndexCRef)
-    Redeclare5Types(FromHFM,ParamInterface,HFMI,MultiplierType,DomainType,DistanceGuess)
-    Redeclare6Types(FromTraits,DiscreteType,ScalarType,PointType,VectorType,IndexType,OffsetType)
-    Redeclare1Type(FromStencilType,QuadType)
-    Redeclare2Constants(FromTraits,Dimension,mathPi)
+    Redeclare6Types(HFM,IndexCRef,OffsetCRef,StencilType,DifferenceType,Traits,FullIndexCRef)
+    Redeclare5Types(HFM,ParamInterface,HFMI,MultiplierType,DomainType,DistanceGuess)
+    Redeclare6Types(Traits,DiscreteType,ScalarType,PointType,VectorType,IndexType,OffsetType)
+    Redeclare1Type(StencilType,QuadType)
+    Redeclare2Constants(Traits,Dimension,mathPi)
 
     IndexType dims; // Needs value
     virtual void SetStencil(IndexCRef, StencilType &) = 0; // Needs specialization
@@ -234,10 +235,10 @@ private:
 template<typename T> template<typename Dummy>
 struct HamiltonFastMarching<T>::_StencilDataType<SSP::Lag2,Dummy>{
     typedef HamiltonFastMarching<T> HFM;
-    Redeclare6Types(FromHFM,IndexCRef,OffsetCRef,StencilType,DifferenceType,Traits,FullIndexCRef)
-    Redeclare5Types(FromHFM,ParamInterface,HFMI,MultiplierType,DomainType,DistanceGuess)
-    Redeclare6Types(FromTraits,DiscreteType,ScalarType,PointType,VectorType,IndexType,OffsetType)
-    Redeclare1Constant(FromTraits,Dimension)
+    Redeclare6Types(HFM,IndexCRef,OffsetCRef,StencilType,DifferenceType,Traits,FullIndexCRef)
+    Redeclare5Types(HFM,ParamInterface,HFMI,MultiplierType,DomainType,DistanceGuess)
+    Redeclare6Types(Traits,DiscreteType,ScalarType,PointType,VectorType,IndexType,OffsetType)
+    Redeclare1Constant(Traits,Dimension)
     
     IndexType dims; // Needs value
     void SetStencil(IndexCRef, StencilType &); // Needs specialization // Not virtual ?

@@ -1,5 +1,5 @@
 //
-//  main2D.cpp
+//  MatlabHFM.cpp
 //  
 //
 //  Created by Jean-Marie Mirebeau on 14/09/2016.
@@ -7,8 +7,8 @@
 //
 
 
-#include "Output/ExportMacros.h"
-#include "Output/MexIO.h"
+#include "JMM_CPPLibs/Output/ExportMacros.h"
+#include "JMM_CPPLibs/Output/MexIO.h"
 typedef IO_<MexIO> IO;
 typedef typename IO::Msg Msg;
 typedef typename IO::WarnMsg WarnMsg;

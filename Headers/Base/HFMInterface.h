@@ -15,9 +15,9 @@
 template<typename TTraits> struct HFMInterface {
     typedef TTraits Traits;
     typedef HamiltonFastMarching<Traits> HFM;
-    Redeclare4Types(FromHFM,ActiveNeighFlagType,StencilDataType,ExtraAlgorithmInterface,GeodesicSolverInterface);
-    Redeclare5Types(FromTraits,DiscreteType,ScalarType,PointType,VectorType,IndexType);
-    Redeclare2Constants(FromTraits,Dimension,mathPi)
+    Redeclare4Types(HFM,ActiveNeighFlagType,StencilDataType,ExtraAlgorithmInterface,GeodesicSolverInterface);
+    Redeclare5Types(Traits,DiscreteType,ScalarType,PointType,VectorType,IndexType);
+    Redeclare2Constants(Traits,Dimension,mathPi)
 
     template<typename E, size_t n> using Array = typename Traits::template Array<E,n>;
     template<typename E> using DataSource = typename Traits::template DataSource<E>;
@@ -36,11 +36,12 @@ template<typename TTraits> struct HFMInterface {
     template<typename E> std::unique_ptr<DataSource<E> > GetIntegralField(std::string s);
     void ExportGeodesics(std::string, const std::vector<PointType> &);
     template<typename E> struct DataSource_Inverse; // A data source which inverses the values of another data source.
-    template<bool b=HFM::hasBundle, typename Dummy=void> struct SpecializationsDefault; // Mostly internal methods
+    template<bool b, typename Dummy> struct SpecializationsDefault_; // Mostly internal methods
+	typedef SpecializationsDefault_<HFM::hasBundle,void> SpecializationsDefault;
 protected:
     template<typename E> struct DataSource_Array;
-    template<typename E, bool b=HFM::hasBundle> struct DataSource_Indep; // A data source independent of the "bundle" coords.
-    template<typename E, bool b=HFM::hasBundle> struct DataSource_Dep;   // A data source depending only on the "bundle" coords.
+    template<typename E, bool=HFM::hasBundle> struct DataSource_Indep; // A data source independent of the "bundle" coords.
+    template<typename E, bool=HFM::hasBundle> struct DataSource_Dep;   // A data source depending only on the "bundle" coords.
     template<typename E> struct TimeDependentSource;
 
 //    std::unique_ptr<StencilDataType> _pStencil;

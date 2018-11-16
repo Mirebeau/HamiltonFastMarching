@@ -6,8 +6,9 @@
 #define CommonTraits_h
 
 #include "Base/HFMInterface.h"
-#include "LinearAlgebra/BasisReduction.h"
-#include "LinearAlgebra/SquareCube.h"
+
+#include "JMM_CPPLibs/LinearAlgebra/BasisReduction.h"
+#include "JMM_CPPLibs/LinearAlgebra/SquareCube.h"
 
 #include "Base/BaseGrid.h"
 #include "Base/PeriodicGrid.h" //Boundary_AllClosed.
@@ -66,7 +67,6 @@ template<int VDim> struct TraitsBase {
 // Linker wants the following two lines for some obscure reason.
 template<int VD> constexpr const typename TraitsBase<VD>::StencilDepType_None TraitsBase<VD>::stencilDependencies;
 template<int VD> constexpr const Boundary_AllClosed TraitsBase<VD>::boundaryConditions;
-
 
 // --------------------- Tensor decomposition ---------------------
 

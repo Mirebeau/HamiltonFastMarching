@@ -19,7 +19,7 @@ Setup(HFMI * that) {
     IO & io = that->io;
     geodesicStep = io.Get<ScalarType>("geodesicStep",geodesicStep);
     causalityTolerance = io.Get<ScalarType>("geodesicCausalityTolerance",causalityTolerance);
-    targetTolerance = io.Get<ScalarType>("geodesicTargetTolerance",targetTolerance);
+    targetTolerance = (DiscreteType)io.Get<ScalarType>("geodesicTargetTolerance",targetTolerance);
 }
 
 template<typename Traits> std::vector<std::vector<typename Traits::PointType> >
@@ -57,7 +57,7 @@ GeodesicFlow(const PointType & p, const Array<ShortType,Dimension> & target, Flo
     ScalarType w[Dimension];
     ScalarType sign[Dimension];
     for(int i=0; i<Dimension; ++i) {
-        pIndex[i] = floor(p[i]);
+        pIndex[i] = (DiscreteType)floor(p[i]);
         w[i] = p[i]-pIndex[i]-0.5;
         sign[i] = w[i]>0 ? 1 : -1;
         w[i] = std::abs(w[i]);
@@ -85,7 +85,8 @@ GeodesicFlow(const PointType & p, const Array<ShortType,Dimension> & target, Flo
     // Get the neighbors
     for(int i=0; i< 1<<Dimension; ++i){
         OffsetType offset;
-        for(int j=0; j<Dimension; ++j){offset[j] = (i & (1<<j)) ? sign[j] : 0;}
+		typedef typename OffsetType::ComponentType OffsetComponentType;
+        for(int j=0; j<Dimension; ++j){offset[j] = (i & (1<<j)) ? OffsetComponentType(sign[j]) : 0;}
         IndexType qIndex;
         const auto transform = fm.VisibleOffset(pIndex, offset, qIndex);
         if(!transform.IsValid()) {
@@ -162,7 +163,7 @@ GeodesicODESolver<Traits>::Run(std::vector<PointType> & geodesic) const {
     if(geodesic.empty()) ExceptionMacro("GeodesicODESolver error : no start point !");
     FlowCacheType flowCache;
     
-    const DiscreteType nStationarityMax = stationarityThreshold/geodesicStep;
+    const DiscreteType nStationarityMax = DiscreteType(stationarityThreshold/geodesicStep);
     
     std::queue<DiscreteType> targetHistory;
     for(int i=0; i<sqrt(Dimension)/geodesicStep; ++i){
@@ -172,7 +173,7 @@ GeodesicODESolver<Traits>::Run(std::vector<PointType> & geodesic) const {
         const PointType & p = geodesic.back();
         auto flowData = GeodesicFlow(p,targetDistances,flowCache);
         
-        const ScalarType oldTargetTolerance = targetHistory.front();
+        const DiscreteType oldTargetTolerance = targetHistory.front();
         targetHistory.pop();
         targetHistory.push(flowData.targetTolerance);
         if(oldTargetTolerance < flowData.targetTolerance) return false; // Getting away from target.

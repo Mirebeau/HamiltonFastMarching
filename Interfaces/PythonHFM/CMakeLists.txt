@@ -1,20 +1,19 @@
-cmake_minimum_required(VERSION 2.8.12)
+cmake_minimum_required(VERSION 3.1)
 project(pybind11_hfm)
-Set(PATH_TO_PYTHON_EXECUTABLE "/Users/jean-mariemirebeau/anaconda3/bin/python3.6" CACHE STRING "Path to python executable")
-Set(PYTHON_EXECUTABLE  ${PATH_TO_PYTHON_EXECUTABLE})
 
+FIND_PACKAGE(JMM_CPPLibs)
 FIND_PACKAGE(pybind11)
+
 include(${CMAKE_CURRENT_SOURCE_DIR}/../common.cmake)
 
-INCLUDE_DIRECTORIES(${PROJECT_DIR})
-#pybind11_add_module(pybind11_hfm src/main.cpp)
+INCLUDE_DIRECTORIES(../../Headers ${JMM_CPPLibs_INCLUDE_DIRS})
 
 
 # ------- Declare the different builds -------
 
 foreach(model ${ModelNames})
-pybind11_add_module(PythonHFM_${model} src/main.cpp)
-target_compile_definitions(PythonHFM_${model} PRIVATE ModelName=${model} PythonModuleName=PythonHFM_${model})
+pybind11_add_module(HFM_${model} src/main.cpp)
+target_compile_definitions(HFM_${model} PRIVATE ModelName=${model} PythonModuleName=HFM_${model})
 endforeach(model)
 
 if(CustomExecutable)

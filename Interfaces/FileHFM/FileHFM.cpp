@@ -2,14 +2,14 @@
 // Copyright (C) 2017 Jean-Marie Mirebeau, University Paris-Sud, CNRS, University Paris-Saclay.
 // Licence GPU GPL v3 or later, see <http://www.gnu.org/licenses/>. Distributed WITHOUT ANY WARRANTY.
 
-#include "Output/ExportMacros.h"
-#include "Output/FileIO.h"
+#include "JMM_CPPLibs/Macros/ExportArrow.h"
+#include "JMM_CPPLibs/Output/FileIO.h"
 typedef IO_<FileIO> IO;
 typedef typename IO::Msg Msg;
 typedef typename IO::WarnMsg WarnMsg;
 #include "DispatchAndRun.h"
 
-int main(int argc, const char * argv[]) {
+int main(int argc, const char * argv[]) { 
     std::string inputPrefix, outputPrefix;
     
     inputPrefix  = argc > 1 ? argv[1] : "input";

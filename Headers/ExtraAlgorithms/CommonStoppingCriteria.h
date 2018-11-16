@@ -11,8 +11,8 @@ template<typename T> struct CommonStoppingCriteria :
 HamiltonFastMarching<T>::ExtraAlgorithmInterface {
     typedef HamiltonFastMarching<T> HFM;
     typedef typename HFM::ExtraAlgorithmInterface Superclass;
-    Redeclare7Types(FromHFM,IndexCRef,IndexType,ScalarType,Traits,Decision,HFMI,PointType)
-    Redeclare1Constant(FromHFM,Dimension)
+    Redeclare7Types(HFM,IndexCRef,IndexType,ScalarType,Traits,Decision,HFMI,PointType)
+    Redeclare1Constant(HFM,Dimension)
     
     virtual void Setup(HFMI*) override;
     virtual void Finally(HFMI*) override;
@@ -21,7 +21,7 @@ HamiltonFastMarching<T>::ExtraAlgorithmInterface {
     std::set<IndexType> stopWhenAnyAccepted;
     std::set<IndexType> stopWhenAllAccepted;
     
-    typedef typename HFMI::template SpecializationsDefault<> HFMIS;
+    typedef typename HFMI::SpecializationsDefault HFMIS;
     typedef typename HFMIS::UnorientedIndexType UnorientedIndexType;
     std::set<UnorientedIndexType> stopWhenAnyAccepted_Unoriented;
     std::set<UnorientedIndexType> stopWhenAllAccepted_Unoriented;
@@ -51,7 +51,7 @@ CommonStoppingCriteria<T>::ImplementIn(HFM * _pFM) {
     _pFM->extras.postProcess.push_back(this);
     pFM = _pFM;
     for(auto it=progressReportLandmarks.rbegin(); it!=progressReportLandmarks.rend(); ++it)
-        nAcceptedLandmarks.push_back(pFM->values.size()* *it);
+        nAcceptedLandmarks.push_back(size_t(pFM->values.size()* *it));
     return true;
 }
 
@@ -100,7 +100,7 @@ CommonStoppingCriteria<T>::Setup(HFMI*that){
     // Stopping criteria
     
     if(io.HasField("nMaxAccepted"))
-        nMaxAccepted = io.template Get<ScalarType>("nMaxAccepted");
+        nMaxAccepted = (size_t)io.template Get<ScalarType>("nMaxAccepted");
     
     if(io.HasField("stopWhenAnyAccepted")){
         const auto & targets = io.template GetVector<PointType>("stopWhenAnyAccepted");
@@ -144,7 +144,7 @@ CommonStoppingCriteria<T>::Setup(HFMI*that){
     
     // Other parameters
     
-    showProgress = io.template Get<ScalarType>("showProgress",showProgress);
+    showProgress = io.template Get<ScalarType>("showProgress",showProgress)!=0;
     if(io.HasField("progressReportLandmarks")){
         progressReportLandmarks = io.template GetVector<ScalarType>("progressReportLandmarks");
         showProgress = !progressReportLandmarks.empty();
@@ -154,7 +154,7 @@ CommonStoppingCriteria<T>::Setup(HFMI*that){
 
 template<typename T> void
 CommonStoppingCriteria<T>::Finally(HFMI*that){
-    if(pFM!=nullptr) that->io.template Set<ScalarType>("nAccepted",nAccepted);
+    if(pFM!=nullptr) that->io.template Set<ScalarType>("nAccepted",(ScalarType)nAccepted);
 };
 
 

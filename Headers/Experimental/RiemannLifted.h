@@ -6,7 +6,7 @@
 #define RiemannLifted_h
 
 #include "Specializations/CommonTraits.h"
-#include "LinearAlgebra/VectorPairType.h"
+#include "JMM_CPPLibs/LinearAlgebra/VectorPairType.h"
 
 template<Boundary cond>
 struct TraitsRiemannLifted2 : TraitsBase<3> {
@@ -28,7 +28,7 @@ template<Boundary cond>
 struct StencilRiemannLifted2 : HamiltonFastMarching<TraitsRiemannLifted2<cond> >::StencilDataType {
     typedef HamiltonFastMarching<TraitsRiemannLifted2<cond> > HFM;
     typedef typename HFM::StencilDataType Superclass;
-    Redeclare7Types(FromSuperclass,Traits,IndexType,StencilType,ParamInterface,HFMI,ScalarType,DiscreteType);
+    Redeclare7Types(Superclass,Traits,IndexType,StencilType,ParamInterface,HFMI,ScalarType,DiscreteType);
     typedef typename Traits::template BasisReduction<2> ReductionType;
     typedef typename ReductionType::SymmetricMatrixType Sym;
     typedef LinearAlgebra::VectorPair<Sym,ScalarType> MetricElementType;

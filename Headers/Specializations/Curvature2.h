@@ -149,8 +149,8 @@ struct StencilElastica2
 : HamiltonFastMarching<TraitsElastica2<nFejer> >::StencilDataType {
     typedef HamiltonFastMarching<TraitsElastica2<nFejer> > HFM;
     typedef typename HFM::StencilDataType Superclass;
-    Redeclare7Types(FromSuperclass,Traits,ScalarType,IndexType,VectorType,StencilType,ParamInterface,HFMI)
-    Redeclare1Constant(FromTraits,mathPi)
+    Redeclare7Types(Superclass,Traits,ScalarType,IndexType,VectorType,StencilType,ParamInterface,HFMI)
+    Redeclare1Constant(Traits,mathPi)
     
     typename HFM::ParamDefault param;
     ScalarType eps=0.1, xi=1.;

@@ -1,4 +1,6 @@
-Windows compilation notes, using mingw gcc:
+Please ignore these notes, written by the developper for his own interest.
+
+---- Windows compilation notes, using mingw gcc:
 
 Following headers are not included by default:
 - <limits> numeric limits not found. (PointBaseType.h)
@@ -21,3 +23,26 @@ Exceptions :
 In mathematica:
 Careful with "\n" and "\r" ends of lines.
 Executable should not be preceded with "./"
+
+
+-----
+(Instructions pour compiler le code python via Anaconda)
+
+- Modifier JMM_CPPLibs (si nécessaire)
+- source activate testhfm
+- cd JMM_CPPLibs/build
+- make install
+- cd HamiltonFastMarching/Interfaces/Python
+- python setup.py install (build pour compilation seule)
+
+(Remarque)
+- La TestCompilation limite à deux les modèles compilés.
+- Supprimer le répertoire build pour reprendre en compte common.cmake
+
+(Quand tout marche)
+- commit sur les deux sources
+- release sur github
+
+(Dans les jupyter notebooks)
+conda install nb_conda
+----- 

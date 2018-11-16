@@ -5,11 +5,8 @@
 #ifndef DispatchAndRun_h
 #define DispatchAndRun_h
 
-#define PPCAT_NX(A, B) A ## B
-#define PPCAT(A, B) PPCAT_NX(A, B)
-#define STRING_NX(s) #s
-#define STRING(s) STRING_NX(s)
-
+#include "JMM_CPPLibs/Macros/String.h"
+#include "JMM_CPPLibs/Macros/PPCat.h"
 // **** Do we need high dimensional Voronoi reduction ***
 
 #define HighVoronoi_Riemann4                1
@@ -170,7 +167,7 @@ if(model== #modelName){ \
 template<typename TTraits> struct HFMInterface2 {
     typedef TTraits Traits;
     typedef HamiltonFastMarching<Traits> HFM;
-    Redeclare4Types(FromHFM,ActiveNeighFlagType,StencilDataType,ExtraAlgorithmInterface,GeodesicSolverInterface);
+    Redeclare4Types(HFM,ActiveNeighFlagType,StencilDataType,ExtraAlgorithmInterface,GeodesicSolverInterface);
     
     template<typename E, size_t n> using Array = typename Traits::template Array<E,n>;
     template<typename E> using DataSource = typename Traits::template DataSource<E>;

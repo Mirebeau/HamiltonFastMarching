@@ -5,9 +5,9 @@
 #ifndef PeriodicGrid_h
 #define PeriodicGrid_h
 
-#include "DataStructures/RedeclareTypesMacro.h"
-#include "Output/ExceptionMacro.h"
-#include "LinearAlgebra/SquareCube.h"
+#include "JMM_CPPLibs/Macros/RedeclareTypes.h"
+#include "JMM_CPPLibs/Macros/Exception.h"
+#include "JMM_CPPLibs/LinearAlgebra/SquareCube.h"
 
 // TODO : Put this file in specializations
 
@@ -55,9 +55,8 @@ struct Boundary_AllClosed {
 template<typename TTraits> struct PeriodicGrid : TTraits::BaseDomain {
     typedef TTraits Traits;
     typedef typename Traits::BaseDomain Superclass;
-    Redeclare5Types(FromSuperclass,IndexType,PointType,IndexCRef,DiscreteType,ScalarType)
-    Redeclare1Constant(FromSuperclass,Dimension);
-    
+    Redeclare5Types(Superclass,IndexType,PointType,IndexCRef,DiscreteType,ScalarType)
+    Redeclare1Constant(Superclass,Dimension);    
     struct Transform;
     
     // Target point, base point (here ignored)

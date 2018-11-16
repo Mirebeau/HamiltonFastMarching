@@ -12,9 +12,10 @@
 template<typename T> struct FirstVariation :
 HamiltonFastMarching<T>::ExtraAlgorithmInterface {
     typedef HamiltonFastMarching<T> HFM;
-    Redeclare7Types(FromHFM,IndexType,ScalarType,IndexCRef,HFMI,DifferenceType,ActiveNeighFlagType,DiscreteType)
-    Redeclare5Types(FromHFM,Traits,RecomputeType,DiscreteFlowType,PointType,IndexDiff)
-    Redeclare1Constant(FromHFM,Dimension)
+    Redeclare7Types(HFM,IndexType,ScalarType,IndexCRef,HFMI,DifferenceType,ActiveNeighFlagType,DiscreteType)
+    Redeclare5Types(HFM,Traits,RecomputeType,DiscreteFlowType,PointType,IndexDiff)
+    Redeclare1Constant(HFM,Dimension)
+
     template<typename E, size_t n> using Array = typename HFM::template Array<E,n>;
     typedef typename std::conditional<HFM::policy==SSP::Share, typename HFM::MultiplierType, ScalarType>::type MultType;
     
@@ -118,7 +119,7 @@ template<typename T> void FirstVariation<T>::Finally(HFMI*that){
 template<typename TTraits> template<size_t VMultSize, typename Dummy>
 struct FirstVariation<TTraits>::_DiffHelper {
     typedef HamiltonFastMarching<TTraits> HFM;
-    Redeclare3Types(FromHFM,ScalarType,DifferenceType,MultiplierType);
+    Redeclare3Types(HFM,ScalarType,DifferenceType,MultiplierType);
     static MultiplierType NullMult(){return MultiplierType::Constant(0);}
     static ScalarType & Elem(MultiplierType & m, const DifferenceType & diff){return m[diff.multIndex];}
     static MultiplierType Times(ScalarType a, MultiplierType m){
@@ -133,7 +134,7 @@ struct FirstVariation<TTraits>::_DiffHelper {
 template<typename TTraits> template<typename Dummy>
 struct FirstVariation<TTraits>::_DiffHelper<1,Dummy> {
     typedef HamiltonFastMarching<TTraits> HFM;
-    Redeclare2Types(FromHFM,ScalarType,DifferenceType);
+    Redeclare2Types(HFM,ScalarType,DifferenceType);
     static ScalarType NullMult(){return 0;}
     static ScalarType & Elem(ScalarType & m, const DifferenceType & diff){return m;}
     static ScalarType Times(ScalarType a, ScalarType m){return a*m;}
@@ -143,7 +144,7 @@ struct FirstVariation<TTraits>::_DiffHelper<1,Dummy> {
 template<typename TTraits> template<typename Dummy>
 struct FirstVariation<TTraits>::_DiffHelper<0,Dummy> {
     typedef HamiltonFastMarching<TTraits> HFM;
-    Redeclare3Types(FromHFM,ScalarType,DifferenceType,MultiplierType);
+    Redeclare3Types(HFM,ScalarType,DifferenceType,MultiplierType);
     static ScalarType NullMult(){return 0;}
     static ScalarType & Elem(ScalarType & m, const DifferenceType & diff){return m;}
     static ScalarType Times(ScalarType a, ScalarType m){return a*m;}

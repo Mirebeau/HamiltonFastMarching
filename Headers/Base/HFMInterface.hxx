@@ -8,11 +8,11 @@
 // ---- Default stencil setup ------
 
 template<typename T> template<typename Dummy> struct
-HFMInterface<T>::SpecializationsDefault<true,Dummy> {
+HFMInterface<T>::SpecializationsDefault_<true,Dummy> {
     typedef HFMInterface<T> HFMI;
     typedef typename HFMI::HFM HFM;
-    Redeclare6Types(FromHFM,ScalarType,Traits,MultiplierType,PointType,IndexType,DiscreteType)
-    Redeclare2Constants(FromTraits,mathPi,Dimension)
+    Redeclare6Types(HFM,ScalarType,Traits,MultiplierType,PointType,IndexType,DiscreteType)
+    Redeclare2Constants(Traits,mathPi,Dimension)
     
     static const int DimDep =Traits::nStencilDependencies, DimIndep = Dimension-DimDep;
     template<typename E> using DataSource = typename HFM::template DataSource<E>;
@@ -92,11 +92,11 @@ HFMInterface<T>::SpecializationsDefault<true,Dummy> {
 };
 
 template<typename T> template<typename Dummy> struct
-HFMInterface<T>::SpecializationsDefault<false,Dummy> {
+HFMInterface<T>::SpecializationsDefault_<false,Dummy> {
     typedef HFMInterface<T> HFMI;
     typedef typename HFMI::HFM HFM;
-    Redeclare3Types(FromHFM,ScalarType,PointType,IndexType)
-    Redeclare1Constant(FromHFM,Dimension)
+    Redeclare3Types(HFM,ScalarType,PointType,IndexType)
+    Redeclare1Constant(HFM,Dimension)
     
     template<typename E> using DataSource = typename HFM::template DataSource<E>;
     template<typename E> using DataSource_Value = typename HFMI::template DataSource_Value<E>;
@@ -135,15 +135,16 @@ HFMInterface<T>::DataSource_Inverse : DataSource<E> {
     std::unique_ptr<Superclass> pSource;
     DataSource_Inverse(std::unique_ptr<Superclass> p):pSource(std::move(p)){}
     
-    template<bool,typename=void> struct Inv; // Better with C++17 'if constexpr'
-    template<typename Dummy> struct Inv<true,Dummy>{
+    template<bool,typename> struct Inv_; // Better with C++17 'if constexpr'
+	typedef Inv_<std::numeric_limits<ReturnType>::is_specialized, void> Inv;
+    template<typename Dummy> struct Inv_<true,Dummy>{
         ReturnType operator()(const ReturnType & t){return 1./t;}};
-    template<typename Dummy> struct Inv<false,Dummy> {
+    template<typename Dummy> struct Inv_<false,Dummy> {
         ReturnType operator()(const ReturnType & t){
             ReturnType s; for(int i=0; i<t.size(); ++i) s[i]=1./t[i]; return s;}};
 
     virtual ReturnType operator()(const IndexType & index) const {
-        return Inv<std::numeric_limits<ReturnType>::is_specialized>()((*pSource)(index));}
+        return Inv()((*pSource)(index));}
     virtual bool CheckDims(const IndexType & dims) const {
         if(!pSource) return false; return pSource->CheckDims(dims);}
 };
@@ -172,9 +173,9 @@ template<typename T> template<typename E> struct
 HFMInterface<T>::DataSource_Indep<E,true> : DataSource<E> {
     typedef typename HFMInterface<T>::HFM HFM;
     typedef typename HFM::template DataSource<E>::ReturnType ReturnType;
-    Redeclare2Types(FromHFM,Traits,IndexType)
-    Redeclare1Constant(FromHFM,Dimension)
-    typedef HFMInterface<T>::Array<E, Dimension-Traits::nStencilDependencies> ArrayType;
+    Redeclare2Types(HFM,Traits,IndexType)
+    Redeclare1Constant(HFM,Dimension)
+    typedef typename HFMInterface<T>::template Array<E, Dimension-Traits::nStencilDependencies> ArrayType;
     ArrayType values;
     DataSource_Indep(ArrayType && _values):values(std::move(_values)){};
     typedef typename ArrayType::IndexType ShortIndexType;
@@ -198,9 +199,9 @@ template<typename T> template<typename E> struct
 HFMInterface<T>::DataSource_Dep<E,true> : DataSource<E> {
     typedef typename HFMInterface<T>::HFM HFM;
     typedef typename HFM::template DataSource<E>::ReturnType ReturnType;
-    Redeclare2Types(FromHFM,Traits,IndexType)
-    Redeclare1Constant(FromHFM,Dimension)
-    typedef HFMInterface<T>::Array<E, Traits::nStencilDependencies> ArrayType;
+    Redeclare2Types(HFM,Traits,IndexType)
+    Redeclare1Constant(HFM,Dimension)
+    typedef typename HFMInterface<T>::template Array<E, Traits::nStencilDependencies> ArrayType;
     ArrayType values;
     DataSource_Dep(ArrayType && _values):values(std::move(_values)){};
     typedef typename ArrayType::IndexType ShortIndexType;
@@ -255,7 +256,7 @@ struct HFMInterface<T>::TimeDependentSource : DataSource<E> {
 template<typename T> template<typename E> auto
 HFMInterface<T>::GetField(std::string s, bool mayDependOnTime) -> std::unique_ptr<DataSource<E> > {
     if(io.HasField(s)){
-    std::unique_ptr<DataSource<E> > result = SpecializationsDefault<>::template GetField<E>(s,this);
+    std::unique_ptr<DataSource<E> > result = SpecializationsDefault::template GetField<E>(s,this);
     if(!result->CheckDims(stencil.dims)){
         ExceptionMacro("Error : Field " << s << " has inconsistent dimensions");}
         return std::move(result);
@@ -277,7 +278,7 @@ HFMInterface<T>::GetField(std::string s, bool mayDependOnTime) -> std::unique_pt
 
 template<typename T> template<typename E> auto
 HFMInterface<T>::GetIntegralField(std::string s) -> std::unique_ptr<DataSource<E> > {
-    std::unique_ptr<DataSource<E> > result = SpecializationsDefault<>::template GetIntegralField<E>(s,this);
+    std::unique_ptr<DataSource<E> > result = SpecializationsDefault::template GetIntegralField<E>(s,this);
     if(!result->CheckDims(stencil.dims)){
         ExceptionMacro("Error : Field " << s << " has inconsistent dimensions.\n");}
     return std::move(result);}
@@ -298,7 +299,7 @@ Run() {
 template<typename T> void HFMInterface<T>::
 Run_SetupIO() {
     // Setup input array ordering policy
-    io.verbosity = io.Get<ScalarType>("verbosity",io.verbosity);
+    io.verbosity = (int)io.Get<ScalarType>("verbosity",io.verbosity);
     io.arrayOrdering = enumFromString<IO::ArrayOrdering>(io.GetString("arrayOrdering",enumToRealString(io.arrayOrdering)));
     if(static_cast<int>(io.arrayOrdering)==-1) ExceptionMacro("Error : unrecognized array ordering");
     pTime = std::unique_ptr<TimeDependentFields<T> >(new TimeDependentFields<T>);
@@ -319,7 +320,7 @@ template<typename T> void HFMInterface<T>::
 Run_SetupSolver() {
     // ------- Some exports that are independent of the fast marching results -------
     io.Set<ScalarType>("MaxStencilWidth",pFM->MaxStencilWidth());
-    pFM->sndOrder = (bool)io.template Get<ScalarType>("sndOrder",0.);
+    pFM->sndOrder = io.template Get<ScalarType>("sndOrder",0.)!=0;
 
     if(io.HasField("getStencils")) {
         const auto & pts = io.GetVector<PointType>("getStencils");
@@ -366,7 +367,7 @@ Run_SetupSolver() {
         }
         
         if(HFM::hasBundle && io.HasField("seeds_Unoriented")){
-            typedef typename SpecializationsDefault<>::UnorientedPointType UnorientedPointType;
+            typedef typename SpecializationsDefault::UnorientedPointType UnorientedPointType;
             const auto uPoints = io.GetVector<UnorientedPointType>("seeds_Unoriented");
             
             std::vector<ScalarType> uValues;
@@ -376,7 +377,7 @@ Run_SetupSolver() {
 
             std::vector<PointType> equiv;
             for(int i=0; i<uPoints.size(); ++i){
-                SpecializationsDefault<>::PadAdimEquiv(this,uPoints[i],equiv);
+                SpecializationsDefault::PadAdimEquiv(this,uPoints[i],equiv);
                 seedPoints.insert(seedPoints.end(),equiv.begin(),equiv.end());
                 seedValues.resize(seedValues.size()+equiv.size(),uValues[i]);
             }
@@ -448,7 +449,7 @@ ExportGeodesics(std::string suffix, const std::vector<PointType> & tips){
     const auto & geodesics = pGeodesicSolver->Run(this,tips);
 
     std::vector<ScalarType> geodesicLengths;
-    for(const auto & geo : geodesics) {geodesicLengths.push_back(geo.size());}
+    for(const auto & geo : geodesics) {geodesicLengths.push_back((ScalarType)geo.size());}
     std::vector<PointType> geodesicPoints;
     geodesicPoints.reserve((size_t)std::accumulate(geodesicLengths.begin(), geodesicLengths.end(), 0.));
     for(const auto & geo : geodesics) for(const PointType & p : geo) geodesicPoints.push_back(stencil.Param().ReDim(p));
@@ -466,13 +467,13 @@ Run_ExtractGeodesics() {
         ExportGeodesics("",tips);
     }
     if(HFM::hasBundle && io.HasField("tips_Unoriented")){
-        typedef typename SpecializationsDefault<>::UnorientedPointType UnorientedPointType;
+        typedef typename SpecializationsDefault::UnorientedPointType UnorientedPointType;
         const auto indepTips = io.GetVector<UnorientedPointType>("tips_Unoriented");
         
         std::vector<PointType> tips;
         std::vector<PointType> equiv;
         for(const UnorientedPointType & indepTip : indepTips){
-            SpecializationsDefault<>::PadAdimEquiv(this,indepTip,equiv);
+            SpecializationsDefault::PadAdimEquiv(this,indepTip,equiv);
             ScalarType valMin=Traits::Infinity();
             PointType pMin=equiv.front();
             for(const PointType & q : equiv){
