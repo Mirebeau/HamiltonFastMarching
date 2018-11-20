@@ -15,7 +15,6 @@ set(Base_Implementation_Headers
 	${CMAKE_CURRENT_SOURCE_DIR}/EulerianStencil.hxx
 	${CMAKE_CURRENT_SOURCE_DIR}/PeriodicGrid.hxx
 	${CMAKE_CURRENT_SOURCE_DIR}/EulerianStencil.hxx
-	${CMAKE_CURRENT_SOURCE_DIR}/Lagrangian2Stencil.hxx
 	${CMAKE_CURRENT_SOURCE_DIR}/HamiltonFastMarching.hxx
 	${CMAKE_CURRENT_SOURCE_DIR}/HFM_StencilDataType.hxx
 	${CMAKE_CURRENT_SOURCE_DIR}/HFM_ParamDefault.hxx

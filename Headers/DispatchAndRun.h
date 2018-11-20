@@ -151,7 +151,7 @@ if(model== #modelName){ \
 //#include "Experimental/RiemannLifted.h"
 
 //#include "Experimental/AlignedBillard.h"
-#include "Base/Lagrangian2Stencil.h"
+#include "Specializations/QuadLinLag2.h"
 #endif
 /*
 #ifdef AllBaseModels
