@@ -333,12 +333,10 @@ HamiltonFastMarching<Traits>::_StencilDataType<SSP::Lag2, Dummy>::Initialize(con
         
         
         for(auto it = directOffsets.begin()+directOffsetsSplits.back(); it!=directOffsets.end(); ++it){
-            for(int i=0; i<(StencilType::Periodicity==Lagrangian2StencilPeriodicity::Double ? 2 : 1); ++i){
-                const OffsetType offset = ShortType(1-2*i)*(*it);
-                IndexType neighbor = index+IndexDiff::CastCoordinates(offset);
-                if(pFM->dom.Periodize(neighbor,index).IsValid()){
-                    targets.push_back({indexConverter.Convert(neighbor), offset});}
-            }
+			const OffsetType & offset = *it;
+			IndexType neighbor = index+IndexDiff::CastCoordinates(offset);
+			if(pFM->dom.Periodize(neighbor,index).IsValid()){
+				targets.push_back({indexConverter.Convert(neighbor), offset});}
         }
     }
     
@@ -365,19 +363,18 @@ HopfLaxUpdate(FullIndexCRef full, OffsetCRef acceptedOffset, ScalarType accepted
     const IndexType updatedIndex = full.index;
     
     // Get the sector
-    const bool Per = StencilType::Periodicity!=Lagrangian2StencilPeriodicity::None;
     StencilType stencil;
     SetStencil(updatedIndex, stencil);
     int i = 0;
     for(;stencil.Sector(i,0)!=acceptedOffset; ++i){ // Find the relevant sector
-        assert(i<stencil.NSectors() || !Per && i<=stencil.NSectors());}
+        assert(i<stencil.NSectors());}
     
     OffsetVal3 offsetVal;
     std::array<ShortType, 3> act;
-    act[0] = Per ? i : std::min(i,stencil.NSectors()-1);
+    act[0] = i;
     offsetVal.push_back({acceptedOffset,acceptedValue});
     
-    while(Per||i<stencil.NSectors()){
+    while(true){
         const OffsetType offset = stencil.Sector(i,1);
         IndexType neigh = updatedIndex+IndexDiff::CastCoordinates(offset);
         if(!pFM->dom.Periodize(neigh,updatedIndex).IsValid()) break;
@@ -387,8 +384,8 @@ HopfLaxUpdate(FullIndexCRef full, OffsetCRef acceptedOffset, ScalarType accepted
         break;
     }
     
-    while(Per||i>0){
-        const int j = ((Per && i==0) ? stencil.NSectors()-1 : i-1);
+    while(true){
+        const int j = (i==0 ? stencil.NSectors()-1 : i-1);
         const OffsetType offset = stencil.Sector(j,0);
         IndexType neigh = updatedIndex+IndexDiff::CastCoordinates(offset);
         if(!pFM->dom.Periodize(neigh,updatedIndex).IsValid()) break;

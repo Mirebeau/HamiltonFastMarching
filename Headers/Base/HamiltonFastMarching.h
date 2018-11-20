@@ -26,7 +26,6 @@ template<typename T> struct HFMInterface;
 template<typename T> struct DynamicFactoring;
 
 enum class StencilStoragePolicy {Share,Recomp,Lag2};
-enum class Lagrangian2StencilPeriodicity {None, Simple, Double}; // Should have been in Lagrangian2Stencil.h ...
 
 template<typename TTraits>
 struct HamiltonFastMarching {

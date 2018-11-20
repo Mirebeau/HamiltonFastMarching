@@ -19,40 +19,19 @@
 
 // ----------- Semi-Lagrangian scheme ------------
 
-//enum class Lagrangian2StencilPeriodicity {None, Simple, Double};
-
-template<typename TOff, typename TIndDiff, Lagrangian2StencilPeriodicity VPer>
+template<typename TOff, typename TIndDiff>
 struct Lagrangian2Stencil {
     typedef TOff OffsetType;
     typedef TIndDiff IndexDiff;
     typedef typename IndexDiff::ComponentType DiscreteType;
     typedef typename OffsetType::ComponentType ShortType;
     static const DiscreteType Dimension = IndexDiff::Dimension;
-    static const Lagrangian2StencilPeriodicity Periodicity = VPer;
     
-    DiscreteType NSectors() const {
-        switch(Periodicity){
-            case Lagrangian2StencilPeriodicity::None:    return nOffsets-1;
-            case Lagrangian2StencilPeriodicity::Simple:  return nOffsets;
-            case Lagrangian2StencilPeriodicity::Double:  return 2*nOffsets;
-			default:
-				assert(false);
-				return 0;
-        }
-    }
-    OffsetType Sector(DiscreteType n, DiscreteType k) const {
+	DiscreteType NSectors() const {return nOffsets;}
+    const OffsetType & Sector(DiscreteType n, DiscreteType k) const {
         assert(0<=k && k<Dimension);
-        assert(0<=n && n<NSectors()
-               || (Periodicity==Lagrangian2StencilPeriodicity::None && n==NSectors() && k==0)); // slightly abusive use case
-        const DiscreteType m = n+k;
-        switch(Periodicity){
-            case Lagrangian2StencilPeriodicity::None:   return pOffsets[m];
-            case Lagrangian2StencilPeriodicity::Simple: return pOffsets[m%nOffsets];
-            case Lagrangian2StencilPeriodicity::Double: return m<nOffsets ? pOffsets[m] : -pOffsets[m-nOffsets];
-			default:
-				assert(false);
-				return OffsetType();
-        }
+        assert(0<=n && n<NSectors()); // slightly abusive use case
+        return pOffsets[(n+k)%nOffsets];
     }
     
     PrintSelfMacro(Lagrangian2Stencil);
@@ -78,9 +57,8 @@ struct Lagrangian2Stencil {
 };
 
 
-//typedef Lagrangian2StencilPeriodicity LSP;
-template<typename TO, typename TID, Lagrangian2StencilPeriodicity VPer> void
-Lagrangian2Stencil<TO,TID,VPer>::PrintSelf(std::ostream & os) const {
+template<typename TO, typename TID> void
+Lagrangian2Stencil<TO,TID>::PrintSelf(std::ostream & os) const {
     os << "{";
     for(int i=0; i<nOffsets; ++i) os << pOffsets[i] << ",";
     os << "}";
@@ -89,7 +67,7 @@ Lagrangian2Stencil<TO,TID,VPer>::PrintSelf(std::ostream & os) const {
 // -----
 
 struct TraitsRanderLag2 : TraitsBase<2> {
-    typedef Lagrangian2Stencil<OffsetType,IndexDiff,Lagrangian2StencilPeriodicity::Simple> StencilType;
+    typedef Lagrangian2Stencil<OffsetType,IndexDiff> StencilType;
     typedef PeriodicGrid<TraitsRanderLag2> DomainType;
     struct DifferenceType {static const int multSize = -1; struct MultiplierType {};};
     
@@ -99,7 +77,7 @@ struct TraitsRanderLag2 : TraitsBase<2> {
 };
 
 struct TraitsAsymmetricQuadraticLag2 : TraitsBase<2> {
-    typedef Lagrangian2Stencil<OffsetType,IndexDiff,Lagrangian2StencilPeriodicity::Simple> StencilType;
+    typedef Lagrangian2Stencil<OffsetType,IndexDiff> StencilType;
     typedef PeriodicGrid<TraitsAsymmetricQuadraticLag2> DomainType;
     struct DifferenceType {static const int multSize = -1; struct MultiplierType {};};
     
