@@ -9,8 +9,36 @@
 #define QuadLinLag2_h
 
 #include "Base/Lagrangian2Stencil.h"
+#include "JMM_CPPLibs/LinearAlgebra/RanderNorm.h"
+#include "JMM_CPPLibs/LinearAlgebra/AsymmetricQuadraticNorm.h"
 
-/// Stencil for metrics built of a quadratic and a linear part
+#include "Specializations/CommonTraits.h"
+#include "JMM_CPPLibs/LinearAlgebra/HopfLaxMinimize.h"
+#include "JMM_CPPLibs/LinearAlgebra/VectorPairType.h"
+
+
+/// Traits and stencil for metrics built of a quadratic and a linear part
+
+struct TraitsRanderLag2 : TraitsBase<2> {
+	typedef Lagrangian2Stencil<OffsetType,ScalarType,DiscreteType> StencilType;
+	typedef PeriodicGrid<TraitsRanderLag2> DomainType;
+	struct DifferenceType {static const int multSize = -1; struct MultiplierType {};};
+	
+	typedef LinearAlgebra::RanderNorm<ScalarType,2> NormType;
+	typedef LinearAlgebra::RanderNorm<ScalarType,1> NormType1;
+	typedef NormType DistanceGuess;
+};
+
+struct TraitsAsymmetricQuadraticLag2 : TraitsBase<2> {
+	typedef Lagrangian2Stencil<OffsetType,ScalarType,DiscreteType> StencilType;
+	typedef PeriodicGrid<TraitsAsymmetricQuadraticLag2> DomainType;
+	struct DifferenceType {static const int multSize = -1; struct MultiplierType {};};
+	
+	typedef LinearAlgebra::AsymmetricQuadraticNorm<ScalarType,2> NormType;
+	typedef LinearAlgebra::AsymmetricQuadraticNorm<ScalarType,1> NormType1;
+	typedef NormType DistanceGuess;
+};
+
 template<typename T>
 struct StencilQuadLinLag2 : HamiltonFastMarching<T>::StencilDataType {
 	typedef HamiltonFastMarching<T> HFM;

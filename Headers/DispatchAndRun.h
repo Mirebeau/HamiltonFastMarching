@@ -152,6 +152,7 @@ if(model== #modelName){ \
 
 //#include "Experimental/AlignedBillard.h"
 #include "Specializations/QuadLinLag2.h"
+#include "Base/Lagrangian3Stencil.h"
 #endif
 /*
 #ifdef AllBaseModels

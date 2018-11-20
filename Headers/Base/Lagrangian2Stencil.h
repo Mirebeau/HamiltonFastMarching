@@ -10,22 +10,17 @@
 
 #include <forward_list>
 #include "JMM_CPPLibs/DataStructures/CappedVector.h"
-#include "JMM_CPPLibs/LinearAlgebra/RanderNorm.h"
-#include "JMM_CPPLibs/LinearAlgebra/AsymmetricQuadraticNorm.h"
-
-#include "Specializations/CommonTraits.h"
-#include "JMM_CPPLibs/LinearAlgebra/HopfLaxMinimize.h"
-#include "JMM_CPPLibs/LinearAlgebra/VectorPairType.h"
 
 // ----------- Semi-Lagrangian scheme ------------
 
-template<typename TOff, typename TIndDiff>
+template<typename TOff, typename TScalar, typename TDiscrete>
 struct Lagrangian2Stencil {
     typedef TOff OffsetType;
-    typedef TIndDiff IndexDiff;
-    typedef typename IndexDiff::ComponentType DiscreteType;
+	typedef TDiscrete DiscreteType;
+	typedef TScalar ScalarType;
     typedef typename OffsetType::ComponentType ShortType;
-    static const DiscreteType Dimension = IndexDiff::Dimension;
+    static const DiscreteType Dimension = OffsetType::Dimension;
+	static_assert(Dimension==2,"Two dimensional stencil class");
     
 	DiscreteType NSectors() const {return nOffsets;}
     const OffsetType & Sector(DiscreteType n, DiscreteType k) const {
@@ -45,46 +40,23 @@ struct Lagrangian2Stencil {
     
     // TODO : Remove when possible ? (Put in StencilData specialization ?)
     static const int nActiveNeigh = Dimension;
-    typedef double ScalarType;
-    
     struct DiscreteFlowElement {OffsetType offset; ScalarType weight;};
     typedef CappedVector<DiscreteFlowElement, nActiveNeigh> DiscreteFlowType;
     struct RecomputeType {ScalarType value,width;};
 
-//protected:
     OffsetType * pOffsets;
     DiscreteType nOffsets;
 };
 
 
-template<typename TO, typename TID> void
-Lagrangian2Stencil<TO,TID>::PrintSelf(std::ostream & os) const {
+template<typename TO, typename TS, typename TD> void
+Lagrangian2Stencil<TO,TS,TD>::PrintSelf(std::ostream & os) const {
     os << "{";
     for(int i=0; i<nOffsets; ++i) os << pOffsets[i] << ",";
     os << "}";
 }
 
 // -----
-
-struct TraitsRanderLag2 : TraitsBase<2> {
-    typedef Lagrangian2Stencil<OffsetType,IndexDiff> StencilType;
-    typedef PeriodicGrid<TraitsRanderLag2> DomainType;
-    struct DifferenceType {static const int multSize = -1; struct MultiplierType {};};
-    
-    typedef LinearAlgebra::RanderNorm<ScalarType,2> NormType;
-    typedef LinearAlgebra::RanderNorm<ScalarType,1> NormType1;
-    typedef NormType DistanceGuess;
-};
-
-struct TraitsAsymmetricQuadraticLag2 : TraitsBase<2> {
-    typedef Lagrangian2Stencil<OffsetType,IndexDiff> StencilType;
-    typedef PeriodicGrid<TraitsAsymmetricQuadraticLag2> DomainType;
-    struct DifferenceType {static const int multSize = -1; struct MultiplierType {};};
-    
-    typedef LinearAlgebra::AsymmetricQuadraticNorm<ScalarType,2> NormType;
-    typedef LinearAlgebra::AsymmetricQuadraticNorm<ScalarType,1> NormType1;
-    typedef NormType DistanceGuess;
-};
 
 template<typename TPred, typename TVec>
 void SternBrocotRefine(const TPred & stop, std::forward_list<TVec> & l){

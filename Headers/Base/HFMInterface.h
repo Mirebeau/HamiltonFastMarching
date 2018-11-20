@@ -56,7 +56,7 @@ protected:
     virtual void Run_ExportData();
 };
 
-// Please add more of these if needed
+// Please add more extra algorithms if needed
 #include "ExtraAlgorithms/CommonStoppingCriteria.h"
 #include "ExtraAlgorithms/WallObstructionTest.h"
 #include "ExtraAlgorithms/EuclideanPathLength.h"
