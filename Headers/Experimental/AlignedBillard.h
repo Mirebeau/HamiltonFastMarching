@@ -23,8 +23,8 @@
 template<typename TTraits>
 struct AlignedBillardGrid : TTraits::BaseDomain {
     typedef TTraits Traits;
-    Redeclare6Types(FromTraits,ScalarType,PointType,VectorType,DiscreteType,IndexType,IndexCRef)
-    Redeclare1Constant(FromTraits,Dimension)
+    Redeclare6Types(Traits,ScalarType,PointType,VectorType,DiscreteType,IndexType,IndexCRef)
+    Redeclare1Constant(Traits,Dimension)
     static_assert(Dimension==2, "AlignedBillardGrid error: two dimensional only");
     
     typedef typename Traits::BaseDomain Superclass;
@@ -67,8 +67,8 @@ struct TraitsAlignedBillard : TraitsBase<2> {
 struct StencilAlignedBillard : HamiltonFastMarching<TraitsAlignedBillard>::StencilDataType {
     typedef HamiltonFastMarching<TraitsAlignedBillard> HFM;
     typedef typename HFM::StencilDataType Superclass;
-    Redeclare5Types(FromHFM,ParamDefault,IndexType,StencilType,ParamInterface,HFMI)
-    Redeclare1Constant(FromHFM,Dimension)
+    Redeclare5Types(HFM,ParamDefault,IndexType,StencilType,ParamInterface,HFMI)
+    Redeclare1Constant(HFM,Dimension)
     ParamDefault param;
     
     typedef typename Traits::template BasisReduction<Dimension> ReductionType;

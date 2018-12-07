@@ -150,7 +150,7 @@ if(model== #modelName){ \
 //#include "Experimental/Differentiable.h"
 //#include "Experimental/RiemannLifted.h"
 
-//#include "Experimental/AlignedBillard.h"
+#include "Experimental/AlignedBillard.h"
 #include "Specializations/QuadLinLag2.h"
 #include "Base/Lagrangian3Stencil.h"
 #endif
@@ -207,7 +207,7 @@ void Run(IO & io){
 #ifdef Custom
 // This custom executable is here to let the user choose the adequate combination of (FastMarchingClass, Model) for his/her application.
 
-//    HFMSpecializationMacro(AlignedBillard)
+    HFMSpecializationMacro(AlignedBillard)
     
 //    HFMSpecializationMacro(IsotropicDiff<2>)
 //    HFMSpecializationMacro(RiemannLifted2<Boundary::Closed>)

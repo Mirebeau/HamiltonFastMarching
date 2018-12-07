@@ -25,7 +25,7 @@
 template<typename T> struct HFMInterface;
 template<typename T> struct DynamicFactoring;
 
-enum class StencilStoragePolicy {Share,Recomp,Lag2};
+enum class StencilStoragePolicy {Share,Recomp,Lag2,Lag3};
 
 template<typename TTraits>
 struct HamiltonFastMarching {
@@ -175,7 +175,7 @@ struct HamiltonFastMarching<T>::_StencilDataType<SSP::Share,Dummy>{
     
     virtual void Setup(HFMI *);
     virtual const ParamInterface & Param() const = 0;
-    virtual DistanceGuess GetGuess(IndexCRef) const {ExceptionMacro("Dynamic factoring error : no guess");};
+    virtual DistanceGuess GetGuess(IndexCRef) const {ExceptionMacro("Equation factoring error : no guess");};
 protected:
     friend struct HamiltonFastMarching<Traits>;
     void EraseCache(DiscreteType index) {shallowMultQuads.erase(index);}
@@ -213,7 +213,7 @@ struct HamiltonFastMarching<T>::_StencilDataType<SSP::Recomp,Dummy>{
     virtual const ParamInterface & Param() const = 0;
     struct RecomputeDataType {StencilType stencil; MultiplierType mult;}; // mult is dummy here
     RecomputeDataType RecomputeData(IndexCRef);
-    virtual DistanceGuess GetGuess(IndexCRef) const {ExceptionMacro("Dynamic factoring error : no guess");};
+    virtual DistanceGuess GetGuess(IndexCRef) const {ExceptionMacro("Equation factoring error : no guess");};
 protected:
     friend struct HamiltonFastMarching<Traits>;
     void EraseCache(DiscreteType index) {shallowStencilQuads.erase(index);}
@@ -240,13 +240,13 @@ struct HamiltonFastMarching<T>::_StencilDataType<SSP::Lag2,Dummy>{
     Redeclare1Constant(Traits,Dimension)
     
     IndexType dims; // Needs value
-    void SetStencil(IndexCRef, StencilType &); // Needs specialization // Not virtual ?
+    void SetStencil(IndexCRef, StencilType &);
     virtual void Setup(HFMI *);
     virtual const ParamInterface & Param() const = 0;
     virtual void Initialize(const HFM *);
 
     virtual void SetNeighbors(IndexCRef, std::vector<OffsetType> &) = 0;
-    virtual DistanceGuess GetGuess(IndexCRef) const {ExceptionMacro("Dynamic factoring error : no guess");};
+	virtual DistanceGuess GetGuess(IndexCRef) const {ExceptionMacro("Equation factoring error : no guess");};
 protected:
     friend struct HamiltonFastMarching<Traits>;
     ScalarType HopfLaxUpdate(FullIndexCRef, OffsetCRef, ScalarType, ActiveNeighFlagType &);
@@ -265,6 +265,24 @@ private:
 
     std::vector<OffsetType> directOffsets;
     std::vector<DiscreteType> directOffsetsSplits;
+};
+
+// ********** Stencil data - Semi-Lagrangian3 *********
+
+template<typename T> template<typename Dummy>
+struct HamiltonFastMarching<T>::_StencilDataType<SSP::Lag3,Dummy>{
+	typedef HamiltonFastMarching<T> HFM;
+	
+	IndexType dims; // Needs value
+	void SetStencil(IndexCRef, StencilType &);
+	virtual void Setup(HFMI *);
+	virtual const ParamInterface & Param() const = 0;
+	virtual void Initialize(const HFM *);
+	
+	virtual void SetNeighbors(IndexCRef, std::vector<OffsetType> &) = 0;
+	virtual DistanceGuess GetGuess(IndexCRef) const {ExceptionMacro("Equation factoring error : no guess");};
+protected:
+	// TODO
 };
 
 #include "HamiltonFastMarching.hxx"
