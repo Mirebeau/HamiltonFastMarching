@@ -223,7 +223,7 @@ LInfDistance(const std::vector<IndexType> & seeds, ShortType upperBound) const -
     // Initialize distance table
     Array<ShortType,Dimension> result;
     result.dims=fm.values.dims;
-    result.resize(result.dims.ProductOfCoordinates(), std::numeric_limits<ShortType>::max());
+    result.resize(result.dims.Product(), std::numeric_limits<ShortType>::max());
     std::priority_queue<std::pair<ShortType,IndexType> > queue;
     for(const auto & seed : seeds) {
         result(seed)=0;

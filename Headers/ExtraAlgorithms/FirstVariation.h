@@ -100,7 +100,7 @@ template<typename T> void FirstVariation<T>::Finally(HFMI*that){
             
             const DiscreteType nVar = seedVariations.dims[0];
             valueVariations.dims=DeepIndex(that->stencil.dims, nVar);
-            valueVariations.resize(valueVariations.dims.ProductOfCoordinates(),0);
+            valueVariations.resize(valueVariations.dims.Product(),0);
             
             if(seeds.size()!=seedVariations.dims[1])
                 ExceptionMacro("Error : Inconsistent size of seedValueVariation");
@@ -381,7 +381,7 @@ ForwardVariation(const Array<MultType,Dimension+1> & _multVar, Array<ScalarType,
     const DiscreteType nVar = std::max(_multVar.dims[Dimension],result.dims[Dimension]);
     const IndexType dims = pFM->values.dims;
     const DeepIndexType deepDims = DeepIndex(dims,nVar);
-    const DiscreteType deepSize = deepDims.ProductOfCoordinates();
+    const DiscreteType deepSize = deepDims.Product();
     
     Array<MultType,Dimension+1> __multVar;
     const Array<MultType, Dimension+1> & multVar = _multVar.empty() ? __multVar : _multVar;

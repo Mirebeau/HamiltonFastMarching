@@ -48,7 +48,7 @@ WallObstructionTest<T>::ImplementIn(HFM*_pFM) {
     // ------------ Running a Dikjstra to compute the distance to walls ---------
 
     wallDist.dims = dims;
-    wallDist.resize(dims.ProductOfCoordinates(),std::numeric_limits<ShortType>::max());
+    wallDist.resize(dims.Product(),std::numeric_limits<ShortType>::max());
     const ShortType maxDist = pFM->MaxStencilWidth();
 
     struct QueueElementType {

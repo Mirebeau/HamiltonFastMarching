@@ -128,7 +128,7 @@ void StencilRiemannDiff2::Setup(HFMI*that){
         DeepArrayType variation;
         variation.dims = dualVariation.dims; variation.resize(dualVariation.size());
         typename Traits::template Array<ScalarType,Dimension> a; a.dims = dims;
-        const DiscreteType nPts = a.dims.ProductOfCoordinates();
+        const DiscreteType nPts = a.dims.Product();
         for(int linearIndex=0; linearIndex<nPts; ++linearIndex){
             const IndexType index = a.Convert(linearIndex);
             StencilType stencil;

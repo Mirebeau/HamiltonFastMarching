@@ -113,7 +113,7 @@ AlignedBillardGrid<T>::LoopIndex(const PointType & p) const -> ScalarType {
 template<typename T> void
 AlignedBillardGrid<T>::SetPeriodizeLazy() const {
     inside.dims = this->arr.dims;
-    inside.resize(inside.dims.ProductOfCoordinates());
+    inside.resize(inside.dims.Product());
     for(DiscreteType i=0; i<inside.size(); ++i){
         const PointType p =this->PointFromIndex(this->IndexFromLinear(i));
         const ScalarType loop = LoopIndex(p);

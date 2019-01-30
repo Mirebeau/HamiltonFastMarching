@@ -19,7 +19,7 @@ Setup(HFMI * that){
 		const DomainType & dom = that->pFM->dom;
 		pDom = &dom;
 		walls.dims = that->pFM->stencilData.dims;
-		walls.resize(walls.dims.ProductOfCoordinates());
+		walls.resize(walls.dims.Product());
 		auto pWalls = that->template GetIntegralField<bool>("walls");
 		for(DiscreteType i=0; i<walls.size(); ++i){walls[i]=(*pWalls)(walls.Convert(i));}
 	}
@@ -112,7 +112,7 @@ HopfLaxUpdate(IndexCRef index, const OffsetVal3 & offsetVal) -> std::pair<Scalar
 	if(candidate<value) {
 		value=candidate;
 		active=1;
-		assert(grad.AreAllCoordinatesNonNegative());
+		assert(grad.IsNonNegative());
 	}
 	
 	if(offsetVal.size()==2) return {value,active};
@@ -130,7 +130,7 @@ HopfLaxUpdate(IndexCRef index, const OffsetVal3 & offsetVal) -> std::pair<Scalar
 	if(candidate<value){
 		value=candidate;
 		active=2;
-		assert(grad.AreAllCoordinatesNonNegative());
+		assert(grad.IsNonNegative());
 	}
 	
 	return {value,active};

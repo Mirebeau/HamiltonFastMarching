@@ -35,7 +35,7 @@ Setup(HFMI * that){
     auto & io = that->io;
     if(!(io.HasField("seedFlags") || (HFM::hasBundle && io.HasField("seedFlags_Unoriented")))) return;
     voronoiFlags.dims = that->stencil.dims;
-    voronoiFlags.resize(voronoiFlags.dims.ProductOfCoordinates(),-1);
+    voronoiFlags.resize(voronoiFlags.dims.Product(),-1);
     
     if(io.HasField("seedFlags")){
         const auto seedFlags = io.template GetVector<ScalarType>("seedFlags");

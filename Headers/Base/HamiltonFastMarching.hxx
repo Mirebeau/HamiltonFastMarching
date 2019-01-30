@@ -28,7 +28,7 @@ template<typename T> HamiltonFastMarching<T>::
 HamiltonFastMarching(StencilDataType & _stencilData):
 dom(_stencilData.dims), stencilData(_stencilData){
     values.dims = stencilData.dims;
-    values.resize(values.dims.ProductOfCoordinates(),Traits::Infinity());
+    values.resize(values.dims.Product(),Traits::Infinity());
     
     acceptedFlags.dims=values.dims;
     acceptedFlags.resize(values.size(),false);

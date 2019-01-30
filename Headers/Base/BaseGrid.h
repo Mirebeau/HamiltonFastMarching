@@ -35,7 +35,7 @@ template<int VDim, typename TScalar, typename TDiscrete, typename TShort> struct
     IndexType    IndexFromPoint(const PointType &) const;
 
     BaseGrid(IndexCRef dims) {arr.dims = dims;
-        if(!dims.AreAllCoordinatesPositive()) ExceptionMacro("BaseGrid error : domain size must be positive");}
+        if(!dims.IsPositive()) ExceptionMacro("BaseGrid error : domain size must be positive");}
 protected:
     Array<ScalarType, Dimension> arr;
 };

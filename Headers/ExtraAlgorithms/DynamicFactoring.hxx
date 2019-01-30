@@ -164,7 +164,7 @@ Setup(HFMI * that){
     
     // Setup arrays
     const auto & dims = stencilData.dims;
-    const size_t size = dims.ProductOfCoordinates();
+    const size_t size = dims.Product();
     factoringRegion.dims = dims; factoringRegion.resize(size,false);
     factoringDone.dims = dims; factoringDone.resize(size,false);
     const auto & arr = factoringDone;
@@ -172,7 +172,7 @@ Setup(HFMI * that){
     // ------ Setup some edges to be used in Dijkstra methods at initialization ------
     { // Setup the edges
         Array<int, Dimension> dummy; dummy.dims = IndexType::Constant(3);
-        int nEdges = dummy.dims.ProductOfCoordinates();
+        int nEdges = dummy.dims.Product();
         for(int i=0; i<nEdges; ++i){
             const IndexDiff offset = dummy.Convert(i)-IndexType::Constant(1);
             const ScalarType norm = VectorType::CastCoordinates(offset).Norm();

@@ -156,16 +156,16 @@ ShortIndexFromIndex(const IndexType & index) const -> ShortIndexType {
 template<typename Traits> template<typename Dummy> void
 HamiltonFastMarching<Traits>::_StencilDataType<SSP::Share, Dummy>::
 Initialize(const HFM * pFM) {
-    if(!dims.AreAllCoordinatesPositive())
+    if(!dims.IsPositive())
         ExceptionMacro("StencilDataType initialization error : Incorrect dims.");
     if(!pMultSource)
         ExceptionMacro("StencilDataType initialization error : Unspecified pMultSource.");
         
-    shallowMultQuads.resize(dims.ProductOfCoordinates());
+    shallowMultQuads.resize(dims.Product());
     
     for(int i=0; i<Traits::nStencilDependencies; ++i)
         stencils.dims[i] = dims[Traits::stencilDependencies[i]];
-    stencils.resize(stencils.dims.ProductOfCoordinates());
+    stencils.resize(stencils.dims.Product());
     
     typedef std::pair<DiscreteType,OffsetType> IndexOffsetPair;
     std::vector<IndexOffsetPair> offsets;
@@ -235,7 +235,7 @@ Initialize(const HFM * pFM) {
 template<typename Traits> template<typename Dummy> void
 HamiltonFastMarching<Traits>::_StencilDataType<SSP::Recomp, Dummy>::
 Initialize(const HFM * pFM) {
-    shallowStencilQuads.resize(dims.ProductOfCoordinates());
+    shallowStencilQuads.resize(dims.Product());
     
     typedef std::pair<DiscreteType,OffsetType> IndexOffsetPair;
     std::vector<IndexOffsetPair> offsets;
@@ -320,7 +320,7 @@ HamiltonFastMarching<Traits>::_StencilDataType<SSP::Lag2, Dummy>::Setup(HFMI * t
 template<typename Traits> template<typename Dummy> void
 HamiltonFastMarching<Traits>::_StencilDataType<SSP::Lag2, Dummy>::Initialize(const HFM * pFM_){
     pFM = pFM_;
-    const DiscreteType size = dims.ProductOfCoordinates();
+    const DiscreteType size = dims.Product();
     
     directOffsetsSplits.reserve(size);
     assert(directOffsets.empty() && directOffsetsSplits.empty());

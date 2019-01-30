@@ -58,7 +58,7 @@ ImplementIn(HFM*_pFM){
     pFM=_pFM;
     _pFM->extras.postProcessWithRecompute.push_back(this);
     euclideanLengths.dims=pFM->values.dims;
-    euclideanLengths.resize(euclideanLengths.dims.ProductOfCoordinates(),-1);
+    euclideanLengths.resize(euclideanLengths.dims.Product(),-1);
     return true;
 }
 
