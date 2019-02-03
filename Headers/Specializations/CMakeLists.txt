@@ -5,5 +5,6 @@ set(Specializations_Headers
 	${CMAKE_CURRENT_SOURCE_DIR}/Curvature3.h
 	${CMAKE_CURRENT_SOURCE_DIR}/Riemannian.h
 	${CMAKE_CURRENT_SOURCE_DIR}/QuadLinLag2.h
+	${CMAKE_CURRENT_SOURCE_DIR}/QuadLinLag2.h
 	PARENT_SCOPE
 	)

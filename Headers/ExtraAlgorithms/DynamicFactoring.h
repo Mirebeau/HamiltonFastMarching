@@ -70,7 +70,7 @@ struct DynamicFactoring<T>::ElementaryGuess {
     VectorType Pull(OffsetType offset) const {
         transform.PullVector(offset); return VectorType::CastCoordinates(offset);}
     ScalarType Value(const OffsetType & offset) const {
-        return weight*guess.Norm(Pull(base-offset) );}
+		return base==offset ? ScalarType(0.) : weight*guess.Norm(Pull(base-offset) );}
     ScalarType Deriv(const OffsetType & offset) const {
         return -weight*guess.Gradient(Pull(base)).ScalarProduct(Pull(offset));}
     ScalarType Correction(const OffsetType & offset, bool snd) const {

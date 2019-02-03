@@ -58,11 +58,12 @@ Lagrangian2Stencil<TO,TS,TD>::PrintSelf(std::ostream & os) const {
 
 // -----
 
+// TODO : use two vectors instead of a forward list ?
 template<typename TPred, typename TVec>
 void SternBrocotRefine(const TPred & stop, std::forward_list<TVec> & l){
     typedef TVec VectorType;
     assert(!l.empty());
-    int size = 8; // Typical upper bound. TODO : actual size ?
+    int size = 8; // There is no l.size(), but this is a typical upper bound.
     auto it0 = l.begin(), it1=it0; ++it1;
     for(; it1!=l.end(); ){
         const VectorType & u=*it0, & v=*it1;

@@ -26,8 +26,10 @@ Setup(HFMI * that){
 }
 
 template<typename T> auto StencilQuadLinLag2<T>::
-GetGuess(IndexCRef index) const -> DistanceGuess {
-	NormType norm = GetNorm(index);
+GetNorm(IndexCRef index) const -> NormType {
+	assert(pMetric!=nullptr);
+	const MetricElementType data = (*pMetric)(index);
+	NormType norm{data.first,data.second};
 	const ScalarType h = param.gridScale;
 	norm.m *= square(h);
 	norm.w *= h;
@@ -77,13 +79,12 @@ OnWallBoundary(IndexCRef index) const {
 template<typename T> auto StencilQuadLinLag2<T>::
 HopfLaxUpdate(IndexCRef index, const OffsetVal3 & offsetVal) -> std::pair<ScalarType,int> {
 	const NormType & base = GetNorm(index);
-	const ScalarType h = param.gridScale;
 	
 	// Try from the center offset
 	assert(!offsetVal.empty());
 	typedef typename NormType1::VectorType VectorType1;
 	NormType1 norm1;
-	const VectorType off0 = h*VectorType::CastCoordinates(offsetVal[0].first);
+	const VectorType off0 = VectorType::CastCoordinates(offsetVal[0].first);
 	norm1.m(0,0) = base.m.SquaredNorm(off0);
 	norm1.w[0] = base.w.ScalarProduct(off0);
 	
@@ -100,7 +101,7 @@ HopfLaxUpdate(IndexCRef index, const OffsetVal3 & offsetVal) -> std::pair<Scalar
 	norm.m(0,0) = norm1.m(0,0);
 	norm.w[0] = norm1.w[0];
 	
-	VectorType off1 = h*VectorType::CastCoordinates(offsetVal[1].first);
+	VectorType off1 = VectorType::CastCoordinates(offsetVal[1].first);
 	norm.m(0,1) = base.m.ScalarProduct(off0,off1);
 	norm.m(1,1) = base.m.ScalarProduct(off1,off1);
 	norm.w[1] = base.w.ScalarProduct(off1);
@@ -120,7 +121,7 @@ HopfLaxUpdate(IndexCRef index, const OffsetVal3 & offsetVal) -> std::pair<Scalar
 	// try from the second offset pair
 	assert(offsetVal.size()==3);
 	
-	off1 = h*VectorType::CastCoordinates(offsetVal[2].first);
+	off1 = VectorType::CastCoordinates(offsetVal[2].first);
 	norm.m(0,1) = base.m.ScalarProduct(off0,off1);
 	norm.m(1,1) = base.m.ScalarProduct(off1,off1);
 	norm.w[1] = base.w.ScalarProduct(off1);
@@ -139,11 +140,10 @@ HopfLaxUpdate(IndexCRef index, const OffsetVal3 & offsetVal) -> std::pair<Scalar
 template<typename T> auto StencilQuadLinLag2<T>::
 HopfLaxRecompute(IndexCRef index, DiscreteFlowType & flow) -> RecomputeType {
 	const NormType & base = GetNorm(index);
-	const ScalarType h = param.gridScale;
 	
 	assert(!flow.empty());
 	if(flow.size()==1){
-		const VectorType off = h*VectorType::CastCoordinates(flow[0].offset);
+		const VectorType off = VectorType::CastCoordinates(flow[0].offset);
 		const ScalarType value = flow[0].weight+ base.Norm(off); // Flow[0].weight initially stores the value at neighbor
 		flow[0].weight = 1;
 		return {value,0.};
@@ -151,8 +151,8 @@ HopfLaxRecompute(IndexCRef index, DiscreteFlowType & flow) -> RecomputeType {
 	
 	assert(flow.size()==2);
 	const VectorType
-	off0 = h*VectorType::CastCoordinates(flow[0].offset),
-	off1 = h*VectorType::CastCoordinates(flow[1].offset);
+	off0 = VectorType::CastCoordinates(flow[0].offset),
+	off1 = VectorType::CastCoordinates(flow[1].offset);
 	
 	NormType norm;
 	norm.m(0,0) = base.m.SquaredNorm(off0);

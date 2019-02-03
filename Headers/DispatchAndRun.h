@@ -153,6 +153,8 @@ if(model== #modelName){ \
 #include "Experimental/AlignedBillard.h"
 #include "Specializations/QuadLinLag2.h"
 #include "Base/Lagrangian3Stencil.h"
+#include "Experimental/Seismic2.h"
+
 #endif
 /*
 #ifdef AllBaseModels
@@ -214,6 +216,7 @@ void Run(IO & io){
     
     HFMSpecializationMacro(RanderLag2)
     HFMSpecializationMacro(AsymmetricQuadraticLag2)
+	HFMSpecializationMacro(Seismic2)
 /*
     {
         typedef HFMInterface<TraitsLagrangian2> HFMI;

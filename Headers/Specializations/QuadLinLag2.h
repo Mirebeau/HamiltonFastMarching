@@ -64,13 +64,11 @@ struct StencilQuadLinLag2 : HamiltonFastMarching<T>::StencilDataType {
 	virtual void SetNeighbors(IndexCRef index, std::vector<OffsetType> & stencil) override;
 	virtual const ParamInterface & Param() const override {return param;}
 	virtual void Setup(HFMI *) override;
-	virtual DistanceGuess GetGuess(IndexCRef index) const override;
+	virtual DistanceGuess GetGuess(IndexCRef index) const override {
+		return GetNorm(index);}
 private:
 	std::forward_list<OffsetType> l;
-	NormType GetNorm(IndexCRef index) const {
-		const MetricElementType data = (*pMetric)(index);
-		return NormType{data.first,data.second};}
-	
+	NormType GetNorm(IndexCRef index) const;
 	// Refinement near walls
 	ScalarType wallBoundaryAngularResolution = 0.2;
 	typename Traits::template Array<bool,Dimension> walls;

@@ -112,12 +112,6 @@ template<typename Traits> template<typename Dummy> auto
 HamiltonFastMarching<Traits>::_StencilDataType<SSP::Share,Dummy>::
 ReversedOffsets(FullIndexCRef full)->RangeAccessor<OffsetType*>{
     const DiscreteType i = stencils.Convert(ShortIndexFromIndex(full.index));
-/*    std::cout
-    ExportVarArrow(index)
-    ExportVarArrow(i)
-    ExportArrayArrow(reversedOffsets)
-    ExportArrayArrow(reversedOffsetsSplits)
-    << "\n";*/
     return
     RangeAccessor<OffsetType*>(&reversedOffsets[reversedOffsetsSplits[i]],
                                &reversedOffsets[reversedOffsetsSplits[i+1]]);
@@ -225,11 +219,6 @@ Initialize(const HFM * pFM) {
         reversedOffsets.push_back(linIndOff.second);
     }
     reversedOffsetsSplits.resize(stencils.size()+1,(DiscreteType)reversedOffsets.size());
-    
-/*    std::cout
-    ExportArrayArrow(reversedOffsets)
-    ExportArrayArrow(reversedOffsetsSplits)
-    << "\n";*/
 }
 
 template<typename Traits> template<typename Dummy> void
@@ -322,7 +311,7 @@ HamiltonFastMarching<Traits>::_StencilDataType<SSP::Lag2, Dummy>::Initialize(con
     pFM = pFM_;
     const DiscreteType size = dims.Product();
     
-    directOffsetsSplits.reserve(size);
+    directOffsetsSplits.reserve(size+1);
     assert(directOffsets.empty() && directOffsetsSplits.empty());
     std::vector<std::pair<DiscreteType,OffsetType> > targets;
     
@@ -346,13 +335,14 @@ HamiltonFastMarching<Traits>::_StencilDataType<SSP::Lag2, Dummy>::Initialize(con
     reversedOffsetsSplits.reserve(size+1);
     reversedOffsets.reserve(targets.size());
     std::sort(targets.begin(),targets.end());
+	
     DiscreteType last = -1;
     for(const auto indexOffset : targets){
-        reversedOffsets.push_back(indexOffset.second);
         if(last!=indexOffset.first){
             reversedOffsetsSplits.push_back((DiscreteType)reversedOffsets.size());
             last = indexOffset.first;
         }
+		reversedOffsets.push_back(indexOffset.second);
     }
     reversedOffsetsSplits.push_back((DiscreteType)reversedOffsets.size());
 }
