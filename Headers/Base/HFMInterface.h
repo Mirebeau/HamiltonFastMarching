@@ -72,9 +72,8 @@ Run_SetupExtraAlgorithms(){
     auto pVar = SetupSingleAlgorithm<FirstVariation<T> >();
     if(!pTime->ImplementIn(pFM.get())) pTime.reset();
     if(pVar && pTime) pVar->pCurrentTime = &(pTime->currentTime);
-    
-    auto pFact = std::unique_ptr<DynamicFactoring<T> >(new DynamicFactoring<T>);
-    if(pFact->Setup(this)) pFM->dynamicFactoring = std::move(pFact);
+	
+	pFM->factoring.Setup(this);
 }
 
 #include "HFMInterface.hxx"

@@ -23,8 +23,9 @@ template<typename T> bool TimeDependentFields<T>::ImplementIn(HFM*_pFM){
     assert(_pFM!=nullptr);
     if(currentTime<Traits::Infinity()) {
         _pFM->extras.beforeRecompute.push_back(this);
-        if(_pFM->extras.postProcessWithRecompute.empty() && !_pFM->sndOrder) // Make sure values are recomputed
-            _pFM->extras.postProcess.push_back(this);
+		// Make sure values are recomputed
+		if(_pFM->extras.postProcessWithRecompute.empty() && _pFM->order==1){
+			_pFM->extras.postProcess.push_back(this);}
         pFM=_pFM;
         return true;
     } else return false;

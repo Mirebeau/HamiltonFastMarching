@@ -116,7 +116,7 @@ bool HamiltonFastMarching<T>::RunOnce(){
 
 template<typename T> int HamiltonFastMarching<T>::
 PostProcess(IndexCRef acceptedIndex) {
-    int result = (sndOrder || dynamicFactoring!=nullptr || !extras.postProcessWithRecompute.empty()) ?
+    int result = (order>1 || factoring.NeedsRecompute(acceptedIndex) || !extras.postProcessWithRecompute.empty()) ?
     Decision::kRecompute : Decision::kAccept;
     for(ExtraAlgorithmInterface * p : extras.postProcess) result|=p->PostProcess(acceptedIndex);
     return result;
@@ -182,56 +182,90 @@ VisibleOffset(const IndexType & acceptedIndex, const OffsetType & offset, IndexT
 // ---------- Recompute ----------
 
 template<typename T> auto HamiltonFastMarching<T>::
-Recompute(IndexCRef updatedIndex, DiscreteFlowType & discreteFlow) const -> RecomputeType {
+Recompute(IndexCRef updatedIndex, DiscreteFlowType & discreteFlow)
+const -> RecomputeType {
     assert(discreteFlow.empty());
-    for(ExtraAlgorithmInterface * p : extras.beforeRecompute) {p->BeforeRecompute(updatedIndex);}
+    for(ExtraAlgorithmInterface * p : extras.beforeRecompute) {
+		p->BeforeRecompute(updatedIndex);}
     const DiscreteType updatedLinearIndex = values.Convert(updatedIndex);
     const ActiveNeighFlagType active = activeNeighs[updatedLinearIndex];
     if(active.none()) return {values[updatedLinearIndex],0.}; // Handled below
+	
+	// First order scheme, without factorisation.
+	auto GetValue1 = [this,&updatedIndex](OffsetType offset, int & ord) -> ScalarType {
+		IndexType acceptedIndex = updatedIndex+IndexDiff::CastCoordinates(offset);
+		const auto transform = dom.Periodize(acceptedIndex,updatedIndex);
+		if(!transform.IsValid()) {ord=0; return -Traits::Infinity();}
+		ord=1;
+		return values(acceptedIndex);
+	};
+	
+	
+	switch(factoring.method){
+		case FactoringMethod::Static: factoring.SetIndexStatic(updatedIndex);
+		case FactoringMethod::Dynamic: {
+			stencilData.HopfLaxRecompute(GetValue1,updatedIndex,active,discreteFlow);
+			factoring.SetIndexDynamic(updatedIndex,discreteFlow);
+		}
+		default: break; // None
+	}
     
-    auto GetValue = [this,&updatedIndex](OffsetType offset, int & snd) -> ScalarType {
-        //snd code : -1 -> invalid, 0 -> first order, 1 -> sndOrder.
+    auto GetValueCorr = [this,&updatedIndex]
+	(OffsetType offset, int & ord) -> ScalarType {
+        //order code : 0 -> invalid, else requested/used order
         
         IndexType acceptedIndex = updatedIndex+IndexDiff::CastCoordinates(offset);
         const auto transform = dom.Periodize(acceptedIndex,updatedIndex);
-        if(!transform.IsValid()) {snd=-1; return -Traits::Infinity();}
+        if(!transform.IsValid()) {ord=0; return -Traits::Infinity();}
         const ScalarType acceptedValue = values(acceptedIndex);
-        
-        const bool trySnd = sndOrder && snd;
-        while(true){
-            if(!trySnd) break;
-            OffsetType offset2 = offset;
-            transform.PullVector(offset2);
-            IndexType acceptedIndex2;
-            if(!VisibleOffset(acceptedIndex, offset2, acceptedIndex2).IsValid()) break;
-            
-            const DiscreteType acceptedLinearIndex2 = values.Convert(acceptedIndex2);
-            if(!acceptedFlags[acceptedLinearIndex2]) break;
-            const ScalarType acceptedValue2 = values(acceptedIndex2);
-            if(acceptedValue2>acceptedValue) break;
-            snd=1;
-            return (4./3.)*acceptedValue - (1./3.)*acceptedValue2;
-        }
-        snd=0;
-        return acceptedValue;
-    };
-    
-    const RecomputeType & rec = stencilData.HopfLaxRecompute(GetValue,updatedIndex,active,discreteFlow);
-    
-    if(dynamicFactoring==nullptr || !dynamicFactoring->SetIndex(updatedIndex,discreteFlow)){
-        return rec;}
-    
-    // TODO : Choose wether sndOrder and factoring should be enable together. (Seems not.)
-    
-    auto GetValueCorr = [this,&updatedIndex](OffsetType offset, int & snd) -> ScalarType {
-        //snd code : -1 -> invalid, 0 -> first order, 1 -> sndOrder.
-        
-        IndexType acceptedIndex = updatedIndex+IndexDiff::CastCoordinates(offset);
-        const auto transform = dom.Periodize(acceptedIndex,updatedIndex);
-        if(!transform.IsValid()) {snd=-1; return -Traits::Infinity();}
-        const ScalarType acceptedValue = values(acceptedIndex);
-        
-        const bool trySnd = sndOrder && snd;
+		
+		ord=std::min(order,ord);
+		while(ord>=2){ // Single iteration
+			OffsetType offset2 = offset;
+			transform.PullVector(offset2);
+			IndexType acceptedIndex2;
+			const auto transform2 = VisibleOffset(acceptedIndex, offset2, acceptedIndex2);
+			if(!transform2.IsValid()) break;
+			const DiscreteType acceptedLinearIndex2 = values.Convert(acceptedIndex2);
+			if(!acceptedFlags[acceptedLinearIndex2]) break;
+			const ScalarType acceptedValue2 = values(acceptedIndex2);
+			if(acceptedValue2>acceptedValue) break;
+			// TODO: ditch if second order correction is larger than first order
+			
+			while(ord>=3){ // Single iteration
+				OffsetType offset3 = offset2;
+				transform.PullVector(offset3);
+				IndexType acceptedIndex3;
+				const auto transform3 =
+				VisibleOffset(acceptedIndex, offset3, acceptedIndex3);
+				if(!transform3.IsValid()) break;
+				const DiscreteType acceptedLinearIndex3 = values.Convert(acceptedIndex3);
+				if(!acceptedFlags[acceptedLinearIndex3]) break;
+				const ScalarType acceptedValue3 = values(acceptedIndex3);
+				if(acceptedValue3>acceptedValue2) break;
+				// TODO: ditch if third order correction is larger than second order
+				
+				ord=3;
+				return (6./11.)*
+				(3.*acceptedValue-1.5*acceptedValue2+(1./3.)*acceptedValue3
+				 +factoring.Correction(offset,3)
+				 );
+			}
+			ord=2;
+/*			std::cout
+			ExportVarArrow(acceptedValue)
+			ExportVarArrow(acceptedValue2)
+			ExportVarArrow(useFactoring)
+			ExportVarArrow(dynamicFactoring->Correction(offset,2))
+			ExportVarArrow(dynamicFactoring->Correction(offset,1))
+			<< std::endl;*/
+			return (2./3.)*
+			(2.*acceptedValue-0.5*acceptedValue2
+			 +factoring.Correction(offset,2)
+			 );
+		}
+		/*
+        const bool trySnd = order>=2 && ord==2;
         while(false && true){
             if(!trySnd) break;
             OffsetType offset2 = offset;
@@ -242,12 +276,13 @@ Recompute(IndexCRef updatedIndex, DiscreteFlowType & discreteFlow) const -> Reco
             if(!acceptedFlags[acceptedLinearIndex2]) break;
             const ScalarType acceptedValue2 = values(acceptedIndex2);
             if(acceptedValue2>acceptedValue) break;
-            snd=1;
+            ord=2;
             return (4./3.)*acceptedValue - (1./3.)*acceptedValue2
             + dynamicFactoring->Correction(offset,true);
-        }
-        snd=0;
-        return acceptedValue + dynamicFactoring->Correction(offset,false);
+        }*/
+        ord=1;
+		return acceptedValue
+		+factoring.Correction(offset,1);
     };
     
     

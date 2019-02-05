@@ -5,13 +5,13 @@
 //  Created by Jean-Marie Mirebeau on 22/08/2018.
 //
 
-#ifndef DynamicFactoring_hxx
-#define DynamicFactoring_hxx
+#ifndef Factoring_hxx
+#define Factoring_hxx
 
 template<> char const* enumStrings<FactoringPointChoice>::data[] = {"Key", "Current", "Both"};
 
 template<typename T> void
-DynamicFactoring<T>::ElementaryGuess::PrintSelf(std::ostream & os) const {
+Factoring<T>::ElementaryGuess::PrintSelf(std::ostream & os) const {
     os << "{"
     ExportVarArrow(guess)
     ExportVarArrow(base)
@@ -20,8 +20,8 @@ DynamicFactoring<T>::ElementaryGuess::PrintSelf(std::ostream & os) const {
 }
 
 template<typename T> auto
-DynamicFactoring<T>::
-Correction(const OffsetType & offset, bool snd) const -> ScalarType {
+Factoring<T>::
+Correction(const OffsetType & offset, int ord) const -> ScalarType {
     /*std::cout
     ExportArrayArrow(guesses)
     ExportVarArrow(offset)
@@ -29,7 +29,7 @@ Correction(const OffsetType & offset, bool snd) const -> ScalarType {
 //    if(true || pointChoice!=FactoringPointChoice::Both){
         return std::accumulate(guesses.begin(),guesses.end(),0.,
                                [&](ScalarType a, const ElementaryGuess & b)->ScalarType{
-                                   return a + b.Correction(offset,snd);});
+                                   return a + b.Correction(offset,ord);});
     /*} else {
         const int n2 = guesses.size();
         assert(n2%2==0);
@@ -45,9 +45,29 @@ Correction(const OffsetType & offset, bool snd) const -> ScalarType {
     }*/
 }
 
+template<typename T> bool
+Factoring<T>::NeedsRecompute(IndexCRef index) const {
+	if(method == FactoringMethod::None) return false;
+	assert(!factoringRegion.empty());
+	return factoringRegion(index);
+}
+
+template<typename T> bool
+Factoring<T>::SetIndexStatic(IndexCRef index){
+	assert(method==FactoringMethod::Static);
+	assert(!factoringRegion.empty());
+	const DiscreteType linearIndex = factoringRegion.Convert(index);
+	if(!factoringRegion[linearIndex]) return false;
+	
+	assert(false);
+	//TODO : complete here
+}
+
+
 template<typename T> bool // Returns wether dynamic factoring is active at this point
-DynamicFactoring<T>::
-SetIndex(IndexCRef index, const DiscreteFlowType & flow) {
+Factoring<T>::
+SetIndexDynamic(IndexCRef index, const DiscreteFlowType & flow) {
+	assert(method==FactoringMethod::Dynamic);
     assert(!factoringRegion.empty());
     const DiscreteType linearIndex = factoringRegion.Convert(index);
     if(!factoringRegion[linearIndex]) return false;
@@ -59,7 +79,7 @@ SetIndex(IndexCRef index, const DiscreteFlowType & flow) {
 }
 
 template<typename T> void
-DynamicFactoring<T>::
+Factoring<T>::
 MakeFactor(FullIndexCRef updated, const DiscreteFlowType & flow){
     if(factoringDone[updated.linear]) return; // Work already done
     factoringDone[updated.linear]=true;
@@ -115,7 +135,7 @@ MakeFactor(FullIndexCRef updated, const DiscreteFlowType & flow){
 }
 
 template<typename T> bool
-DynamicFactoring<T>::
+Factoring<T>::
 MakeGuess(FullIndexCRef updated) {
     assert(factoringRegion[updated.linear]);
     assert(factoringDone[updated.linear]);
@@ -147,9 +167,16 @@ MakeGuess(FullIndexCRef updated) {
 }
 
 template<typename T> bool
-DynamicFactoring<T>::
+Factoring<T>::
 Setup(HFMI * that){
     auto & io = that->io;
+	if(!io.HasField("FactoringMethod")) {return false;}
+	const std::string method_str = io.GetString("FactoringMethod");
+	if(method_str=="None") {method=FactoringMethod::None; return false;}
+	else if(method_str=="Static") {method=FactoringMethod::Static; assert(false); }
+	else if(method_str=="Dynamic") {method=FactoringMethod::Dynamic;}
+	else {ExceptionMacro("Factoring error : unrecognized method " << method_str);}
+	
     if(!io.template Get<ScalarType>("useFactoring",0.,1)) return false;
         
     factoringRadius = io.template Get<ScalarType>("factoringRadius",factoringRadius);
@@ -219,7 +246,7 @@ Setup(HFMI * that){
 }
 
 template<typename T> auto
-DynamicFactoring<T>::
+Factoring<T>::
 SelectKeypoints(HFMI * that) -> std::vector<DiscreteType> {
     std::vector<DiscreteType> result;
     
@@ -314,7 +341,7 @@ SelectKeypoints(HFMI * that) -> std::vector<DiscreteType> {
 }
 
 template<typename T> bool
-DynamicFactoring<T>::
+Factoring<T>::
 OnBoundary(IndexCRef index, const DomainType & dom) const {
     for(int i=0; i<Dimension; ++i){
         for(int eps=-1; eps<=1; eps+=2){

@@ -320,7 +320,7 @@ template<typename T> void HFMInterface<T>::
 Run_SetupSolver() {
     // ------- Some exports that are independent of the fast marching results -------
     io.Set<ScalarType>("MaxStencilWidth",pFM->MaxStencilWidth());
-    pFM->sndOrder = io.template Get<ScalarType>("sndOrder",0.)!=0;
+    pFM->order = io.template Get<ScalarType>("order",1.);
 
     if(io.HasField("getStencils")) {
         const auto & pts = io.GetVector<PointType>("getStencils");

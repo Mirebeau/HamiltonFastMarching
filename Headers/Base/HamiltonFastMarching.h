@@ -23,16 +23,19 @@
  */
 
 template<typename T> struct HFMInterface;
-template<typename T> struct DynamicFactoring;
+template<typename T> struct Factoring;
 
 enum class StencilStoragePolicy {Share,Recomp,Lag2,Lag3};
+enum class FactoringMethod {None, Static, Dynamic};
 
 template<typename TTraits>
 struct HamiltonFastMarching {
     typedef TTraits Traits;
     Redeclare1Constant(Traits,Dimension)
-    Redeclare6Types(Traits,ScalarType,DiscreteType,ShortType,DomainType,StencilType,DistanceGuess)
-    Redeclare6Types(Traits,PointType,VectorType,IndexType,OffsetType,DifferenceType,IndexDiff)
+    Redeclare6Types(Traits,ScalarType,DiscreteType,ShortType,DomainType,
+					StencilType,DistanceGuess)
+    Redeclare6Types(Traits,PointType,VectorType,IndexType,OffsetType,
+					DifferenceType,IndexDiff)
     
     typedef const IndexType & IndexCRef;
     typedef const OffsetType & OffsetCRef;
@@ -52,7 +55,7 @@ struct HamiltonFastMarching {
 
     std::map<IndexType,ScalarType,typename IndexType::LexicographicCompare> seeds;
     void Run();
-    bool sndOrder=false;
+	int order = 1;
     Array<ScalarType,Dimension> values;
     
     // Geodesic related functions. Require values and activeNeighs to be correctly set,
@@ -61,7 +64,8 @@ struct HamiltonFastMarching {
     struct FlowDataType;
     FlowDataType GeodesicFlow(IndexCRef) const;
     
-    Redeclare4Types(StencilType,ActiveNeighFlagType,DiscreteFlowElement,DiscreteFlowType,RecomputeType)
+    Redeclare4Types(StencilType,ActiveNeighFlagType,DiscreteFlowElement,
+					DiscreteFlowType,RecomputeType)
     Array<ActiveNeighFlagType,Dimension> activeNeighs;
     
 //    struct DiscreteFlowElement {OffsetType offset; ScalarType weight;};
@@ -91,11 +95,10 @@ struct HamiltonFastMarching {
     struct ExtraAlgorithmInterface;
     struct ExtraAlgorithmPtrs;
     ExtraAlgorithmPtrs extras;
+	typedef Factoring<Traits> FactoringType;
+	mutable FactoringType factoring;
     
     HamiltonFastMarching(StencilDataType &);
-    
-    typedef DynamicFactoring<Traits> DynamicFactoringType;
-    std::unique_ptr<DynamicFactoringType> dynamicFactoring = nullptr;
 protected:
     struct QueueElement;
     std::priority_queue<QueueElement> queue;
@@ -120,6 +123,7 @@ template<typename T> struct HamiltonFastMarching<T>::ExtraAlgorithmInterface {
     virtual void Finally(HFMI *){};
     virtual bool ImplementIn(HFM *)=0; // Insert in adequate field of extras. Returns false if algorithm is vacuous.
 protected:
+	// Returns a Decision enum
     virtual int PostProcess(IndexCRef) {return 0;};
     virtual int PostProcessWithRecompute(IndexCRef, const RecomputeType &, const DiscreteFlowType &) {return 0;};
     virtual bool Visible(IndexCRef, OffsetCRef, IndexCRef) const {return true;}

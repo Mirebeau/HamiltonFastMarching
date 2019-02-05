@@ -402,33 +402,35 @@ HopfLaxRecompute(const F & f, IndexCRef index, ActiveNeighFlagType active, Discr
     SetStencil(index, stencil);
     
     // Get data of neighbor 0
-    int snd0 = 1;
+    int ord0 = 3;
     const OffsetType offset0 = stencil.Sector(active.sectorIndex,0);
-    ScalarType val0 = f(offset0,snd0);
-    
+    ScalarType val0 = f(offset0,ord0);
+	
+	
     // Get data of neighbor 1
-    int snd1 = snd0==0 ? 0 : 1;
+    int ord1 = ord0==0 ? 3 : ord0;
     const OffsetType offset1 = stencil.Sector(active.sectorIndex,1);
-    const ScalarType val1 = f(offset1,snd1);
+    const ScalarType val1 = f(offset1,ord1);
 
-    if(snd1==0 && snd0==1){
-        snd0=0;
-        val0 = f(offset0,snd0);
-        assert(snd0==0);
+    if(ord1<ord0){
+        ord0=ord1;
+        val0 = f(offset0,ord0);
+        assert(ord0==ord1);
     }
-    
-    assert(snd0!=-1 || snd1!=-1);
-    int snd = snd0==-1 ? snd1 : snd0; // snd order used ?
-    assert(snd!=-1);
-    assert((snd0==-1 || snd0==snd) && (snd1==-1 || snd1==snd));
-    
+	
+	assert(ord0>=0 && ord1>=0);
+    assert(ord0+ord1>0);
+	const int ord = std::max(ord0,ord1); // snd order used ?
+	
     assert(discreteFlow.empty());
-    if(snd0!=-1) {discreteFlow.push_back({offset0,snd==0 ? val0 : (1.5*val0)});}
-    if(snd1!=-1) {discreteFlow.push_back({offset1,snd==0 ? val1 : (1.5*val1)});}
-    
+	const std::array<ScalarType,4> mult = {0.,1.,3./2.,11./6.};
+    if(ord0>0) {discreteFlow.push_back({offset0,mult[ord]*val0});}
+    if(ord1>0) {discreteFlow.push_back({offset1,mult[ord]*val1});}
+		
     RecomputeType result = HopfLaxRecompute(index,discreteFlow);
-    if(snd){result.width/=1.5; result.value/=1.5;}
-    
+	const std::array<ScalarType,4> div = {0.,1.,2./3.,6./11.};
+	result.width*=div[ord]; result.value*=div[ord];
+	
     return result;
 };
 

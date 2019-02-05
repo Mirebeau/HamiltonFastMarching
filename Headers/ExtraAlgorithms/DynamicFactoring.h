@@ -5,8 +5,8 @@
 //  Created by Jean-Marie Mirebeau on 22/08/2018.
 //
 
-#ifndef DynamicFactoring_h
-#define DynamicFactoring_h
+#ifndef Factoring_h
+#define Factoring_h
 
 #include "Base/HamiltonFastMarching.h"
 
@@ -21,12 +21,17 @@
 
 
 /**
- Contrary to what could be hoped, using both endpoints does not improve accuracy in general. In order to achieve higher order accuracy, a more complex implementation would be needed.
+ ???? Contrary to what could be hoped, using both endpoints does not improve accuracy in general. In order to achieve higher order accuracy, a more complex implementation would be needed.
  */
+
+// TODO : Complete static case. (Setup, SetupIndexStatic)
+// TODO ? boolean set to false if no guess made, to speed up in useless case
+// TODO : first order differentiation w.r.t. position in third order correction
+
 enum class FactoringPointChoice {Key, Current, Both};
 
 template<typename T>
-struct DynamicFactoring {
+struct Factoring {
     typedef T Traits;
     typedef HamiltonFastMarching<Traits> HFM;
     Redeclare6Types(HFM,IndexCRef,FullIndexCRef,DiscreteFlowType,OffsetType,ScalarType,DiscreteType)
@@ -34,21 +39,24 @@ struct DynamicFactoring {
     Redeclare3Types(HFM,DistanceGuess,DiscreteFlowElement,DomainType)
     Redeclare1Constant(HFM,Dimension)
     template<typename E, size_t n> using Array = typename Traits::template Array<E,n>;
-    
-    bool SetIndex(IndexCRef,const DiscreteFlowType &);
-    ScalarType Correction(const OffsetType &, bool) const;
+	
+	bool NeedsRecompute(IndexCRef) const;
+	bool SetIndexStatic(IndexCRef);
+    bool SetIndexDynamic(IndexCRef,const DiscreteFlowType &);
+    ScalarType Correction(const OffsetType &, int) const;
     
     ScalarType factoringRadius = 10;
     std::map<DiscreteType,DistanceGuess> factoringKeypoints;
     Array<bool, Dimension> factoringRegion;
     FactoringPointChoice pointChoice = FactoringPointChoice::Key;
+	FactoringMethod	method = FactoringMethod::None;
     bool Setup(HFMI *);
 protected:
     const HFM * pFM=nullptr;
     Array<bool, Dimension> factoringDone;
     std::multimap<DiscreteType,std::pair<OffsetType,ScalarType> > factoringNeighbors;
     std::vector<std::pair<OffsetType,ScalarType> > currentNeighbors, currentNeighbors2; // cache
-    
+	
     struct ElementaryGuess;
     std::vector<ElementaryGuess> guesses;
     void MakeFactor(FullIndexCRef,const DiscreteFlowType &);
@@ -61,7 +69,7 @@ protected:
 };
 
 template<typename T>
-struct DynamicFactoring<T>::ElementaryGuess {
+struct Factoring<T>::ElementaryGuess {
     DistanceGuess guess;
     DomainTransformType transform;
     OffsetType base;
@@ -73,11 +81,15 @@ struct DynamicFactoring<T>::ElementaryGuess {
 		return base==offset ? ScalarType(0.) : weight*guess.Norm(Pull(base-offset) );}
     ScalarType Deriv(const OffsetType & offset) const {
         return -weight*guess.Gradient(Pull(base)).ScalarProduct(Pull(offset));}
-    ScalarType Correction(const OffsetType & offset, bool snd) const {
+    ScalarType Correction(const OffsetType & offset, int ord) const {
         const OffsetType zero = OffsetType::Constant(0);
-        return snd ?
-        (2./3.)*(Deriv(offset) + (1.5*Value(zero) - 2.*Value(offset) + 0.5*Value(2*offset)) ) :
-        Deriv(offset) + (Value(zero)-Value(offset));
+		switch (ord) {
+			case 1: return Deriv(offset) + (Value(zero)-Value(offset));
+			case 2: return Deriv(offset) + (1.5*Value(zero) - 2.*Value(offset) + 0.5*Value(2*offset));
+			case 3: assert(false);
+				return Deriv(offset) + ((11./6.)*Value(zero)-3.*Value(offset)+1.5*Value(2*offset)-(1./3.)*Value(3*offset));
+			default: assert(false); return -Traits::Infinity();
+		}
     }
     PrintSelfMacro(ElementaryGuess)
 };

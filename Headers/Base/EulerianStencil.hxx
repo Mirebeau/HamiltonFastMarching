@@ -152,25 +152,28 @@ HopfLaxUpdate(OffsetType offset, ScalarType acceptedValue, const MultiplierType 
 
 template<typename TDiff,int nSym,int nFor,int nM> template<typename F> auto
 EulerianStencil<TDiff,nSym,nFor,nM>::
-HopfLaxRecompute(const F & getVal, const MultiplierType & mult, ActiveNeighFlagType active,
+HopfLaxRecompute(const F & getVal, const MultiplierType & mult,
+				 ActiveNeighFlagType active,
                  DiscreteFlowType & discreteFlow) const
 -> RecomputeType {
     assert(discreteFlow.empty());
     assert(!active.none());
-    std::array<bool,nActiveNeigh> sndOrderNeighs;
-    std::fill(sndOrderNeighs.begin(),sndOrderNeighs.end(),true);
+	std::array<int,nActiveNeigh> orderNeigh;
+//    std::fill(orderNeigh.begin(),orderNeigh.end(),0);
     CappedVector<ScalarType, nActiveNeigh> weights;
     
     const int iMax = GetIMax(active);
     assert(0<=iMax && iMax<nMax);
     int iNeigh = iMax * nSingleNeigh;
     
-    // We actually store the neighbor values, not weights, (and the offsets) at this point.
-    auto flowPush = [&getVal,&sndOrderNeighs,&discreteFlow](const OffsetType & offset){
-        int snd = 1;
-        const ScalarType val = getVal(offset,snd);
-        assert(snd>=0);
-        sndOrderNeighs[discreteFlow.size()] = (bool)snd;
+    // We actually store the neighbor values, not weights,
+	// (and the offsets) at this point.
+    auto flowPush = [&getVal,&orderNeigh,&discreteFlow](const OffsetType & offset){
+        int ord = 3;
+        const ScalarType val = getVal(offset,ord);
+        assert(ord>=1);
+		// TODO : Third order
+        orderNeigh[discreteFlow.size()] = ord;
         discreteFlow.push_back({offset,val});
     };
     
@@ -200,11 +203,13 @@ HopfLaxRecompute(const F & getVal, const MultiplierType & mult, ActiveNeighFlagT
     QuadraticMax<ScalarType, 1> quad; quad.minVal = QuadType::Infinity();
     for(const auto & offsetValue : discreteFlow){
         quad.minVal=std::min(quad.minVal, offsetValue.weight);}
-    
+	
+	// TODO : third order
     for(int i=0; i<discreteFlow.size(); ++i){
-        quad.Add(discreteFlow[i].weight,
-                 (sndOrderNeighs[i]) ?
-                 (9./4.)* weights[i] : weights[i]);
+		const int ord = orderNeigh[i];
+		assert(ord!=0);
+		const std::array<ScalarType,4> mult2 = {0.,1.,9./4.,121./36.};
+        quad.Add(discreteFlow[i].weight,mult2[ord]*weights[i]);
     }
     
     RecomputeType result;
@@ -216,7 +221,10 @@ HopfLaxRecompute(const F & getVal, const MultiplierType & mult, ActiveNeighFlagT
         const ScalarType weightPosDiff = weights[i]*std::max(0.,result.value-discreteFlow[i].weight);
         discreteFlow[i].weight = weightPosDiff;
         result.width+=weightPosDiff;
-        if(sndOrderNeighs[i]) discreteFlow[i].weight *= 3./2.;
+		const int ord = orderNeigh[i];
+		assert(ord!=0);
+		const std::array<ScalarType,4> mult = {0.,1.,3./2.,11./6.};
+        discreteFlow[i].weight *= mult[ord];
     }
     const ScalarType weightsSum = std::accumulate(weights.begin(), weights.end(), 0.);
     if(weightsSum>0) {result.width/=weightsSum;}
