@@ -180,6 +180,7 @@ struct HamiltonFastMarching<T>::_StencilDataType<SSP::Share,Dummy>{
     virtual void Setup(HFMI *);
     virtual const ParamInterface & Param() const = 0;
     virtual DistanceGuess GetGuess(IndexCRef) const {ExceptionMacro("Equation factoring error : no guess");};
+	virtual ~_StencilDataType(){};
 protected:
     friend struct HamiltonFastMarching<Traits>;
     void EraseCache(DiscreteType index) {shallowMultQuads.erase(index);}
@@ -218,6 +219,7 @@ struct HamiltonFastMarching<T>::_StencilDataType<SSP::Recomp,Dummy>{
     struct RecomputeDataType {StencilType stencil; MultiplierType mult;}; // mult is dummy here
     RecomputeDataType RecomputeData(IndexCRef);
     virtual DistanceGuess GetGuess(IndexCRef) const {ExceptionMacro("Equation factoring error : no guess");};
+	virtual ~_StencilDataType(){};
 protected:
     friend struct HamiltonFastMarching<Traits>;
     void EraseCache(DiscreteType index) {shallowStencilQuads.erase(index);}
@@ -251,6 +253,7 @@ struct HamiltonFastMarching<T>::_StencilDataType<SSP::Lag2,Dummy>{
 
     virtual void SetNeighbors(IndexCRef, std::vector<OffsetType> &) = 0;
 	virtual DistanceGuess GetGuess(IndexCRef) const {ExceptionMacro("Equation factoring error : no guess");};
+	virtual ~_StencilDataType(){};
 protected:
     friend struct HamiltonFastMarching<Traits>;
     ScalarType HopfLaxUpdate(FullIndexCRef, OffsetCRef, ScalarType, ActiveNeighFlagType &);
@@ -285,6 +288,7 @@ struct HamiltonFastMarching<T>::_StencilDataType<SSP::Lag3,Dummy>{
 	
 	virtual void SetNeighbors(IndexCRef, std::vector<OffsetType> &) = 0;
 	virtual DistanceGuess GetGuess(IndexCRef) const {ExceptionMacro("Equation factoring error : no guess");};
+	virtual ~_StencilDataType(){};
 protected:
 	// TODO
 };
