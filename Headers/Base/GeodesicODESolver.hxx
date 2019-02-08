@@ -192,7 +192,7 @@ GeodesicODESolver<Traits>::Run(std::vector<PointType> & geodesic) const {
         
         DomainTransformType qTransform;
         if(HFM::DomainType::periodizeUsesBase){
-            const auto qTransform = this->fm.dom.Periodize(q,p);
+            [[maybe_unused]] const auto qTransform = this->fm.dom.Periodize(q,p);
             assert(qTransform.IsValid());
         }
         
@@ -208,7 +208,7 @@ GeodesicODESolver<Traits>::Run(std::vector<PointType> & geodesic) const {
         PointType r = p+geodesicStep*flow/flowNorm;
         
         if(HFM::DomainType::periodizeUsesBase){
-            const auto rTransform = this->fm.dom.Periodize(r,p);
+            [[maybe_unused]] const auto rTransform = this->fm.dom.Periodize(r,p);
             assert(rTransform.IsValid());}
         
         geodesic.push_back(r);

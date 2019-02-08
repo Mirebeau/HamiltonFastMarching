@@ -61,6 +61,7 @@ Factoring<T>::SetIndexStatic(IndexCRef index){
 	
 	assert(false);
 	//TODO : complete here
+	ExceptionMacro("Factoring error : Static factoring is unsupported for now")
 }
 
 
@@ -98,7 +99,7 @@ MakeFactor(FullIndexCRef updated, const DiscreteFlowType & flow){
         
         IndexType neigh = updated.index+IndexDiff::CastCoordinates(offset);
         assert(pFM!=nullptr);
-        const auto transform = pFM->dom.Periodize(neigh,updated.index);
+        [[maybe_unused]] const auto transform = pFM->dom.Periodize(neigh,updated.index);
         assert(transform.IsValid());
         const DiscreteType linearNeigh = factoringRegion.Convert(neigh);
         

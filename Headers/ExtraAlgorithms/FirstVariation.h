@@ -164,7 +164,7 @@ FirstVariation<T>::ValueVariationHelper<true,Dummy> {
         DiscreteFlowType flow;
         const RecomputeType rec = pFM->Recompute(index, flow);
         
-        typedef typename DiscreteFlowType::value_type FlowElementType;
+        [[maybe_unused]] typedef typename DiscreteFlowType::value_type FlowElementType;
         assert(std::fabs(std::accumulate(flow.begin(), flow.end(), 0.,[](ScalarType a, const FlowElementType & b){return a+b.weight;})-1.)<0.001);
         
         ScalarType valueDiff = rec.value; // equivalently pFM->values(index)
