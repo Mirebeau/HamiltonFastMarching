@@ -11,3 +11,6 @@ set(Experimental_Headers
 	${CMAKE_CURRENT_SOURCE_DIR}/Seismic3.h
 	PARENT_SCOPE
 	)
+
+add_subdirectory(Implementation)
+set(Experimental_Implementation_Headers ${Experimental_Implementation_Headers} PARENT_SCOPE)

@@ -94,6 +94,6 @@ struct Factoring<T>::ElementaryGuess {
     PrintSelfMacro(ElementaryGuess)
 };
 
-#include "DynamicFactoring.hxx"
+#include "Implementation/DynamicFactoring.hxx"
 
 #endif /* DynamicFactoring_h */

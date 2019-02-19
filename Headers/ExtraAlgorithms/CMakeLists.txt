@@ -8,3 +8,6 @@ set(ExtraAlgorithms_Headers
 	${CMAKE_CURRENT_SOURCE_DIR}/DynamicFactoring.h
 	PARENT_SCOPE
 	)
+
+add_subdirectory(Implementation)
+set(ExtraAlgorithms_Implementation_Headers ${ExtraAlgorithms_Implementation_Headers} PARENT_SCOPE)

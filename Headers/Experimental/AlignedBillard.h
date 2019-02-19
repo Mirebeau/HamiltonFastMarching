@@ -113,5 +113,5 @@ protected:
     }
 };
 
-#include "AlignedBillard.hxx"
+#include "Implementation/AlignedBillard.hxx"
 #endif /* AlignedBillard_h */

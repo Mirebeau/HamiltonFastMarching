@@ -3,7 +3,9 @@ set(Project_Headers
  	${Base_Implementation_Headers}
  	${Specializations_Headers}
  	${Experimental_Headers}
+ 	${Experimental_Implementation_Headers}
  	${ExtraAlgorithms_Headers}
+ 	${ExtraAlgorithms_Implementation_Headers}
  	${Root_Headers}
 
  	${DataStructures_Headers}
@@ -23,4 +25,6 @@ source_group("Base" FILES ${Base_Headers})
 source_group("Base\\Implementation" FILES ${Base_Implementation_Headers})
 source_group("Specializations" FILES ${Specializations_Headers})
 source_group("Experimental" FILES ${Experimental_Headers})
+source_group("Experimental\\Implementation" FILES ${Experimental_Implementation_Headers})
 source_group("ExtraAlgorithms" FILES ${ExtraAlgorithms_Headers})
+source_group("ExtraAlgorithms\\Implementation" FILES ${ExtraAlgorithms_Implementation_Headers})
