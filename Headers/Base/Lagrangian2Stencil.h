@@ -9,7 +9,6 @@
 #define Lagrangian2Stencil_h
 
 #include <forward_list>
-#include "JMM_CPPLibs/DataStructures/CappedVector.h"
 
 // ----------- Semi-Lagrangian scheme ------------
 
@@ -38,13 +37,10 @@ struct Lagrangian2Stencil {
         unsigned long to_ulong() const {return (unsigned long)(sectorIndex);}
     };
     
-    // TODO : Remove when possible ? (Put in StencilData specialization ?)
     static const int nActiveNeigh = Dimension;
-	struct DiscreteFlowElement {OffsetType offset; ScalarType weight;
-		PrintSelfMacro(DiscreteFlowElement);};
-    typedef CappedVector<DiscreteFlowElement, nActiveNeigh> DiscreteFlowType;
-	struct RecomputeType {ScalarType value,width; PrintSelfMacro(RecomputeType);};
-
+	using CommonStencilType = CommonStencil<OffsetType,ScalarType,nActiveNeigh>;
+	Redeclare3Types(CommonStencilType,DiscreteFlowElement,DiscreteFlowType,RecomputeType);
+	
     OffsetType * pOffsets;
     DiscreteType nOffsets;
 };
@@ -55,16 +51,6 @@ Lagrangian2Stencil<TO,TS,TD>::PrintSelf(std::ostream & os) const {
     os << "{";
     for(int i=0; i<nOffsets; ++i) os << pOffsets[i] << ",";
     os << "}";
-}
-
-template<typename TO, typename TS, typename TD> void
-Lagrangian2Stencil<TO,TS,TD>::DiscreteFlowElement::PrintSelf(std::ostream & os) const {
-	os << "{" << offset << "," << weight << "}";
-}
-
-template<typename TO, typename TS, typename TD> void
-Lagrangian2Stencil<TO,TS,TD>::RecomputeType::PrintSelf(std::ostream & os) const {
-	os << "{" << value << "," << width << "}";
 }
 
 // -----

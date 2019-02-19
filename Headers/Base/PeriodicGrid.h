@@ -81,6 +81,6 @@ protected:
     static constexpr bool MayReverse(DiscreteType i);
 };
 
-#include "PeriodicGrid.hxx"
+#include "Implementation/PeriodicGrid.hxx"
 
 #endif /* PeriodicGrid_h */

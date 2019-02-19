@@ -76,6 +76,6 @@ Run_SetupExtraAlgorithms(){
 	pFM->factoring.Setup(this);
 }
 
-#include "HFMInterface.hxx"
+#include "Implementation/HFMInterface.hxx"
 
 #endif /* HFMInterface_h */

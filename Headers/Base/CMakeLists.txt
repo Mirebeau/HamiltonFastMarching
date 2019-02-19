@@ -3,6 +3,7 @@ set(Base_Headers
 	${CMAKE_CURRENT_SOURCE_DIR}/PeriodicGrid.h
 	${CMAKE_CURRENT_SOURCE_DIR}/EulerianStencil.h
 	${CMAKE_CURRENT_SOURCE_DIR}/Lagrangian2Stencil.h
+	${CMAKE_CURRENT_SOURCE_DIR}/Lagrangian3Stencil.h
 	${CMAKE_CURRENT_SOURCE_DIR}/HamiltonFastMarching.h
 	${CMAKE_CURRENT_SOURCE_DIR}/HFMInterface.h
 	${CMAKE_CURRENT_SOURCE_DIR}/GeodesicODESolver.h
@@ -11,15 +12,5 @@ set(Base_Headers
 	PARENT_SCOPE
 	)
 
-set(Base_Implementation_Headers
-	${CMAKE_CURRENT_SOURCE_DIR}/EulerianStencil.hxx
-	${CMAKE_CURRENT_SOURCE_DIR}/PeriodicGrid.hxx
-	${CMAKE_CURRENT_SOURCE_DIR}/EulerianStencil.hxx
-	${CMAKE_CURRENT_SOURCE_DIR}/HamiltonFastMarching.hxx
-	${CMAKE_CURRENT_SOURCE_DIR}/HFM_StencilDataType.hxx
-	${CMAKE_CURRENT_SOURCE_DIR}/HFM_ParamDefault.hxx
-	${CMAKE_CURRENT_SOURCE_DIR}/HFMInterface.hxx
-	${CMAKE_CURRENT_SOURCE_DIR}/GeodesicODESolver.hxx
-	${CMAKE_CURRENT_SOURCE_DIR}/GeodesicDiscreteSolver.hxx
-	PARENT_SCOPE
-)
+add_subdirectory(Implementation)
+set(Base_Implementation_Headers ${Base_Implementation_Headers} PARENT_SCOPE)

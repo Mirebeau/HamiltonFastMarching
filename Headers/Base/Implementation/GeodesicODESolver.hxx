@@ -139,13 +139,6 @@ GeodesicFlow(const PointType & p, const Array<ShortType,Dimension> & target, Flo
             VectorType inc = weight*flowData.flow;
             wOFlow.transform.PullVector(inc);
             result.flow+=inc;
-            /*
-            for(int i=0; i<Dimension; ++i){
-                ScalarType inc = weight * flowData.flow[i];
-                if(fm.dom.MayReverse(i) && wOFlow.reversed[i]){
-                    inc*=-1;}
-                result.flow[i] += inc;
-            }*/
         }
     }
     if(weightSum>0) {result.flow/=weightSum;} //result.value/=weightSum;
@@ -179,11 +172,8 @@ GeodesicODESolver<Traits>::Run(std::vector<PointType> & geodesic) const {
         if(oldTargetTolerance < flowData.targetTolerance) return false; // Getting away from target.
         
         if(flowData.nStationarity > nStationarityMax) return true; // Stall
-        /*        std::cout
-         ExportVarArrow(p)
-         ExportVarArrow(flowData.flow)
-         << "\n";*/
-        VectorType flow=flowData.flow;
+
+		VectorType flow=flowData.flow;
         ScalarType flowNorm = flow.Norm();
         if(flowNorm==0) return false; // At seed
         
@@ -250,9 +240,6 @@ LInfDistance(const std::vector<IndexType> & seeds, ShortType upperBound) const -
         const auto & acceptedPair = queue.top();
         const ShortType acceptedValue = -acceptedPair.first; // Minus to get adequate ordering
         const IndexType acceptedIndex =  acceptedPair.second;
-        /*        std::cout ExportVarArrow((DiscreteType)acceptedValue)
-         ExportVarArrow(acceptedIndex)
-         ExportVarArrow(queue.size()) << "\n";*/
         queue.pop();
         if(result(acceptedIndex)!=acceptedValue) continue;
         if(acceptedValue>=upperBound) continue;

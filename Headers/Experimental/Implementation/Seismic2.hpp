@@ -32,29 +32,22 @@ auto StencilSeismic2::HopfLaxUpdate(IndexCRef index, const OffsetVal3 & offsetVa
 	ScalarType value;
 
 	if(offsetVal.size()==1) {
-		value = val(0)+norm.Norm(neigh(0));
+		value = norm.HopfLax({neigh(0)},{val(0)}).first;
 		active = 0;
 	}
 	
 	if(offsetVal.size()>=2){
-		const auto hl = norm.HopfLax({neigh(0),neigh(1)},{val(0),val(1)});
-		value = hl.first;
+		value = norm.HopfLax({neigh(0),neigh(1)},{val(0),val(1)}).first;
 		active = 1;
 	}
 	
 	if(offsetVal.size()==3){
 		const auto hl = norm.HopfLax({neigh(0),neigh(2)},{val(0),val(2)});
-		if(hl.first<value);
-		value = hl.first;
-		active = 2;
+		if(hl.first<value){
+			value = hl.first;
+			active = 2;
+		}
 	}
-	
-/*	std::cout
-	ExportVarArrow(index)
-	ExportVarArrow(value)
-	ExportVarArrow(active)
-	ExportVarArrow(offsetVal)
-	<< std::endl;*/
 	
 	return {value,active};
 }
@@ -77,16 +70,17 @@ auto StencilSeismic2::HopfLaxRecompute(IndexCRef index, DiscreteFlowType & flow)
 
 	
 	if(flow.size()==1){
-		const ScalarType value = w(0)+ norm.Norm(neigh(0));
-		w(0)=1;
+		const auto & [value,weights] = norm.HopfLax({neigh(0)},{w(0)});
+		w(0)=weights[0];
 		return {value,0.};
+	} else {
+		assert(flow.size()==2);
+		const auto & [value,weights] = norm.HopfLax({neigh(0),neigh(1)},{w(0),w(1)});
+		const ScalarType width = weights[0]*abs(value-w(0))+weights[1]*abs(value-w(1));
+		assert((weights.Sum()-1.)<1e-6);
+		w(0)=weights[0]; w(1)=weights[1];
+		return {value,width};
 	}
-	
-	assert(flow.size()==2);
-	const auto [value,weights] = norm.HopfLax({neigh(0),neigh(1)},{w(0),w(1)});
-	const ScalarType width = weights[0]*abs(value-w(0))+weights[1]*abs(value-w(1));
-	w(0)=weights[0]; w(1)=weights[1];
-	return {value,width};
 }
 
 void StencilSeismic2::SetNeighbors(IndexCRef index, std::vector<OffsetType> & stencil){

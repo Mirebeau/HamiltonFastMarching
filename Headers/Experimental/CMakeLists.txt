@@ -8,5 +8,6 @@ set(Experimental_Headers
 	${CMAKE_CURRENT_SOURCE_DIR}/Differentiable.h
 	${CMAKE_CURRENT_SOURCE_DIR}/RollingBall.h
 	${CMAKE_CURRENT_SOURCE_DIR}/Seismic2.h
+	${CMAKE_CURRENT_SOURCE_DIR}/Seismic3.h
 	PARENT_SCOPE
 	)

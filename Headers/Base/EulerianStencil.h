@@ -11,6 +11,7 @@
 #include "JMM_CPPLibs/Macros/ExportArrow.h"
 #include "JMM_CPPLibs/LinearAlgebra/SquareCube.h"
 #include "JMM_CPPLibs/Macros/TemplateLog2.h"
+#include "CommonStencil.h"
 // ------------ Eulerian scheme -------------
 
 template<typename TS, size_t n> struct QuadraticMax;
@@ -47,11 +48,11 @@ EulerianStencil {
     typedef QuadraticMax<ScalarType,nMax> QuadType;
     ScalarType HopfLaxUpdate(OffsetType, ScalarType, const MultiplierType &,
                              QuadType &, ActiveNeighFlagType &) const;
-    
-    struct DiscreteFlowElement {OffsetType offset; ScalarType weight;};
-    typedef CappedVector<DiscreteFlowElement, nActiveNeigh> DiscreteFlowType;
-    struct RecomputeType {ScalarType value,width;};
-    template<typename F> RecomputeType HopfLaxRecompute(const F &, const MultiplierType &, ActiveNeighFlagType, DiscreteFlowType &) const;
+	
+	using CommonStencilType = CommonStencil<OffsetType,ScalarType,nActiveNeigh>;
+	Redeclare3Types(CommonStencilType,DiscreteFlowElement,DiscreteFlowType,RecomputeType);
+    template<typename F> RecomputeType
+	HopfLaxRecompute(const F &,const MultiplierType &, ActiveNeighFlagType, DiscreteFlowType &) const;
 };
 
 // ---- Enhanced offsets, referred to as differences (define the finite difference scheme) ---
@@ -123,6 +124,6 @@ protected:
 };
 
 
-#include "EulerianStencil.hxx"
+#include "Implementation/EulerianStencil.hxx"
 
 #endif /* EulerianStencil_h */

@@ -40,7 +40,7 @@ protected:
         result[Dimension]=k;
         return result;
     };
-    template<bool b=HFM::policy==SSP::Lag2, typename Dummy=void> struct ValueVariationHelper;
+    template<bool b=( HFM::policy==SSP::Lag2 || HFM::policy==SSP::Lag3 ), typename Dummy=void> struct ValueVariationHelper;
     
 //    template<bool b=HFM::hasMultiplier, typename Dummy=void> struct MultArrayIO;
 };

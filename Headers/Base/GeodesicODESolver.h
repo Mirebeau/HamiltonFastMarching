@@ -39,6 +39,6 @@ protected:
     Array<ShortType,Dimension> targetDistances;
 };
 
-#include "GeodesicODESolver.hxx"
+#include "Implementation/GeodesicODESolver.hxx"
 
 #endif /* GeodesicODESolver_h */

@@ -79,7 +79,8 @@ struct HamiltonFastMarching {
     static const StencilStoragePolicy policy =
     DifferenceType::multSize>0 ? StencilStoragePolicy::Share :
     DifferenceType::multSize==0 ? StencilStoragePolicy::Recomp :
-    StencilStoragePolicy::Lag2;
+	Dimension==2 ? StencilStoragePolicy::Lag2 :
+	StencilStoragePolicy::Lag3;
     template<StencilStoragePolicy, typename Dummy> struct _StencilDataType;
     typedef _StencilDataType<policy,void> StencilDataType;
     DiscreteType MaxStencilWidth() const;
@@ -281,20 +282,35 @@ struct HamiltonFastMarching<T>::_StencilDataType<SSP::Lag3,Dummy>{
 	typedef HamiltonFastMarching<T> HFM;
 	
 	IndexType dims; // Needs value
-	void SetStencil(IndexCRef, StencilType &);
+	virtual void SetStencil(IndexCRef, StencilType &) = 0;
 	virtual void Setup(HFMI *);
 	virtual const ParamInterface & Param() const = 0;
 	virtual void Initialize(const HFM *);
 	
-	virtual void SetNeighbors(IndexCRef, std::vector<OffsetType> &) = 0;
 	virtual DistanceGuess GetGuess(IndexCRef) const {ExceptionMacro("Equation factoring error : no guess");};
 	virtual ~_StencilDataType(){};
 protected:
-	// TODO
+	friend struct HamiltonFastMarching<Traits>;
+	ScalarType HopfLaxUpdate(FullIndexCRef, OffsetCRef, ScalarType, ActiveNeighFlagType &);
+	template<typename F> RecomputeType HopfLaxRecompute(const F &, IndexCRef, ActiveNeighFlagType, DiscreteFlowType &);
+	RangeAccessor<OffsetType*> ReversedOffsets(FullIndexCRef);
+	void EraseCache(DiscreteType index){};
+	
+	typedef CappedVector<std::pair<OffsetType,ScalarType>, 9> OffsetVals;
+	virtual std::pair<ScalarType,int> HopfLaxUpdate(IndexCRef,const OffsetVals &) = 0;
+	virtual RecomputeType HopfLaxRecompute(IndexCRef,DiscreteFlowType &) = 0;
+private:
+	const HFM * pFM = nullptr;
+	HFM::Array<StencilType,Dimension> stencils;
+	std::vector<OffsetType> reversedOffsets;
+	std::vector<DiscreteType> reversedOffsetsSplits;
+	std::vector<OffsetType> tmpHLU; 
 };
 
-#include "HamiltonFastMarching.hxx"
-#include "HFM_StencilDataType.hxx"
-#include "HFM_ParamDefault.hxx"
+#include "Implementation/HamiltonFastMarching.hxx"
+#include "Implementation/HFM_StencilDataType.hxx"
+#include "Implementation/HFM_StencilLag2.hxx"
+#include "Implementation/HFM_StencilLag3.hxx"
+#include "Implementation/HFM_ParamDefault.hxx"
 
 #endif /* HamiltonFastMarching_h */

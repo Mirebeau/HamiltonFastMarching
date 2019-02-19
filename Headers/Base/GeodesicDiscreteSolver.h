@@ -33,6 +33,6 @@ protected:
 };
 
 
-#include "GeodesicDiscreteSolver.hxx"
+#include "Implementation/GeodesicDiscreteSolver.hxx"
 
 #endif /* GeodesicDiscreteSolver_h */
