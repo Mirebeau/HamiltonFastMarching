@@ -55,7 +55,7 @@ struct Boundary_AllClosed {
 template<typename TTraits> struct PeriodicGrid : TTraits::BaseDomain {
     typedef TTraits Traits;
     typedef typename Traits::BaseDomain Superclass;
-    Redeclare5Types(Superclass,IndexType,PointType,IndexCRef,DiscreteType,ScalarType)
+	Redeclare6Types(Superclass,IndexType,PointType,IndexCRef,DiscreteType,ScalarType,NeighborsType);
     Redeclare1Constant(Superclass,Dimension);    
     struct Transform;
     
@@ -65,6 +65,8 @@ template<typename TTraits> struct PeriodicGrid : TTraits::BaseDomain {
     Transform Periodize(PointType & target, const PointType & base) const;
     Transform PeriodizeNoBase(IndexType & target) const;
     Transform PeriodizeNoBase(PointType & target) const;
+	
+	NeighborsType Neighbors(const PointType &) const; // Neighbors on the cartesian grid
     
     PeriodicGrid(IndexCRef);
 };

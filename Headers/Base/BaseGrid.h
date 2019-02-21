@@ -36,6 +36,9 @@ template<int VDim, typename TScalar, typename TDiscrete, typename TShort> struct
 
     BaseGrid(IndexCRef dims) {arr.dims = dims;
         if(!dims.IsPositive()) ExceptionMacro("BaseGrid error : domain size must be positive");}
+	
+	using NeighborsType = std::array<std::pair<IndexType,ScalarType>,1<<Dimension>;
+	NeighborsType Neighbors(const PointType &) const; // Neighbors on the cartesian grid
 protected:
     Array<ScalarType, Dimension> arr;
 };
@@ -71,8 +74,35 @@ PointFromIndex(const IndexType & p) const -> PointType {
     return result;
 }
 
-// Constructor
+// Neighbors
 
-
+template<int VD, typename TS, typename TD, typename TSh> auto BaseGrid<VD,TS,TD,TSh>::
+Neighbors(const PointType & p) const -> NeighborsType {
+	const IndexType nearest = IndexFromPoint(p);
+	IndexType direction;
+	PointType weight;
+	for(int i=0; i<Dimension; ++i){
+		const ScalarType diff = p[i]-nearest[i]-0.5;
+		direction[i] = diff>0 ? 1 : -1;
+		weight[i] = std::abs(diff);
+	}
+	
+	NeighborsType result;
+	for(int i=0; i< (1<<Dimension); ++i){
+		IndexType p = nearest;
+		ScalarType w = 1.;
+		for(int j=0; j<Dimension; ++j){
+			const bool b = (bool)( (i>>j) & 1 );
+			if(b){
+				w *= weight[j];
+				p[j]+=direction[j];
+			} else {
+				w*= 1.-weight[j];
+			}
+		}
+		result[i] = {p,w};
+	}
+	return result;
+}
 
 #endif /* BaseGrid_h */

@@ -16,11 +16,27 @@ MayReverse(DiscreteType i) {
     Traits::boundaryConditions[i]==Boundary::Sphere3_0;
 }
 
-template<typename T> template<typename TVec> void PeriodicGrid<T>::Transform::PullVector(TVec & v) const {
+template<typename T> template<typename TVec> void PeriodicGrid<T>::
+Transform::PullVector(TVec & v) const {
     for(DiscreteType i=0; i<Dimension; ++i){
         if(MayReverse(i) && reverseFlag[i])
             v[i]*=-1;
     }
+}
+
+// ----- Neighbors on the grid -----
+template<typename T> auto PeriodicGrid<T>::
+Neighbors(const PointType & p) const -> NeighborsType {
+	auto result = Superclass::Neighbors(p);
+	ScalarType wSum = 0.;
+	for(auto & [q,w] : result){
+		const Transform transform = PeriodizeNoBase(q);
+		if(transform.IsValid()) {wSum+=w;}
+		else {w=0.;}
+	}
+	if(wSum>0)
+		for(auto & [q,w] : result){w/=wSum;}
+	return result;
 }
 
 // --------- Main methods -------

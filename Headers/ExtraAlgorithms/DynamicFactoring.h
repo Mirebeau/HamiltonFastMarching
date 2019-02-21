@@ -17,12 +17,15 @@
  - behind obstacle corners.
  
  While the improvement obtained from including the seed points is obvious, the usefulness of treating the obstacles corners is less clear. Indeed, in the later case, a real improvement is only seen if the obstacles boundaries are aligned with the grid.
+
  */
 
-
-/**
- ???? Contrary to what could be hoped, using both endpoints does not improve accuracy in general. In order to achieve higher order accuracy, a more complex implementation would be needed.
- */
+/*
+ In some rare edge cases, factorization could be slightly less effective than anticipated due to implementation:
+- Seed on the boundary of a domain equipped with periodic boundary conditions. (Additional h^2 error)
+- Eulerian models with wide initialization around seed, used with dynamic factoring. (Additional h or h^2 error)
+ 
+*/
 
 // TODO : Complete static case. (Setup, SetupIndexStatic)
 // TODO ? boolean set to false if no guess made, to speed up in useless case
@@ -44,15 +47,18 @@ struct Factoring {
 	bool SetIndexStatic(IndexCRef);
     bool SetIndexDynamic(IndexCRef,const DiscreteFlowType &);
     ScalarType Correction(const OffsetType &, int) const;
-    
-    ScalarType factoringRadius = 10;
-    std::map<DiscreteType,DistanceGuess> factoringKeypoints;
+	
+	std::vector<std::pair<PointType,DistanceGuess> > factoringCenters; // Adimensionized quantities
+    ScalarType factoringRadius = 10; // Adimensionized quantity
     Array<bool, Dimension> factoringRegion;
     FactoringPointChoice pointChoice = FactoringPointChoice::Key;
 	FactoringMethod	method = FactoringMethod::None;
     bool Setup(HFMI *);
 protected:
     const HFM * pFM=nullptr;
+	
+	// Dynamic factoring only
+	std::map<DiscreteType,int> factoringKeypoints;
     Array<bool, Dimension> factoringDone;
     std::multimap<DiscreteType,std::pair<OffsetType,ScalarType> > factoringNeighbors;
     std::vector<std::pair<OffsetType,ScalarType> > currentNeighbors, currentNeighbors2; // cache
@@ -63,7 +69,9 @@ protected:
     bool MakeGuess(FullIndexCRef);
     
     // Used at setup only
-    std::vector<DiscreteType> SelectKeypoints(HFMI*);
+    void SetupCenters(HFMI*);
+	void SetupDijkstra();
+	void SetupRegion(HFMI*);
     std::vector<std::pair<IndexDiff,ScalarType> > edges;
     bool OnBoundary(IndexCRef,const DomainType &) const;
 };

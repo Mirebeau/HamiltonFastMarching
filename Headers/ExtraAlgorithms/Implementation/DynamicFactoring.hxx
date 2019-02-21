@@ -9,6 +9,7 @@
 #define Factoring_hxx
 
 template<> char const* enumStrings<FactoringPointChoice>::data[] = {"Key", "Current", "Both"};
+template<> char const* enumStrings<FactoringMethod>::data[] = {"None", "Static", "Dynamic"};
 
 template<typename T> void
 Factoring<T>::ElementaryGuess::PrintSelf(std::ostream & os) const {
@@ -171,118 +172,161 @@ template<typename T> bool
 Factoring<T>::
 Setup(HFMI * that){
     auto & io = that->io;
-	if(!io.HasField("FactoringMethod")) {return false;}
-	const std::string method_str = io.GetString("FactoringMethod");
-	if(method_str=="None") {method=FactoringMethod::None; return false;}
-	else if(method_str=="Static") {method=FactoringMethod::Static; assert(false); }
-	else if(method_str=="Dynamic") {method=FactoringMethod::Dynamic;}
-	else {ExceptionMacro("Factoring error : unrecognized method " << method_str);}
 	
-    if(!io.template Get<ScalarType>("useFactoring",0.,1)) return false;
-        
-    factoringRadius = io.template Get<ScalarType>("factoringRadius",factoringRadius);
-    pointChoice = enumFromString<FactoringPointChoice>(io.GetString("factoringPointChoice",
-                                                                    enumToRealString(pointChoice)));
-    if(0>(int)pointChoice) {ExceptionMacro("Dynamic factoring error: unrecognized factoringPointChoice.");}
-    
-    pFM = that->pFM.get();
-    const auto & stencilData = pFM->stencilData;
-    const auto & param = pFM->stencilData.Param();
-    const auto & dom = pFM->dom;
-    
-    // Setup arrays
-    const auto & dims = stencilData.dims;
-    const size_t size = dims.Product();
-    factoringRegion.dims = dims; factoringRegion.resize(size,false);
-    factoringDone.dims = dims; factoringDone.resize(size,false);
-    const auto & arr = factoringDone;
-    
-    // ------ Setup some edges to be used in Dijkstra methods at initialization ------
-    { // Setup the edges
-        Array<int, Dimension> dummy; dummy.dims = IndexType::Constant(3);
-        int nEdges = dummy.dims.Product();
-        for(int i=0; i<nEdges; ++i){
-            const IndexDiff offset = dummy.Convert(i)-IndexType::Constant(1);
-            const ScalarType norm = VectorType::CastCoordinates(offset).Norm();
-            if(norm>0){edges.push_back({offset,norm});}
-        }
-    }
-    
-    // Setup keypoints
-    const std::vector<DiscreteType> keypoints = SelectKeypoints(that);
-    if(io.template Get<ScalarType>("exportFactoringKeypoints",0.,2)){
-        std::vector<PointType> pts;
-        for(DiscreteType i : keypoints) {
-            pts.push_back(param.ReDim(dom.PointFromIndex(arr.Convert(i))));}
-        io.SetVector("factoringKeypoints",pts);
-    }
-    
-    std::priority_queue<std::pair<ScalarType,DiscreteType> > queue;
-    for(DiscreteType i : keypoints){
-        queue.push({0.,i});
-        factoringKeypoints.insert({i,stencilData.GetGuess(arr.Convert(i))});
-    }
-    
-    // ------ Setup dynamic factoring region, by running a Dijkstra, approximating euclidean distance ------
-    while(!queue.empty()){
-        const auto top = queue.top();
-        const ScalarType value = - top.first;
-        const DiscreteType current = top.second;
-        queue.pop();
-        if(factoringRegion[current]) continue;
-        factoringRegion[current]=true;
-        for(const auto & e : edges){
-            const ScalarType neighVal = value+e.second;
-            if(neighVal>factoringRadius) continue;
-            const IndexType index = arr.Convert(current);
-            IndexType neigh = index+e.first;
-            if(dom.Periodize(neigh,index).IsValid()){
-                queue.push({-neighVal,arr.Convert(neigh)});}
-        }
-    }
-    
-    if(io.template Get<ScalarType>("exportFactoringRegion",0.,2)!=0){
-        io.SetArray("factoringRegion",factoringRegion.template Cast<ScalarType>());}
+	// Get the factoring method
+	
+	method=enumFromString<FactoringMethod>
+	(io.GetString("factoringMethod",enumToRealString(method)));
+	if(0>(int)method){ExceptionMacro("Dynamic factoring error: unrecognized factoringMethod.");}
+	if(method==FactoringMethod::None) {return false;}
+	
+	// Get the factoring point choice
+	pointChoice = enumFromString<FactoringPointChoice>
+	(io.GetString("factoringPointChoice",enumToRealString(pointChoice)));
+	if(0>(int)pointChoice){
+		ExceptionMacro("Dynamic factoring error: unrecognized factoringPointChoice.");}
+	
+	// Setup arrays
+
+	factoringRegion.dims = pFM->stencilData.dims;
+	factoringRegion.resize(factoringRegion.dims.Product(),false);
+	if(method==FactoringMethod::Dynamic){
+		factoringDone.dims = factoringRegion.dims;
+		factoringDone.resize(factoringRegion.size(),false);
+	}
+
+	// Get the factoring points
+
+	SetupCenters(that);
+	SetupRegion(that);
+	
+	// Export some requested data
+	if(io.template Get<ScalarType>("exportFactoringCenters",0.,2)){
+		const auto & param = that->pFM->stencilData.Param();
+		std::vector<PointType> pts;
+		for(const auto & [p,d] : factoringCenters) {
+			pts.push_back(param.ReDim(p));}
+		io.SetVector("factoringCenters",pts);
+	}
+
+	if(io.template Get<ScalarType>("exportFactoringRegion",0.,2)!=0){
+		io.SetArray("factoringRegion",factoringRegion.template Cast<ScalarType>());}
+
     return true;
 }
 
-template<typename T> auto
-Factoring<T>::
-SelectKeypoints(HFMI * that) -> std::vector<DiscreteType> {
-    std::vector<DiscreteType> result;
-    
-    IO & io = that->io;
-    const auto & param = pFM->stencilData.Param();
-    const auto & dom = pFM->dom;
+template<typename T> void Factoring<T>::
+SetupDijkstra(){
+	if(!edges.empty()) return;
+	// Setup the edges used in Dijkstra's method, coarsely approximating euclidean distance
+	Array<int, Dimension> dummy; dummy.dims = IndexType::Constant(3);
+	int nEdges = dummy.dims.Product();
+	for(int i=0; i<nEdges; ++i){
+		const IndexDiff offset = dummy.Convert(i)-IndexType::Constant(1);
+		const ScalarType norm = VectorType::CastCoordinates(offset).Norm();
+		if(norm>0){edges.push_back({offset,norm});}
+	}
+}
 
-    Array<bool, Dimension> & done = factoringDone;
-    assert(!done.empty());
-    
-    auto LinearIndexFromPhysicalPoint = [&](const PointType & p){
-        IndexType index = dom.IndexFromPoint(param.ADim(p));
-        if(!dom.PeriodizeNoBase(index).IsValid()){
-            ExceptionMacro("Dynamic factoring error : input point " << p << " is out of range");}
-        return done.Convert(index);
-    };
-    
-    if(io.HasField("factoringKeypoints")){
-        const std::vector<PointType> pts = io.template GetVector<PointType>("factoringKeypoints");
-        for(const PointType & p : pts){result.push_back(LinearIndexFromPhysicalPoint(p));}
-        return result;
-    }
-    
-    const std::vector<PointType> seeds = io.template GetVector<PointType>("seeds");
-    for(const PointType & p : seeds){result.push_back(LinearIndexFromPhysicalPoint(p));}
 
-    // ------ Extract keypoints from wall data -----
-    
-    if(!io.HasField("walls")) return result;
+template<typename T> void Factoring<T>::
+SetupRegion(HFMI*that){
+	auto & io = that->io;
+	pFM = that->pFM.get();
+	const auto & dom = pFM->dom;
+
+	// Get the factoring region map, if user provides
+	
+	if(method==FactoringMethod::Dynamic || !io.HasField("factoringRegion")){
+		factoringRadius = io.template Get<ScalarType>("factoringRadius",factoringRadius);}
+	
+	if(io.HasField("factoringRegion")){
+		const auto pRegion = that->template GetIntegralField<bool>("factoringRegion");
+		pRegion->CheckDims(factoringRegion.dims);
+		for(int i=0; i<factoringRegion.size(); ++i){
+			factoringRegion[i] = (*pRegion)(factoringRegion.Convert(i));}
+		return;
+	}
+	
+	// Build the factoring region, based on the factoring radius and known centers
+	const auto & arr = factoringRegion;
+	
+	// ------ Setup dynamic factoring region,
+	// by running a Dijkstra, approximating euclidean distance ------
+
+	SetupDijkstra();
+	
+	std::priority_queue<std::pair<ScalarType,DiscreteType> > queue;
+	for(const auto & [p,d] : factoringCenters){
+		queue.push({0.,arr.Convert(dom.IndexFromPoint(p))});}
+	
+	while(!queue.empty()){
+		const auto top = queue.top();
+		const ScalarType value = - top.first;
+		const DiscreteType current = top.second;
+		queue.pop();
+		if(factoringRegion[current]) continue;
+		factoringRegion[current]=true;
+		for(const auto & e : edges){
+			const ScalarType neighVal = value+e.second;
+			if(neighVal>factoringRadius) continue;
+			const IndexType index = arr.Convert(current);
+			IndexType neigh = index+e.first;
+			if(dom.Periodize(neigh,index).IsValid()){
+				queue.push({-neighVal,arr.Convert(neigh)});}
+		}
+	}
+	
+}
+
+
+template<typename T> void Factoring<T>::
+SetupCenters(HFMI * that) {
+	
+	IO & io = that->io;
+	const auto & stencilData = pFM->stencilData;
+	const auto & param = stencilData.Param();
+	const auto & dom = pFM->dom;
+	Array<bool, Dimension> & done = factoringRegion;
+	assert(!done.empty());
+
+
+	// --- import the used provided centers ---
+	auto pushCenter = [this,&stencilData,&dom,&done](PointType q){
+		if(!dom.PeriodizeNoBase(q).IsValid()){
+			ExceptionMacro("Dynamic factoring error : input point " << q << " is out of range");}
+		if(method==FactoringMethod::Dynamic){
+			for(const auto [index,weight] : dom.Neighbors(q)){
+				if(weight>1e-6){
+					factoringKeypoints.insert({done.Convert(index),factoringCenters.size()});}
+			}
+		}
+		factoringCenters.push_back({q,stencilData.GetGuess(q)});
+	};
+	
+	for(const PointType & p : io.template GetVector<PointType>("seeds")) {
+		pushCenter(param.ADim(p));}
+	
+	if(method!=FactoringMethod::Dynamic) return;
+	if(io.HasField("factoringKeypoints")) {
+		for(const PointType & p : io.template GetVector<PointType>("factoringKeypoints")){
+			pushCenter(param.ADim(p));}
+		return;
+	}
+
+    // In the case of dynamic factoring, without user provided keypoints,
+	// we extract keypoints from wall data, trying to get the corners.
+	// This relies on a Dijkstra method.
+	if(!io.HasField("walls")) return;
+
+	SetupDijkstra();
+
     const auto pWalls = that->template GetIntegralField<bool>("walls");
     pWalls->CheckDims(done.dims);
     assert(!edges.empty());
     
     const ScalarType factoringWallExtractionRadius = io.template Get<ScalarType>("factoringWallExtractionRadius",factoringRadius,2);
-    
+	
     // Get the wall boundary, which are the candidate keypoints
     std::set<DiscreteType> wallBoundary;
     for(DiscreteType i=0; i<done.size(); ++i){
@@ -322,23 +366,16 @@ SelectKeypoints(HFMI * that) -> std::vector<DiscreteType> {
                 queue.push({-neighVal,done.Convert(neigh),source});}
         }
     }
-    
-    
+	
     const ScalarType factoringWallExtractionThreshold = io.template Get<ScalarType>("factoringWallExtractionThreshold", factoringRadius*sqrt(factoringRadius), 2);
-    for(const auto & indexScore : score){
-        if(indexScore.second>factoringWallExtractionThreshold && !OnBoundary(done.Convert(indexScore.first), dom)){
-            result.push_back(indexScore.first); } }
-    
-    // Eliminate erroneous keypoints, lying on the boundary
-    // Alternatively, regard the boundary as an obstacle.
-    
-/*    std::cout
-    ExportVarArrow(factoringWallExtractionRadius)
-    ExportVarArrow(factoringWallExtractionThreshold)
-    ExportArrayArrow(score) << "\n";*/
-    
+    for(const auto & [index,value] : score){
+		if(value>factoringWallExtractionThreshold && // Singular point of the walls,
+		   !OnBoundary(done.Convert(index), dom) ){// not on domain boundary
+			pushCenter(dom.PointFromIndex(index));
+		}
+	}
+	
     std::fill(done.begin(),done.end(),false); // reset this array for future use
-    return result;
 }
 
 template<typename T> bool
