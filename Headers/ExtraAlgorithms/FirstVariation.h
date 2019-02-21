@@ -31,7 +31,8 @@ HamiltonFastMarching<T>::ExtraAlgorithmInterface {
     virtual bool ImplementIn(HFM*_pFM) override {pFM=_pFM; return true;}
 protected:
     const HFM * pFM;
-    template<size_t VMultSize=std::max(0,DifferenceType::multSize), typename Dummy=void> struct _DiffHelper;
+	static const size_t multSize0 = DifferenceType::multSize >=0 ? DifferenceType::multSize : 0;
+    template<size_t VMultSize=multSize0, typename Dummy=void> struct _DiffHelper;
     typedef _DiffHelper<> DiffHelper;
     typedef typename Array<ScalarType, Dimension+1>::IndexType DeepIndexType;
     DeepIndexType DeepIndex(IndexType index, DiscreteType k) const {
