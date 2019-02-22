@@ -80,11 +80,11 @@ void HamiltonFastMarching<T>::RunInit(){
         assert(acceptedFlags.CheckDims());
     }
     
-    for(const auto & seed : seeds){
-        const DiscreteType linearIndex = values.Convert(seed.first);
-        values[linearIndex] = seed.second;
+    for(const auto & [index,value] : seeds){
+        const DiscreteType linearIndex = values.Convert(index);
+        values[linearIndex] = value;
 //        acceptedFlags[linearIndex] = true;
-        queue.push({linearIndex,seed.second});
+        queue.push({linearIndex,value});
     }
 }
 

@@ -229,11 +229,11 @@ struct HFMInterface<T>::TimeDependentSource : DataSource<E> {
         // Also checks that times are sorted and pointers well assigned
         if(interpolationData.empty()) return false;
         ScalarType lastTime = -T::Infinity();
-        for(const auto & timeSource : interpolationData){
-            if(timeSource.first<=lastTime) return false;
-            lastTime=timeSource.first;
-            if(timeSource.second==nullptr) return false;
-            if(!timeSource.second->CheckDims(index)) return false;
+        for(const auto & [time,source] : interpolationData){
+            if(time<=lastTime) return false;
+            lastTime=time;
+            if(source==nullptr) return false;
+            if(!source->CheckDims(index)) return false;
         }
         return true;
     };

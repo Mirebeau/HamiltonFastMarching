@@ -32,11 +32,11 @@ HamiltonFastMarching<Traits>::_StencilDataType<SSP::Share, Dummy>::
 HopfLaxUpdate(FullIndexCRef updated, OffsetCRef offset,
               ScalarType acceptedValue, ActiveNeighFlagType & active) -> ScalarType {
     const bool found = shallowMultQuads.find(updated.linear);
-    auto & multQuad = shallowMultQuads[updated.linear];
-    if(!found) { multQuad.first = (*pMultSource)(updated.index);}
+    auto & [mult,quad] = shallowMultQuads[updated.linear];
+    if(!found) { mult = (*pMultSource)(updated.index);}
     const StencilType & stencil = stencils(ShortIndexFromIndex(updated.index));
     
-    return stencil.HopfLaxUpdate(offset,acceptedValue,multQuad.first,multQuad.second,active);
+    return stencil.HopfLaxUpdate(offset,acceptedValue,mult,quad,active);
 }
 
 template<typename Traits> template<typename Dummy> auto
@@ -44,10 +44,10 @@ HamiltonFastMarching<Traits>::_StencilDataType<SSP::Recomp, Dummy>::
 HopfLaxUpdate(FullIndexCRef updated, OffsetCRef offset,
               ScalarType acceptedValue, ActiveNeighFlagType & active) -> ScalarType {
     const bool found = shallowStencilQuads.find(updated.linear);
-    auto & stencilQuad = shallowStencilQuads[updated.linear];
-    if(!found) {SetStencil(updated.index,stencilQuad.first);}
+    auto & [stencil,quad] = shallowStencilQuads[updated.linear];
+    if(!found) {SetStencil(updated.index,stencil);}
     
-    return stencilQuad.first.HopfLaxUpdate(offset,acceptedValue,MultiplierType{},stencilQuad.second,active);
+    return stencil.HopfLaxUpdate(offset,acceptedValue,MultiplierType{},quad,active);
 }
 
 // ---- HopfLaxRecompute ------
@@ -172,11 +172,11 @@ Initialize(const HFM * pFM) {
     reversedOffsets.reserve(offsets.size());
     
     DiscreteType linearIndex=-1;
-    for(const auto & linIndOff : offsets){
-        assert(linearIndex<=linIndOff.first);
-        for(;linIndOff.first!=linearIndex; ++linearIndex){
+    for(const auto & [linearIndex2,offset] : offsets){
+        assert(linearIndex<=linearIndex2);
+        for(;linearIndex!=linearIndex2; ++linearIndex){
             reversedOffsetsSplits.push_back((DiscreteType)reversedOffsets.size());}
-        reversedOffsets.push_back(linIndOff.second);
+        reversedOffsets.push_back(offset);
     }
     reversedOffsetsSplits.resize(stencils.size()+1,(DiscreteType)reversedOffsets.size());
 }
@@ -224,11 +224,11 @@ Initialize(const HFM * pFM) {
     reversedOffsets.reserve(offsets.size());
     
     DiscreteType linearIndex=-1;
-    for(const auto & linIndOff : offsets){
-        assert(linearIndex<=linIndOff.first);
-        for(;linIndOff.first!=linearIndex; ++linearIndex){
+    for(const auto & [linearIndex2,offset] : offsets){
+        assert(linearIndex<=linearIndex2);
+        for(;linearIndex!=linearIndex2; ++linearIndex){
             reversedOffsetsSplits.push_back((DiscreteType)reversedOffsets.size());}
-        reversedOffsets.push_back(linIndOff.second);
+        reversedOffsets.push_back(offset);
     }
     reversedOffsetsSplits.resize(pFM->values.size()+1,(DiscreteType)reversedOffsets.size());
 }

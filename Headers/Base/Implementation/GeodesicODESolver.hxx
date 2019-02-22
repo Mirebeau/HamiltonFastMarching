@@ -9,7 +9,7 @@
 
 template<typename TTraits> GeodesicODESolver<TTraits>::GeodesicODESolver(const HFM & _fm) : GeodesicSolverInterface(_fm) {
     std::vector<IndexType> seedIndices;
-    for(const auto & seed : this->fm.seeds) seedIndices.push_back(seed.first);
+    for(const auto & [index,value] : this->fm.seeds) seedIndices.push_back(index);
     targetDistances = LInfDistance(seedIndices, targetTolerance);
 }
 
@@ -97,9 +97,9 @@ GeodesicFlow(const PointType & p, const Array<ShortType,Dimension> & target, Flo
         
         auto qIt = cache.find(qLinearIndex);
         if(qIt==cache.end()){
-            const auto insertionResult = cache.insert({qLinearIndex,{fm.GeodesicFlow(qIndex),0}});
-            assert(insertionResult.second);
-            qIt = insertionResult.first;
+            const auto [insertionIt,inserted]=cache.insert({qLinearIndex,{fm.GeodesicFlow(qIndex),0}});
+            assert(inserted);
+            qIt = insertionIt;
         }
         ScalarType weight = 1;
         for(int j=0; j<Dimension; ++j){weight *= offset[j] ? w[j] : (1-w[j]);}

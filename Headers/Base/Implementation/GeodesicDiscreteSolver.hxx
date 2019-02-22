@@ -110,8 +110,7 @@ GeodesicDiscrete(std::vector<PointType> & geodesic) const {
     while(!geo.empty() && weightSum>0){
         // Extract and erase point with largest value.
         const auto it = --geo.end(); // point with largest value
-        const ScalarType value = it->first.first;
-        const IndexType index = it->first.second;
+		const auto [value,index] = it->first;
         const ScalarType weight = it->second;
         geo.erase(it);
         

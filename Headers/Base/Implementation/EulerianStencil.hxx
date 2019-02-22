@@ -139,14 +139,14 @@ HopfLaxUpdate(OffsetType offset, ScalarType acceptedValue, const MultiplierType 
         }
     }
     
-    const std::pair<ScalarType,int> result = quad.Solve();
+    const auto & [value,activeQuad] = quad.Solve();
     
     /*    // Alternatively, only insert in queue if value is strictly decreased.
      ScalarType & val = values[updatedLinearIndex];
      if(result.first>=val) return;*/
     
-    SetIMax(active,result.second);
-    return result.first;
+    SetIMax(active,activeQuad);
+    return value;
     
 }
 

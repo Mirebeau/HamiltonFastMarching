@@ -94,10 +94,7 @@ MakeFactor(FullIndexCRef updated, const DiscreteFlowType & flow){
          [](ScalarType a, const DiscreteFlowElement & b)->ScalarType{return a+b.weight;});
     assert(wSum>0);
     
-    for(const auto & offsetWeight : flow){
-        const OffsetType & offset = offsetWeight.offset;
-        const ScalarType & weight = offsetWeight.weight/wSum;
-        
+    for(const auto & [offset,weight] : flow){
         IndexType neigh = updated.index+IndexDiff::CastCoordinates(offset);
         assert(pFM!=nullptr);
         [[maybe_unused]] const auto transform = pFM->dom.Periodize(neigh,updated.index);
@@ -107,10 +104,10 @@ MakeFactor(FullIndexCRef updated, const DiscreteFlowType & flow){
         if(factoringKeypoints.find(linearNeigh)!=factoringKeypoints.end()){
             currentNeighbors.push_back({offset,weight});
         } else {
-            const auto eq = factoringNeighbors.equal_range(linearNeigh);
-            for(auto it = eq.first; it!=eq.second; ++it){
-                const auto & offsetWeight = it->second;
-                currentNeighbors.push_back({offsetWeight.first + offset, offsetWeight.second * weight});
+            const auto [neigh_begin,neigh_end] = factoringNeighbors.equal_range(linearNeigh);
+            for(auto it = neigh_begin; it!=neigh_end; ++it){
+                const auto & [offset2,weight2] = it->second;
+                currentNeighbors.push_back({offset+offset2, weight*weight2});
                 // TODO : remove some of these, based on offset radius ?
             }
         }
@@ -123,11 +120,11 @@ MakeFactor(FullIndexCRef updated, const DiscreteFlowType & flow){
     
     // Merge duplicates and insert
     std::sort(currentNeighbors.begin(),currentNeighbors.end());
-    for(const auto & offsetWeight : currentNeighbors){
-        if(currentNeighbors2.empty() || currentNeighbors2.back().first != offsetWeight.first){
-            currentNeighbors2.push_back(offsetWeight);
+    for(const auto & [offset,weight] : currentNeighbors){
+        if(currentNeighbors2.empty() || currentNeighbors2.back().first != offset){
+			currentNeighbors2.push_back({offset,weight});
         } else {
-            currentNeighbors2.back().second+=offsetWeight.second;
+            currentNeighbors2.back().second+=weight;
         }
     }
     
@@ -148,21 +145,21 @@ MakeGuess(FullIndexCRef updated) {
     if(pointChoice==FactoringPointChoice::Current || pointChoice==FactoringPointChoice::Both){
         const DistanceGuess guess = pFM->stencilData.GetGuess(updated.index);
         for(auto it = rg.first; it!=rg.second; ++it){
-            const auto & offsetWeight = it->second;
+            const auto & [offset,weight] = it->second;
             const DomainTransformType transform{}; // Identity transform
-            guesses.push_back({guess,transform,offsetWeight.first,
-                offsetWeight.second *(pointChoice==FactoringPointChoice::Both ? 0.5 : 1.)});
+            guesses.push_back({guess,transform,offset,
+                weight *(pointChoice==FactoringPointChoice::Both ? 0.5 : 1.)});
         }
     }
     if(pointChoice==FactoringPointChoice::Key || pointChoice==FactoringPointChoice::Both){
         for(auto it = rg.first; it!=rg.second; ++it){
-            const auto & offsetWeight = it->second;
-            IndexType neigh = updated.index+IndexDiff::CastCoordinates(offsetWeight.first);
+            const auto & [offset,weight] = it->second;
+            IndexType neigh = updated.index+IndexDiff::CastCoordinates(offset);
             const DomainTransformType transform = pFM->dom.Periodize(neigh,updated.index);
             const auto keyIt = factoringKeypoints.find(factoringDone.Convert(neigh));
             assert(keyIt!=factoringKeypoints.end());
-            guesses.push_back({keyIt->second,transform,offsetWeight.first,
-                offsetWeight.second *(pointChoice==FactoringPointChoice::Both ? 0.5 : 1.)});
+            guesses.push_back({keyIt->second,transform,offset,
+                weight *(pointChoice==FactoringPointChoice::Both ? 0.5 : 1.)});
         }
     }
     return true;
@@ -252,7 +249,7 @@ SetupRegion(HFMI*that){
 	const auto & arr = factoringRegion;
 	
 	// ------ Setup dynamic factoring region,
-	// by running a Dijkstra, approximating euclidean distance ------
+	// by running a Dijkstra, approximating the euclidean distance ------
 
 	SetupDijkstra();
 	
@@ -261,17 +258,15 @@ SetupRegion(HFMI*that){
 		queue.push({0.,arr.Convert(dom.IndexFromPoint(p))});}
 	
 	while(!queue.empty()){
-		const auto top = queue.top();
-		const ScalarType value = - top.first;
-		const DiscreteType current = top.second;
+		const auto [value,current] = queue.top();
 		queue.pop();
 		if(factoringRegion[current]) continue;
 		factoringRegion[current]=true;
-		for(const auto & e : edges){
-			const ScalarType neighVal = value+e.second;
+		for(const auto & [offset,cost] : edges){
+			const ScalarType neighVal = value+cost;
 			if(neighVal>factoringRadius) continue;
 			const IndexType index = arr.Convert(current);
-			IndexType neigh = index+e.first;
+			IndexType neigh = index+offset;
 			if(dom.Periodize(neigh,index).IsValid()){
 				queue.push({-neighVal,arr.Convert(neigh)});}
 		}
@@ -332,8 +327,8 @@ SetupCenters(HFMI * that) {
     for(DiscreteType i=0; i<done.size(); ++i){
         const IndexType index = done.Convert(i);
         if(!(*pWalls)(index)) continue;
-        for(const auto & e : edges){
-            IndexType neigh = index +e.first;
+        for(const auto & [offset,cost] : edges){
+            IndexType neigh = index +offset;
             if(!dom.Periodize(neigh,index).IsValid()) continue;
             if((*pWalls)(neigh)) continue;
             wallBoundary.insert(done.Convert(neigh));
@@ -345,23 +340,20 @@ SetupCenters(HFMI * that) {
     // Find the singular points of the wall boundary, by growing balls around them
     std::map<DiscreteType,DiscreteType> score;
     while(!queue.empty()){
-        const auto top = queue.top();
-        const ScalarType value = - std::get<0>(top);
-        const DiscreteType current = std::get<1>(top), source = std::get<2>(top);
+        const auto [value,current,source] = queue.top();
         queue.pop();
         if(done[current]) continue;
         done[current]=true;
         if(source!=current){
-            //            std::cout ExportVarArrow(done.Convert(source))  ExportVarArrow(done.Convert(current)) << "\n";
             const auto it=score.find(source);
             if(it!=score.end()) {++(it->second);}
             else {score.insert({source,1});}
         }
-        for(const auto & e : edges){
-            const ScalarType neighVal = value+e.second;
+        for(const auto & [offset,cost] : edges){
+            const ScalarType neighVal = value+cost;
             if(neighVal>factoringWallExtractionRadius) continue;
             const IndexType index = done.Convert(current);
-            IndexType neigh = index+e.first;
+            IndexType neigh = index+offset;
             if(dom.Periodize(neigh,index).IsValid() && !(*pWalls)(neigh)){
                 queue.push({-neighVal,done.Convert(neigh),source});}
         }
