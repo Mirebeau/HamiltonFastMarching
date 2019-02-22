@@ -1,11 +1,11 @@
 % Copyright Jean-Marie Mirebeau, University Paris-Sud, CNRS, University Paris-Saclay
 
 if verLessThan('matlab','8.1')
-    cxxFlags = ['CXXFLAGS="-std=c++11" ' ...
+    cxxFlags = ['CXXFLAGS="-std=c++17" ' ...
         'CXXLIBS="\$CXXLIBS -lc++" ' ]; % This flag is required on some platforms, but must be commented on others...
     outputFlag = '-o ';
 else
-    cxxFlags = 'CXXFLAGS="-std=c++11" '; 
+    cxxFlags = 'CXXFLAGS="-std=c++17" '; 
     outputFlag = '-output ';
 end
 
@@ -35,5 +35,5 @@ fprintf(['\nPlease execute the function compileModelsHFM(binary_Dir,JMM_CPPLibs_
 'where JMM_CPPLibs can be downloaded from github.com/Mirebeau/JMM_CPPLibs. \n\n' ...
 'In case of need, replace standardModelsHFM with experimentalModelsHFM, or any list of desired models.\n']);
 
-%For me : binary_Dir = '/Users/mirebeau/Dropbox/Programmes/MATLAB/MexBin'; JMM_CPPLibs_Dir = '/Users/mirebeau/Dropbox/Programmes/Distributed/JMM_CPPLibs';
+%For me : binary_Dir = '/Users/mirebeau/Dropbox/Programmes/MATLAB/MexBin'; JMM_CPPLibs_Dir = '/Users/mirebeau/Dropbox/Programmes/Github/JMM_CPPLibs';
 %For debug : compileHFM(binary_Dir,JMM_CPPLibs_Dir,'Custom','Custom')
