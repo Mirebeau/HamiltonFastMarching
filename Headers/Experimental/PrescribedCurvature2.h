@@ -43,7 +43,7 @@ struct TraitsReedsSheppExt2 : TraitsR2S1NonShared {
     typedef PeriodicGrid<TraitsReedsSheppExt2> DomainType;
 };
 
-struct StencilReedsSheppExt2
+struct StencilReedsSheppExt2 final
 : HamiltonFastMarching<TraitsReedsSheppExt2>::StencilDataType {
     typedef HamiltonFastMarching<TraitsReedsSheppExt2> HFM;
     typedef HFM::StencilDataType Superclass;
@@ -88,7 +88,7 @@ struct TraitsReedsSheppForwardExt2 : TraitsR2S1NonShared {
     typedef PeriodicGrid<TraitsReedsSheppForwardExt2> DomainType;
 };
 
-struct StencilReedsSheppForwardExt2
+struct StencilReedsSheppForwardExt2 final
 : HamiltonFastMarching<TraitsReedsSheppForwardExt2>::StencilDataType {
     typedef HamiltonFastMarching<TraitsReedsSheppForwardExt2> HFM;
     typedef HFM::StencilDataType Superclass;
@@ -134,7 +134,7 @@ struct TraitsDubinsExt2 : TraitsR2S1NonShared {
     typedef PeriodicGrid<TraitsDubinsExt2> DomainType;
 };
 
-struct StencilDubinsExt2
+struct StencilDubinsExt2 final
 : HamiltonFastMarching<TraitsDubinsExt2>::StencilDataType {
     typedef HamiltonFastMarching<TraitsDubinsExt2> HFM;
     typedef HamiltonFastMarching<TraitsDubinsExt2>::StencilDataType Superclass;
@@ -180,7 +180,7 @@ struct TraitsElasticaExt2 : TraitsR2S1NonShared {
 };
 
 template<int nFejer>
-struct StencilElasticaExt2
+struct StencilElasticaExt2 final
 : HamiltonFastMarching<TraitsElasticaExt2<nFejer> >::StencilDataType {
     typedef HamiltonFastMarching<TraitsElasticaExt2<nFejer> > HFM;
     typedef typename HFM::StencilDataType Superclass;

@@ -8,25 +8,47 @@
 #ifndef HFM_StencilLag3_hxx
 #define HFM_StencilLag3_hxx
 
-template<typename Traits> template<typename Dummy> auto
-HamiltonFastMarching<Traits>::_StencilDataType<SSP::Lag3, Dummy>::ReversedOffsets(FullIndexCRef full)
--> RangeAccessor<OffsetType*> {
-	return
-	RangeAccessor<OffsetType*>(&reversedOffsets[reversedOffsetsSplits[full.linear]],
-							   &reversedOffsets[reversedOffsetsSplits[full.linear+1]]);
-}
+// ********** Stencil data - Semi-Lagrangian3 *********
+
+template<typename T> template<typename Dummy>
+struct HamiltonFastMarching<T>::_StencilDataType<SSP::Lag3,Dummy>
+: HamiltonFastMarching<T>::_StencilDataTypeBase {
+	using HFM = HamiltonFastMarching<T>;
+	using Superclass = HFM::_StencilDataTypeBase;
+	
+	IndexType dims; // Needs value
+	virtual void SetStencil(IndexCRef, StencilType &) = 0;
+	virtual void Setup(HFMI *) override;
+	virtual void Initialize(const HFM *) override final;
+protected:
+	friend struct HamiltonFastMarching<Traits>;
+	virtual ScalarType HopfLaxUpdate(FullIndexCRef, OffsetCRef, ScalarType, ActiveNeighFlagType &) override final;
+	template<typename F> RecomputeType HopfLaxRecompute(const F &, IndexCRef, ActiveNeighFlagType, DiscreteFlowType &);
+	
+	typedef CappedVector<std::pair<OffsetType,ScalarType>, 9> OffsetVals;
+	virtual std::pair<ScalarType,int> HopfLaxUpdate(IndexCRef,const OffsetVals &) = 0;
+	virtual RecomputeType HopfLaxRecompute(IndexCRef,DiscreteFlowType &) = 0;
+private:
+	HFM::Array<StencilType,Dimension> stencils;
+	std::vector<OffsetType> tmpHLU;
+};
+
+// -------------- Implementation --------
+
 
 // Setup and initialization
 template<typename Traits> template<typename Dummy> void
-HamiltonFastMarching<Traits>::_StencilDataType<SSP::Lag3, Dummy>::Setup(HFMI * that){
-	dims = IndexType::CastCoordinates( that->io.template Get<PointType>("dims") );
+HamiltonFastMarching<Traits>::_StencilDataType<SSP::Lag3, Dummy>::
+Setup(HFMI * that){
+	Superclass::Setup(that);
 	stencils.dims = dims;
 }
 
 // Compute the direct and reversed offsets
 template<typename Traits> template<typename Dummy> void
-HamiltonFastMarching<Traits>::_StencilDataType<SSP::Lag3, Dummy>::Initialize(const HFM * pFM_){
-	pFM = pFM_;
+HamiltonFastMarching<Traits>::_StencilDataType<SSP::Lag3, Dummy>::
+Initialize(const HFM * pFM_){
+	Superclass::Initialize(pFM_);
 	const DiscreteType size = dims.Product();
 	stencils.resize(size);
 	std::vector<std::pair<DiscreteType,OffsetType> > targets;
@@ -41,25 +63,13 @@ HamiltonFastMarching<Traits>::_StencilDataType<SSP::Lag3, Dummy>::Initialize(con
 		stencil.Neighbors(directOffsets);
 		for(const OffsetType & offset : directOffsets){
 			IndexType neighbor = index+IndexDiff::CastCoordinates(offset);
-			if(pFM->dom.Periodize(neighbor,index).IsValid()){
+			if(this->pFM->dom.Periodize(neighbor,index).IsValid()){
 				targets.push_back({stencils.Convert(neighbor), offset});}
 		}
 	}
-	
-	assert(reversedOffsets.empty() && reversedOffsetsSplits.empty());
-	reversedOffsetsSplits.reserve(size+1);
-	reversedOffsets.reserve(targets.size());
 	std::sort(targets.begin(),targets.end());
-	
-	DiscreteType last = -1;
-	for(const auto [index,offset] : targets){
-		if(last!=index){
-			reversedOffsetsSplits.push_back((DiscreteType)reversedOffsets.size());
-			last = index;
-		}
-		reversedOffsets.push_back(offset);
-	}
-	reversedOffsetsSplits.push_back((DiscreteType)reversedOffsets.size());
+	assert(this->reversedOffsets.empty());
+	this->reversedOffsets.insert(targets,this->dims.Product());
 }
 
 
@@ -75,15 +85,16 @@ HopfLaxUpdate(FullIndexCRef full, OffsetCRef acceptedOffset, ScalarType accepted
 	
 	// Iterate over neighbors, and fill relative data
 	OffsetVals offsetVal;
-
+	const HFM & fm = *this->pFM;
+	
 	tmpHLU.clear();
 	stencil.NeighborsAround(neighborIndex, tmpHLU);
 	for(auto & offset : tmpHLU){
 		IndexType neigh = updatedIndex+IndexDiff::CastCoordinates(offset);
-		const auto transform = pFM->dom.Periodize(neigh,updatedIndex);
+		const auto transform = fm.dom.Periodize(neigh,updatedIndex);
 		const ScalarType value =
-		( transform.IsValid() && pFM->acceptedFlags(neigh) ) ?
-		pFM->values(neigh) : std::numeric_limits<ScalarType>::infinity();
+		( transform.IsValid() && fm.acceptedFlags(neigh) ) ?
+		fm.values(neigh) : std::numeric_limits<ScalarType>::infinity();
 		offsetVal.push_back({offset,value});
 	}
 	
@@ -92,7 +103,7 @@ HopfLaxUpdate(FullIndexCRef full, OffsetCRef acceptedOffset, ScalarType accepted
 	
 	// Evaluate the Hopf-Lax update, and compare
 	const auto [value,sectorIndex] = HopfLaxUpdate(updatedIndex,offsetVal);
-	const ScalarType oldValue = pFM->values[full.linear];
+	const ScalarType oldValue = fm.values[full.linear];
 	
 	if(value>=oldValue) return oldValue;
 	

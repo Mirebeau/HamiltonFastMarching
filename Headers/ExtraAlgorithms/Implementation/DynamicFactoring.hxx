@@ -143,7 +143,7 @@ MakeGuess(FullIndexCRef updated) {
     if(rg.first==rg.second) return false;
     
     if(pointChoice==FactoringPointChoice::Current || pointChoice==FactoringPointChoice::Both){
-        const DistanceGuess guess = pFM->stencilData.GetGuess(updated.index);
+        const DistanceGuess guess = pFM->stencilData.GetGuess(pFM->dom.PointFromIndex(updated.index));
         for(auto it = rg.first; it!=rg.second; ++it){
             const auto & [offset,weight] = it->second;
             const DomainTransformType transform{}; // Identity transform
@@ -158,7 +158,7 @@ MakeGuess(FullIndexCRef updated) {
             const DomainTransformType transform = pFM->dom.Periodize(neigh,updated.index);
             const auto keyIt = factoringKeypoints.find(factoringDone.Convert(neigh));
             assert(keyIt!=factoringKeypoints.end());
-            guesses.push_back({keyIt->second,transform,offset,
+            guesses.push_back({factoringCenters[keyIt->second].second,transform,offset,
                 weight *(pointChoice==FactoringPointChoice::Both ? 0.5 : 1.)});
         }
     }
@@ -360,9 +360,10 @@ SetupCenters(HFMI * that) {
     }
 	
     const ScalarType factoringWallExtractionThreshold = io.template Get<ScalarType>("factoringWallExtractionThreshold", factoringRadius*sqrt(factoringRadius), 2);
-    for(const auto & [index,value] : score){
+    for(const auto & [linearIndex,value] : score){
+		const IndexType & index = done.Convert(linearIndex);
 		if(value>factoringWallExtractionThreshold && // Singular point of the walls,
-		   !OnBoundary(done.Convert(index), dom) ){// not on domain boundary
+		   !OnBoundary(index, dom) ){// not on domain boundary
 			pushCenter(dom.PointFromIndex(index));
 		}
 	}

@@ -66,8 +66,8 @@ template<typename TTraits> struct PeriodicGrid : TTraits::BaseDomain {
     Transform PeriodizeNoBase(IndexType & target) const;
     Transform PeriodizeNoBase(PointType & target) const;
 	
-	NeighborsType Neighbors(const PointType &) const; // Neighbors on the cartesian grid
-    
+	NeighborsType Neighbors(const PointType &, bool=false) const; // Neighbors on the cartesian grid
+	
     PeriodicGrid(IndexCRef);
 };
 
@@ -75,6 +75,7 @@ template<typename TTraits> struct PeriodicGrid : TTraits::BaseDomain {
 template<typename TTraits> struct
 PeriodicGrid<TTraits>::Transform {
     bool IsValid() const {return !reverseFlag[Dimension];}
+	bool IsTrivial() const {return reverseFlag.none();}
     template<typename TVec> void PullVector(TVec &) const;
     void Invalidate(){reverseFlag[Dimension]=true;}
 protected:

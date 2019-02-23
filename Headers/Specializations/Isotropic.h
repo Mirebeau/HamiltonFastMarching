@@ -20,11 +20,12 @@ struct TraitsIsotropic : TraitsBase<VDimension> {
 };
 
 template<size_t VDimension>
-struct StencilIsotropic : HamiltonFastMarching<TraitsIsotropic<VDimension> >::StencilDataType {
+struct StencilIsotropic final :
+HamiltonFastMarching<TraitsIsotropic<VDimension> >::StencilDataType {
     typedef HamiltonFastMarching<TraitsIsotropic<VDimension> > HFM;
     typedef typename HFM::StencilDataType Superclass;
     Redeclare5Types(HFM,ParamDefault,IndexType,StencilType,ParamInterface,HFMI)
-    Redeclare3Types(HFM,DistanceGuess,ScalarType,IndexCRef)
+    Redeclare4Types(HFM,DistanceGuess,ScalarType,IndexCRef,PointType)
     Redeclare1Constant(HFM,Dimension)
     ParamDefault param;
     
@@ -39,8 +40,9 @@ struct StencilIsotropic : HamiltonFastMarching<TraitsIsotropic<VDimension> >::St
     }
     virtual const ParamInterface & Param() const override {return param;}
     virtual void Setup(HFMI *that) override {Superclass::Setup(that); param.Setup(that);}
-    virtual DistanceGuess GetGuess(IndexCRef index) const override {
-        const ScalarType h = param.gridScale, s=(*this->pMultSource)(index);
+    virtual DistanceGuess GetGuess(const PointType & p) const override final {
+		const ScalarType s = MapWeightedSum<ScalarType>(*this->pMultSource,this->pFM->dom.Neighbors(p));
+        const ScalarType h = param.gridScale;
         return DistanceGuess::Identity() * square(h/s);}
 };
 
@@ -59,7 +61,8 @@ struct TraitsDiagonal : TraitsBase<VDimension> {
 };
 
 template<size_t VDimension>
-struct StencilDiagonal : HamiltonFastMarching<TraitsDiagonal<VDimension> >::StencilDataType {
+struct StencilDiagonal final
+: HamiltonFastMarching<TraitsDiagonal<VDimension> >::StencilDataType {
     typedef HamiltonFastMarching<TraitsDiagonal<VDimension> > HFM;
     typedef typename HFM::StencilDataType Superclass;
     Redeclare4Types(HFM,IndexType,StencilType,ParamInterface,HFMI)

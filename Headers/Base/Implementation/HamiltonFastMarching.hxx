@@ -42,7 +42,8 @@ dom(_stencilData.dims), stencilData(_stencilData){
 template<typename T> auto HamiltonFastMarching<T>::
 MaxStencilWidth() const -> DiscreteType {
     return std::accumulate(
-    stencilData.reversedOffsets.begin(),stencilData.reversedOffsets.end(),0,
+    stencilData.reversedOffsets.values.begin(),
+	stencilData.reversedOffsets.values.end(),0,
     [](DiscreteType a, const OffsetType & offset)->DiscreteType {
     return std::max(a,std::accumulate(offset.begin(),offset.end(),0,
     [](DiscreteType b, DiscreteType c)->DiscreteType {return b+std::abs(c);}

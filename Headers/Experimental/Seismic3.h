@@ -23,7 +23,8 @@ struct TraitsSeismic3 : TraitsBase<3> {
 };
 
 
-struct StencilSeismic3 : HamiltonFastMarching<TraitsSeismic3>::StencilDataType {
+struct StencilSeismic3 final
+: HamiltonFastMarching<TraitsSeismic3>::StencilDataType {
 	typedef HamiltonFastMarching<TraitsSeismic3> HFM;
 	typedef typename HFM::StencilDataType Superclass;
 	

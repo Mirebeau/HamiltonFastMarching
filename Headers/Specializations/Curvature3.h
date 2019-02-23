@@ -30,7 +30,7 @@ struct TraitsReedsShepp3 : TraitsR3S2 {
     typedef EulerianStencil<DifferenceType,6+2> StencilType;
 };
 
-struct StencilReedsShepp3
+struct StencilReedsShepp3 final
 : HamiltonFastMarching<TraitsReedsShepp3>::StencilDataType {
     typedef HamiltonFastMarching<TraitsReedsShepp3> HFM;
     typedef HFM::StencilDataType Superclass;
@@ -82,7 +82,7 @@ struct TraitsReedsSheppForward3 : TraitsR3S2 {
     typedef EulerianStencil<DifferenceType,2,6> StencilType;
 };
 
-struct StencilReedsSheppForward3
+struct StencilReedsSheppForward3 final
 : HamiltonFastMarching<TraitsReedsSheppForward3>::StencilDataType {
     typedef HamiltonFastMarching<TraitsReedsSheppForward3> HFM;
     typedef HFM::StencilDataType Superclass;

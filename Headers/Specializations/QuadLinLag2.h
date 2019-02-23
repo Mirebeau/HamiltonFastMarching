@@ -40,7 +40,8 @@ struct TraitsAsymmetricQuadraticLag2 : TraitsBase<2> {
 };
 
 template<typename T>
-struct StencilQuadLinLag2 : HamiltonFastMarching<T>::StencilDataType {
+struct StencilQuadLinLag2 final
+: HamiltonFastMarching<T>::StencilDataType {
 	typedef HamiltonFastMarching<T> HFM;
 	typedef typename HFM::StencilDataType Superclass;
 	Redeclare6Types(HFM,ParamDefault,ParamInterface,HFMI,DiscreteFlowType,RecomputeType,Traits)

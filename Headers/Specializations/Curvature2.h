@@ -29,7 +29,7 @@ struct TraitsReedsShepp2 : TraitsR2S1 {
     typedef EulerianStencil<DifferenceType,4> StencilType;
 };
 
-struct StencilReedsShepp2
+struct StencilReedsShepp2 final
 : HamiltonFastMarching<TraitsReedsShepp2>::StencilDataType {
     typedef HamiltonFastMarching<TraitsReedsShepp2> HFM;
     typedef HFM::StencilDataType Superclass;
@@ -66,7 +66,7 @@ struct TraitsReedsSheppForward2 : TraitsR2S1 {
     typedef EulerianStencil<DifferenceType,1,3> StencilType;
 };
 
-struct StencilReedsSheppForward2
+struct StencilReedsSheppForward2 final
 : HamiltonFastMarching<TraitsReedsSheppForward2>::StencilDataType {
     typedef HamiltonFastMarching<TraitsReedsSheppForward2> HFM;
     typedef HFM::StencilDataType Superclass;
@@ -105,7 +105,7 @@ struct TraitsDubins2 : TraitsR2S1 {
     typedef EulerianStencil<DifferenceType,0,6,2> StencilType;
 };
 
-struct StencilDubins2
+struct StencilDubins2 final
 : HamiltonFastMarching<TraitsDubins2>::StencilDataType {
     typedef HamiltonFastMarching<TraitsDubins2> HFM;
     typedef HFM::StencilDataType Superclass;
@@ -145,7 +145,7 @@ struct TraitsElastica2 : TraitsR2S1 {
 };
 
 template<int nFejer>
-struct StencilElastica2
+struct StencilElastica2 final
 : HamiltonFastMarching<TraitsElastica2<nFejer> >::StencilDataType {
     typedef HamiltonFastMarching<TraitsElastica2<nFejer> > HFM;
     typedef typename HFM::StencilDataType Superclass;

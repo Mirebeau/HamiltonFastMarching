@@ -26,18 +26,28 @@ Transform::PullVector(TVec & v) const {
 
 // ----- Neighbors on the grid -----
 template<typename T> auto PeriodicGrid<T>::
-Neighbors(const PointType & p) const -> NeighborsType {
+Neighbors(const PointType & p, bool requireTrivial) const -> NeighborsType {
 	auto result = Superclass::Neighbors(p);
 	ScalarType wSum = 0.;
 	for(auto & [q,w] : result){
 		const Transform transform = PeriodizeNoBase(q);
-		if(transform.IsValid()) {wSum+=w;}
+		if(transform.IsTrivial() || (transform.IsTrivial() && !requireTrivial) ) {wSum+=w;}
 		else {w=0.;}
 	}
 	if(wSum>0)
 		for(auto & [q,w] : result){w/=wSum;}
 	return result;
 }
+
+
+/*
+ //	template<typename T, typename F> T Interpolate(const F &, bool trivialOnly) const;
+
+ template<typename TTraits> template<typename T, typename F> auto PeriodicGrid<TTraits>::
+Interpolate(const F &, bool TrivialOnly) const {
+	const auto
+
+}*/
 
 // --------- Main methods -------
 

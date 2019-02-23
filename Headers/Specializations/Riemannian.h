@@ -18,7 +18,8 @@ struct TraitsRiemann : TraitsBase<VDimension> {
 };
 
 template<size_t VDimension>
-struct StencilRiemann : HamiltonFastMarching<TraitsRiemann<VDimension> >::StencilDataType {
+struct StencilRiemann final
+: HamiltonFastMarching<TraitsRiemann<VDimension> >::StencilDataType {
     typedef HamiltonFastMarching<TraitsRiemann<VDimension> > HFM;
     typedef typename HFM::StencilDataType Superclass;
     Redeclare6Types(HFM,ParamDefault,IndexType,StencilType,ParamInterface,HFMI,Traits)

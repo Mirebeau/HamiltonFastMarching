@@ -13,8 +13,9 @@
 #include <memory>
 
 #include "JMM_CPPLibs/DataStructures/ShallowMap.h"
-#include "JMM_CPPLibs/DataStructures/RangeAccessor.h"
 #include "JMM_CPPLibs/DataStructures/CappedVector.h"
+#include "JMM_CPPLibs/DataStructures/MapWeightedSum.h"
+#include "JMM_CPPLibs/DataStructures/MultiVector.h"
 #include "BaseGrid.h"
 #include "JMM_CPPLibs/Macros/ExportArrow.h"
 #include "JMM_CPPLibs/Macros/TemplateLog2.h"
@@ -81,6 +82,8 @@ struct HamiltonFastMarching {
     DifferenceType::multSize==0 ? StencilStoragePolicy::Recomp :
 	Dimension==2 ? StencilStoragePolicy::Lag2 :
 	StencilStoragePolicy::Lag3;
+	
+	struct _StencilDataTypeBase;
     template<StencilStoragePolicy, typename Dummy> struct _StencilDataType;
     typedef _StencilDataType<policy,void> StencilDataType;
     DiscreteType MaxStencilWidth() const;
@@ -159,156 +162,43 @@ HamiltonFastMarching<Traits>::FlowDataType{
 
 typedef StencilStoragePolicy SSP;
 
-// ******** Stencil data - multiplier based *********
+// ******** Stencil data, base class *********
 
-template<typename T> template<typename Dummy>
-struct HamiltonFastMarching<T>::_StencilDataType<SSP::Share,Dummy>{
-    typedef HamiltonFastMarching<T> HFM;
-    Redeclare6Types(HFM,IndexCRef,OffsetCRef,StencilType,DifferenceType,MultiplierType,Traits)
-    Redeclare5Types(HFM,ParamInterface,HFMI,DomainType,FullIndexCRef,DistanceGuess)
-    Redeclare6Types(Traits,DiscreteType,ScalarType,PointType,VectorType,IndexType,OffsetType)
-    Redeclare1Type(StencilType,QuadType)
-    Redeclare2Constants(Traits,Dimension,mathPi)
-    
-    typedef typename HFM::template DataSource<MultiplierType> MultSourceType;
-    IndexType dims; // Needs value
-    virtual void SetStencil(IndexCRef, StencilType &) = 0; // Needs specialization
-    std::unique_ptr<MultSourceType> pMultSource = nullptr; // Needs assignment
-    
-    struct RecomputeDataType {const StencilType & stencil;MultiplierType mult;};
-    RecomputeDataType RecomputeData(IndexCRef); // Needed in some subclasses of HFM...
-    
-    virtual void Setup(HFMI *);
-    virtual const ParamInterface & Param() const = 0;
-    virtual DistanceGuess GetGuess(IndexCRef) const {ExceptionMacro("Equation factoring error : no guess");};
-	virtual ~_StencilDataType(){};
-protected:
-    friend struct HamiltonFastMarching<Traits>;
-    void EraseCache(DiscreteType index) {shallowMultQuads.erase(index);}
-    
-    ScalarType HopfLaxUpdate(FullIndexCRef, OffsetCRef, ScalarType, ActiveNeighFlagType &);
-    template<typename F> RecomputeType HopfLaxRecompute(const F &, IndexCRef, ActiveNeighFlagType, DiscreteFlowType &);
-    RangeAccessor<OffsetType*> ReversedOffsets(FullIndexCRef);
-    
-    virtual void Initialize(const HFM *);
-private:
-    typedef typename HFM::template Array<StencilType, T::nStencilDependencies> StencilArrayType;
-    StencilArrayType stencils;
-    ShallowMap<DiscreteType, std::pair<MultiplierType, QuadType> > shallowMultQuads;
-    typedef typename StencilArrayType::IndexType ShortIndexType;
-    IndexType IndexFromShortIndex(const ShortIndexType &) const;
-    ShortIndexType ShortIndexFromIndex(IndexCRef) const;
-    std::vector<OffsetType> reversedOffsets;
-    std::vector<DiscreteType> reversedOffsetsSplits;
-};
-
-// ******** Stencil data - standard *********
-
-template<typename T> template<typename Dummy>
-struct HamiltonFastMarching<T>::_StencilDataType<SSP::Recomp,Dummy>{
-    typedef HamiltonFastMarching<T> HFM;
-    Redeclare6Types(HFM,IndexCRef,OffsetCRef,StencilType,DifferenceType,Traits,FullIndexCRef)
-    Redeclare5Types(HFM,ParamInterface,HFMI,MultiplierType,DomainType,DistanceGuess)
-    Redeclare6Types(Traits,DiscreteType,ScalarType,PointType,VectorType,IndexType,OffsetType)
-    Redeclare1Type(StencilType,QuadType)
-    Redeclare2Constants(Traits,Dimension,mathPi)
-
-    IndexType dims; // Needs value
-    virtual void SetStencil(IndexCRef, StencilType &) = 0; // Needs specialization
-    virtual void Setup(HFMI *);
-    virtual const ParamInterface & Param() const = 0;
-    struct RecomputeDataType {StencilType stencil; MultiplierType mult;}; // mult is dummy here
-    RecomputeDataType RecomputeData(IndexCRef);
-    virtual DistanceGuess GetGuess(IndexCRef) const {ExceptionMacro("Equation factoring error : no guess");};
-	virtual ~_StencilDataType(){};
-protected:
-    friend struct HamiltonFastMarching<Traits>;
-    void EraseCache(DiscreteType index) {shallowStencilQuads.erase(index);}
-    
-    ScalarType HopfLaxUpdate(FullIndexCRef, OffsetCRef, ScalarType, ActiveNeighFlagType &);
-    template<typename F> RecomputeType HopfLaxRecompute(const F &, IndexCRef, ActiveNeighFlagType, DiscreteFlowType &);
-    RangeAccessor<OffsetType*> ReversedOffsets(FullIndexCRef);
-
-    virtual void Initialize(const HFM *);
-private:
-    ShallowMap<DiscreteType, std::pair<StencilType, QuadType> > shallowStencilQuads;
-    std::vector<OffsetType> reversedOffsets;
-    std::vector<DiscreteType> reversedOffsetsSplits;
-};
-
-// ********** Stencil data - Semi-Lagrangian2 *******
-
-template<typename T> template<typename Dummy>
-struct HamiltonFastMarching<T>::_StencilDataType<SSP::Lag2,Dummy>{
-    typedef HamiltonFastMarching<T> HFM;
-    Redeclare6Types(HFM,IndexCRef,OffsetCRef,StencilType,DifferenceType,Traits,FullIndexCRef)
-    Redeclare5Types(HFM,ParamInterface,HFMI,MultiplierType,DomainType,DistanceGuess)
-    Redeclare6Types(Traits,DiscreteType,ScalarType,PointType,VectorType,IndexType,OffsetType)
-    Redeclare1Constant(Traits,Dimension)
-    
-    IndexType dims; // Needs value
-    void SetStencil(IndexCRef, StencilType &);
-    virtual void Setup(HFMI *);
-    virtual const ParamInterface & Param() const = 0;
-    virtual void Initialize(const HFM *);
-
-    virtual void SetNeighbors(IndexCRef, std::vector<OffsetType> &) = 0;
-	virtual DistanceGuess GetGuess(IndexCRef) const {ExceptionMacro("Equation factoring error : no guess");};
-	virtual ~_StencilDataType(){};
-protected:
-    friend struct HamiltonFastMarching<Traits>;
-    ScalarType HopfLaxUpdate(FullIndexCRef, OffsetCRef, ScalarType, ActiveNeighFlagType &);
-    template<typename F> RecomputeType HopfLaxRecompute(const F &, IndexCRef, ActiveNeighFlagType, DiscreteFlowType &);
-    RangeAccessor<OffsetType*> ReversedOffsets(FullIndexCRef);
-    void EraseCache(DiscreteType index){};
-    
-    typedef CappedVector<std::pair<OffsetType,ScalarType>, 3> OffsetVal3;
-    virtual std::pair<ScalarType,int> HopfLaxUpdate(IndexCRef,const OffsetVal3 &) = 0;
-    virtual RecomputeType HopfLaxRecompute(IndexCRef,DiscreteFlowType &) = 0;
-private:
-    const HFM * pFM = nullptr;
-    HFM::Array<ScalarType,Dimension> indexConverter;
-    std::vector<OffsetType> reversedOffsets;
-    std::vector<DiscreteType> reversedOffsetsSplits;
-
-    std::vector<OffsetType> directOffsets;
-    std::vector<DiscreteType> directOffsetsSplits;
-};
-
-// ********** Stencil data - Semi-Lagrangian3 *********
-
-template<typename T> template<typename Dummy>
-struct HamiltonFastMarching<T>::_StencilDataType<SSP::Lag3,Dummy>{
-	typedef HamiltonFastMarching<T> HFM;
-	
+template<typename T> struct HamiltonFastMarching<T>::_StencilDataTypeBase {
 	IndexType dims; // Needs value
-	virtual void SetStencil(IndexCRef, StencilType &) = 0;
-	virtual void Setup(HFMI *);
+	virtual ~_StencilDataTypeBase(){};
+	virtual void SetStencil(IndexCRef, StencilType &) = 0; // Needs specialization
 	virtual const ParamInterface & Param() const = 0;
-	virtual void Initialize(const HFM *);
-	
-	virtual DistanceGuess GetGuess(IndexCRef) const {ExceptionMacro("Equation factoring error : no guess");};
-	virtual ~_StencilDataType(){};
+	virtual DistanceGuess GetGuess(const PointType &) const {
+		ExceptionMacro("Equation factoring error : no guess");};
 protected:
 	friend struct HamiltonFastMarching<Traits>;
-	ScalarType HopfLaxUpdate(FullIndexCRef, OffsetCRef, ScalarType, ActiveNeighFlagType &);
-	template<typename F> RecomputeType HopfLaxRecompute(const F &, IndexCRef, ActiveNeighFlagType, DiscreteFlowType &);
-	RangeAccessor<OffsetType*> ReversedOffsets(FullIndexCRef);
-	void EraseCache(DiscreteType index){};
+	virtual ScalarType HopfLaxUpdate(FullIndexCRef, OffsetCRef, ScalarType, ActiveNeighFlagType &) = 0;
+	// Also, a templated HopfLaxRecompute
+	virtual void EraseCache(DiscreteType index) {}
+	virtual void Setup(HFMI * that){ // Import data from user interface
+		dims = IndexType::CastCoordinates( that->io.template Get<PointType>("dims") );}
+	virtual void Initialize(const HFM * _pFM){pFM = _pFM;} // Prepare for fast marching
 	
-	typedef CappedVector<std::pair<OffsetType,ScalarType>, 9> OffsetVals;
-	virtual std::pair<ScalarType,int> HopfLaxUpdate(IndexCRef,const OffsetVals &) = 0;
-	virtual RecomputeType HopfLaxRecompute(IndexCRef,DiscreteFlowType &) = 0;
-private:
-	const HFM * pFM = nullptr;
-	HFM::Array<StencilType,Dimension> stencils;
-	std::vector<OffsetType> reversedOffsets;
-	std::vector<DiscreteType> reversedOffsetsSplits;
-	std::vector<OffsetType> tmpHLU; 
+	const HFM* pFM;
+	using MultiOffsetVector = MultiVector<OffsetType,DiscreteType>;
+	using ConstOffsetRange = typename MultiOffsetVector::ConstRangeType;
+	MultiOffsetVector reversedOffsets;
+	virtual ConstOffsetRange ReversedOffsets(FullIndexCRef full) const {
+		return reversedOffsets[full.linear];}
+	
 };
 
+
+
+
+
+
+
+
 #include "Implementation/HamiltonFastMarching.hxx"
-#include "Implementation/HFM_StencilDataType.hxx"
+#include "Implementation/HFM_StencilShare.hxx"
+#include "Implementation/HFM_StencilRecompute.hxx"
 #include "Implementation/HFM_StencilLag2.hxx"
 #include "Implementation/HFM_StencilLag3.hxx"
 #include "Implementation/HFM_ParamDefault.hxx"

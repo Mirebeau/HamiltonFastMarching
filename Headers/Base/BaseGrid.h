@@ -31,14 +31,14 @@ template<int VDim, typename TScalar, typename TDiscrete, typename TShort> struct
     
     DiscreteType LinearFromIndex(IndexCRef index) const {return arr.Convert(index);}
     IndexType    IndexFromLinear(DiscreteType linearIndex) const {return arr.Convert(linearIndex);}
-    PointType    PointFromIndex(IndexCRef) const;
-    IndexType    IndexFromPoint(const PointType &) const;
+    static PointType    PointFromIndex(IndexCRef);
+    static IndexType    IndexFromPoint(const PointType &);
 
     BaseGrid(IndexCRef dims) {arr.dims = dims;
         if(!dims.IsPositive()) ExceptionMacro("BaseGrid error : domain size must be positive");}
 	
-	using NeighborsType = std::array<std::pair<IndexType,ScalarType>,1<<Dimension>;
-	NeighborsType Neighbors(const PointType &) const; // Neighbors on the cartesian grid
+	using NeighborsType = std::array<std::pair< IndexType,ScalarType>, 1<<Dimension >;
+	static NeighborsType Neighbors(const PointType &); // Neighbors on the cartesian grid Z^d
 protected:
     Array<ScalarType, Dimension> arr;
 };
@@ -59,7 +59,7 @@ template<typename TPoint, typename TVec> struct ParamInterface_ {
 
 // Basic conversions
 template<int VD, typename TS, typename TD, typename TSh> auto BaseGrid<VD,TS,TD,TSh>::
-IndexFromPoint(const PointType & p) const -> IndexType {
+IndexFromPoint(const PointType & p) -> IndexType {
     IndexType result;
     for(int i=0; i<Dimension; ++i){
         result[i] = (DiscreteType)std::floor(p[i]);}
@@ -67,7 +67,7 @@ IndexFromPoint(const PointType & p) const -> IndexType {
 }
 
 template<int VD, typename TS, typename TD, typename TSh> auto BaseGrid<VD,TS,TD,TSh>::
-PointFromIndex(const IndexType & p) const -> PointType {
+PointFromIndex(const IndexType & p) -> PointType {
     PointType result;
     for(int i=0; i<Dimension; ++i){
         result[i]=p[i]+0.5;}
@@ -77,7 +77,7 @@ PointFromIndex(const IndexType & p) const -> PointType {
 // Neighbors
 
 template<int VD, typename TS, typename TD, typename TSh> auto BaseGrid<VD,TS,TD,TSh>::
-Neighbors(const PointType & p) const -> NeighborsType {
+Neighbors(const PointType & p) -> NeighborsType {
 	const IndexType nearest = IndexFromPoint(p);
 	IndexType direction;
 	PointType weight;
