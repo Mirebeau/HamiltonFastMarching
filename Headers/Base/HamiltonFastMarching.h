@@ -170,6 +170,8 @@ template<typename T> struct HamiltonFastMarching<T>::_StencilDataTypeBase {
 	virtual const ParamInterface & Param() const = 0;
 	virtual DistanceGuess GetGuess(const PointType &) const {
 		ExceptionMacro("Equation factoring error : no guess");};
+	virtual DistanceGuess GetGuess(const IndexType & index) const {
+		return GetGuess(pFM->dom.PointFromIndex(index));}
 	virtual void Setup(HFMI * that){ // Import data from user interface
 		dims = IndexType::CastCoordinates( that->io.template Get<PointType>("dims") );}
 protected:

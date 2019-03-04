@@ -11,58 +11,134 @@
 template<> char const* enumStrings<FactoringPointChoice>::data[] = {"Key", "Current", "Both"};
 template<> char const* enumStrings<FactoringMethod>::data[] = {"None", "Static", "Dynamic"};
 
-template<typename T> void
-Factoring<T>::ElementaryGuess::PrintSelf(std::ostream & os) const {
+template<typename T> void Factoring<T>::
+ElementaryGuess::PrintSelf(std::ostream & os) const {
     os << "{"
-    ExportVarArrow(guess)
+    ExportVarArrow(centerIndex)
     ExportVarArrow(base)
-    ExportVarArrow(weight)
     << "}";
 }
 
-template<typename T> auto
-Factoring<T>::
+template<typename T> auto Factoring<T>::
 Correction(const OffsetType & offset, int ord) const -> ScalarType {
-    /*std::cout
-    ExportArrayArrow(guesses)
-    ExportVarArrow(offset)
-    << "\n";*/
-//    if(true || pointChoice!=FactoringPointChoice::Both){
-        return std::accumulate(guesses.begin(),guesses.end(),0.,
-                               [&](ScalarType a, const ElementaryGuess & b)->ScalarType{
-                                   return a + b.Correction(offset,ord);});
-    /*} else {
-        const int n2 = guesses.size();
-        assert(n2%2==0);
-        const int n = n2/2;
-        return
-        std::accumulate(guesses.begin(),guesses.begin()+n,0.,
-                        [&](ScalarType a, const ElementaryGuess & b)->ScalarType{
-                            return a + b.Correction(offset,snd,2.);}) +
-        std::accumulate(guesses.begin()+n,guesses.end(),0.,
-                        [&](ScalarType a, const ElementaryGuess & b)->ScalarType{
-                            return a + b.Correction(offset,snd,0.);});
-        
-    }*/
+	auto Correct = [&](const ElementaryGuess & data){
+		switch(this->pointChoice){
+			case FactoringPointChoice::Current:
+				return CorrectionCurrent(offset, ord, data.base);
+			case FactoringPointChoice::Key:
+				return CorrectionKey(offset,ord, data);
+			case FactoringPointChoice::Both:
+				return 0.5*(CorrectionCurrent(offset, ord, data.base)
+							+CorrectionKey(offset,ord, data));
+		} // Switch point
+	};
+	
+	if(method==FactoringMethod::Static && data_static.centerIndex != -1){
+		return Correct(data_static);
+	} else if(method==FactoringMethod::Dynamic && !data_dynamic.guesses.empty() ){
+		return std::accumulate(data_dynamic.guesses.begin(),data_dynamic.guesses.end(),0.,
+				[&](ScalarType a, const std::pair<ScalarType,ElementaryGuess> & b)->ScalarType{
+					return a + b.first*Correct(b.second);});
+	} else {
+		return 0.;
+	}
+	
+	
 }
 
-template<typename T> bool
-Factoring<T>::NeedsRecompute(IndexCRef index) const {
+template<typename T> auto Factoring<T>::
+CorrectionCurrent(const OffsetType & offset,
+				  int order,
+				  const VectorType & base
+) const -> ScalarType {
+	assert(pointChoice==FactoringPointChoice::Current || pointChoice==FactoringPointChoice::Both);
+	const DistanceGuess & dist = this->currentGuess;
+	auto Value = [&base,&dist](const OffsetType & off) -> ScalarType {
+		const VectorType v = base-VectorType::CastCoordinates(off);
+		return v.IsNull() ? 0. : dist.Norm(v);
+	};
+	const ScalarType valueZero = dist.Norm(base);
+	const ScalarType deriv =
+	dist.Gradient(base).ScalarProduct(VectorType::CastCoordinates(offset));
+
+	switch(order){
+		case 1: return deriv+(valueZero-Value(offset));
+		case 2: return deriv+(1.5*valueZero - 2.*Value(offset) + 0.5*Value(2*offset));
+		case 3: {
+			IndexType neigh = currentIndex+IndexDiff::CastCoordinates(offset);
+			const DomainTransformType transform = pFM->dom.Periodize(neigh, currentIndex);
+			assert(transform.IsValid());
+			VectorType pulledBase = base; transform.PullVector(pulledBase);
+			const DistanceGuess neighGuess = pFM->stencilData.GetGuess(neigh);
+			return deriv
+			+ ((11./6.)*valueZero-3.*Value(offset)+1.5*Value(2*offset)-(1./3.)*Value(3*offset))
+			+ (valueZero - neighGuess.Norm(pulledBase));
+		}
+		default: assert(false); return -Traits::Infinity();
+	}
+}
+
+template<typename T> auto Factoring<T>::
+CorrectionKey(const OffsetType & offset, int order, const ElementaryGuess & guess)
+const -> ScalarType {
+	assert(0<=guess.centerIndex && guess.centerIndex<factoringCenters.size());
+	const auto & dist = factoringCenters[guess.centerIndex].second;
+	const auto & base = guess.base;
+	const auto & transform = guess.transform;
+
+	VectorType pulledBase = base; transform.PullVector(pulledBase);
+	VectorType pulledOffset = VectorType::CastCoordinates(offset); transform.PullVector(pulledOffset);
+	
+	auto Value = [&pulledBase,&dist](const VectorType & off) -> ScalarType {
+		return pulledBase==off ? 0. : dist.Norm(pulledBase-off);
+	};
+	const ScalarType valueZero = dist.Norm(pulledBase);
+	const ScalarType deriv = dist.Gradient(pulledBase).ScalarProduct(pulledOffset);
+	switch(order){
+		case 1:	return deriv+(valueZero-Value(pulledOffset));
+		case 2: return deriv+(1.5*valueZero - 2.*Value(pulledOffset) + 0.5*Value(2*pulledOffset));
+		case 3: return deriv
+			+ ((11./6.)*valueZero-3.*Value(pulledOffset)+1.5*Value(2*pulledOffset)-(1./3.)*Value(3*pulledOffset));
+		default: assert(false); return -Traits::Infinity();
+	}
+}
+
+
+template<typename T> bool Factoring<T>::
+NeedsRecompute(IndexCRef index) const {
 	if(method == FactoringMethod::None) return false;
 	assert(!factoringRegion.empty());
 	return factoringRegion(index);
 }
 
-template<typename T> bool
-Factoring<T>::SetIndexStatic(IndexCRef index){
+template<typename T> bool Factoring<T>::
+SetIndexStatic(IndexCRef index){
 	assert(method==FactoringMethod::Static);
 	assert(!factoringRegion.empty());
 	const DiscreteType linearIndex = factoringRegion.Convert(index);
-	if(!factoringRegion[linearIndex]) return false;
+	if(factoringRegion[linearIndex]) {
+		
+		if(pointChoice!=FactoringPointChoice::Key){
+			currentIndex = index;
+			currentGuess = pFM->stencilData.GetGuess(index);
+		}
+		
+		// Find center within factoring radius
+		assert(!factoringCenters.empty());
+		const PointType p = pFM->dom.PointFromIndex(index);
+		for(int i=0; i<factoringCenters.size(); ++i){
+			const PointType & q = factoringCenters[i].first;
+			const VectorType v = q-p;
+			if(v.SquaredNorm() < square(factoringRadius)){
+				data_static.centerIndex = i;
+				data_static.base = v;
+				return true;
+			}
+		}
+	}
 	
-	assert(false);
-	//TODO : complete here
-	ExceptionMacro("Factoring error : Static factoring is unsupported for now")
+	data_static.centerIndex=-1;
+	return false;
 }
 
 
@@ -74,7 +150,11 @@ SetIndexDynamic(IndexCRef index, const DiscreteFlowType & flow) {
     const DiscreteType linearIndex = factoringRegion.Convert(index);
     if(!factoringRegion[linearIndex]) return false;
 
-//    std::cout ExportVarArrow(index) << "\n";
+	if(pointChoice!=FactoringPointChoice::Key){
+		currentIndex = index;
+		currentGuess = pFM->stencilData.GetGuess(index);
+	}
+	
     const FullIndexCRef full{index,linearIndex};
     MakeFactor(full, flow);
     return MakeGuess(full);
@@ -83,11 +163,14 @@ SetIndexDynamic(IndexCRef index, const DiscreteFlowType & flow) {
 template<typename T> void
 Factoring<T>::
 MakeFactor(FullIndexCRef updated, const DiscreteFlowType & flow){
-    if(factoringDone[updated.linear]) return; // Work already done
-    factoringDone[updated.linear]=true;
+	
+	assert(method==FactoringMethod::Dynamic);
+	auto & data = data_dynamic;
+    if(data.factoringDone[updated.linear]) return; // Work already done
+    data.factoringDone[updated.linear]=true;
     
-    currentNeighbors.clear();
-    currentNeighbors2.clear();
+    data.currentNeighbors.clear();
+    data.currentNeighbors2.clear();
     
     
     const ScalarType wSum = std::accumulate(flow.begin(), flow.end(), 0.,
@@ -97,17 +180,19 @@ MakeFactor(FullIndexCRef updated, const DiscreteFlowType & flow){
     for(const auto & [offset,weight] : flow){
         IndexType neigh = updated.index+IndexDiff::CastCoordinates(offset);
         assert(pFM!=nullptr);
-        [[maybe_unused]] const auto transform = pFM->dom.Periodize(neigh,updated.index);
+        const auto transform = pFM->dom.Periodize(neigh,updated.index);
         assert(transform.IsValid());
         const DiscreteType linearNeigh = factoringRegion.Convert(neigh);
         
-        if(factoringKeypoints.find(linearNeigh)!=factoringKeypoints.end()){
-            currentNeighbors.push_back({offset,weight});
+        if(data.factoringKeypoints.find(linearNeigh)!=data.factoringKeypoints.end()){
+            data.currentNeighbors.push_back({offset,weight});
         } else {
-            const auto [neigh_begin,neigh_end] = factoringNeighbors.equal_range(linearNeigh);
+            const auto [neigh_begin,neigh_end] = data.factoringNeighbors.equal_range(linearNeigh);
             for(auto it = neigh_begin; it!=neigh_end; ++it){
-                const auto & [offset2,weight2] = it->second;
-                currentNeighbors.push_back({offset+offset2, weight*weight2});
+                auto [offset2,weight2] = it->second;
+				transform.PullVector(offset2);
+                data.currentNeighbors.push_back(
+				{offset+offset2, weight*weight2});
                 // TODO : remove some of these, based on offset radius ?
             }
         }
@@ -119,31 +204,53 @@ MakeFactor(FullIndexCRef updated, const DiscreteFlowType & flow){
 #endif
     
     // Merge duplicates and insert
-    std::sort(currentNeighbors.begin(),currentNeighbors.end());
-    for(const auto & [offset,weight] : currentNeighbors){
-        if(currentNeighbors2.empty() || currentNeighbors2.back().first != offset){
-			currentNeighbors2.push_back({offset,weight});
+    std::sort(data.currentNeighbors.begin(),data.currentNeighbors.end());
+    for(const auto & [offset,weight] : data.currentNeighbors){
+        if(data.currentNeighbors2.empty() || data.currentNeighbors2.back().first != offset){
+			data.currentNeighbors2.push_back({offset,weight});
         } else {
-            currentNeighbors2.back().second+=weight;
+            data.currentNeighbors2.back().second+=weight;
         }
     }
     
-    const auto it = factoringNeighbors.upper_bound(updated.linear);
-    for(const auto & data : currentNeighbors2){
-        factoringNeighbors.insert(it,{updated.linear,data});}
+    const auto it = data.factoringNeighbors.upper_bound(updated.linear);
+    for(const auto & neigh : data.currentNeighbors2){
+        data.factoringNeighbors.insert(it,{updated.linear,neigh});}
 }
 
 template<typename T> bool
 Factoring<T>::
 MakeGuess(FullIndexCRef updated) {
+	
+	assert(method==FactoringMethod::Dynamic);
+
+	const auto & data = data_dynamic;
+	auto & guesses = data_dynamic.guesses;
     assert(factoringRegion[updated.linear]);
-    assert(factoringDone[updated.linear]);
-    guesses.clear();
-    const auto rg = factoringNeighbors.equal_range(updated.linear);
+    assert(data.factoringDone[updated.linear]);
+    const auto rg = data.factoringNeighbors.equal_range(updated.linear);
     if(rg.first==rg.second) return false;
-    
+	
+	guesses.clear();
+	for(auto it = rg.first; it!=rg.second; ++it){
+		const auto & [offset,weight] = it->second;
+		IndexType neigh = updated.index+IndexDiff::CastCoordinates(offset);
+		const DomainTransformType transform = pFM->dom.Periodize(neigh,updated.index);
+		const auto factIt = data.factoringKeypoints.find(data.factoringDone.Convert(neigh));
+		assert(factIt!=data.factoringKeypoints.end());
+		const int centerIndex = factIt->second;
+		VectorType subOffset = factoringCenters[centerIndex].first - pFM->dom.PointFromIndex(neigh);
+		transform.PullVector(subOffset);
+		guesses.push_back({weight, ElementaryGuess{
+			centerIndex,
+			VectorType::CastCoordinates(offset)+subOffset,
+			transform
+			} });
+	}
+	
+	/*
     if(pointChoice==FactoringPointChoice::Current || pointChoice==FactoringPointChoice::Both){
-        const DistanceGuess guess = pFM->stencilData.GetGuess(pFM->dom.PointFromIndex(updated.index));
+        const DistanceGuess guess = pFM->stencilData.GetGuess(updated.index);
         for(auto it = rg.first; it!=rg.second; ++it){
             const auto & [offset,weight] = it->second;
             const DomainTransformType transform{}; // Identity transform
@@ -156,12 +263,13 @@ MakeGuess(FullIndexCRef updated) {
             const auto & [offset,weight] = it->second;
             IndexType neigh = updated.index+IndexDiff::CastCoordinates(offset);
             const DomainTransformType transform = pFM->dom.Periodize(neigh,updated.index);
-            const auto keyIt = factoringKeypoints.find(factoringDone.Convert(neigh));
-            assert(keyIt!=factoringKeypoints.end());
+            const auto keyIt = data.factoringKeypoints.find(data.factoringDone.Convert(neigh));
+            assert(keyIt!=data.factoringKeypoints.end());
             guesses.push_back({factoringCenters[keyIt->second].second,transform,offset,
                 weight *(pointChoice==FactoringPointChoice::Both ? 0.5 : 1.)});
         }
     }
+	 */
     return true;
 }
 
@@ -188,8 +296,8 @@ Setup(HFMI * that){
 	factoringRegion.dims = pFM->stencilData.dims;
 	factoringRegion.resize(factoringRegion.dims.Product(),false);
 	if(method==FactoringMethod::Dynamic){
-		factoringDone.dims = factoringRegion.dims;
-		factoringDone.resize(factoringRegion.size(),false);
+		data_dynamic.factoringDone.dims = factoringRegion.dims;
+		data_dynamic.factoringDone.resize(factoringRegion.size(),false);
 	}
 
 	// Get the factoring points
@@ -266,7 +374,7 @@ SetupRegion(HFMI*that){
 			const ScalarType neighVal = value+cost;
 			if(neighVal>factoringRadius) continue;
 			const IndexType index = arr.Convert(current);
-			IndexType neigh = index+offset;
+			IndexType neigh = index+IndexDiff::CastCoordinates(offset);
 			if(dom.Periodize(neigh,index).IsValid()){
 				queue.push({-neighVal,arr.Convert(neigh)});}
 		}
@@ -293,7 +401,8 @@ SetupCenters(HFMI * that) {
 		if(method==FactoringMethod::Dynamic){
 			for(const auto [index,weight] : dom.Neighbors(q)){
 				if(weight>1e-6){
-					factoringKeypoints.insert({done.Convert(index),factoringCenters.size()});}
+					data_dynamic.factoringKeypoints.insert(
+					{done.Convert(index),factoringCenters.size()});}
 			}
 		}
 		factoringCenters.push_back({q,stencilData.GetGuess(q)});

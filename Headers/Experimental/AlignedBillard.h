@@ -64,7 +64,8 @@ struct TraitsAlignedBillard : TraitsBase<2> {
 
 
 
-struct StencilAlignedBillard : HamiltonFastMarching<TraitsAlignedBillard>::StencilDataType {
+struct StencilAlignedBillard final :
+HamiltonFastMarching<TraitsAlignedBillard>::StencilDataType {
     typedef HamiltonFastMarching<TraitsAlignedBillard> HFM;
     typedef typename HFM::StencilDataType Superclass;
     Redeclare5Types(HFM,ParamDefault,IndexType,StencilType,ParamInterface,HFMI)
