@@ -20,7 +20,7 @@ HamiltonFastMarching<T>::_StencilDataTypeBase {
 	Redeclare6Types(Traits,DiscreteType,ScalarType,PointType,VectorType,IndexType,OffsetType)
 	Redeclare1Constant(Traits,Dimension)
 	
-	void SetStencil(IndexCRef, StencilType &);
+	virtual void SetStencil(IndexCRef, StencilType &) override final;
 	virtual void Setup(HFMI *) override;
 	virtual void Initialize(const HFM *) override final;
 	
@@ -44,7 +44,7 @@ template<typename Traits> template<typename Dummy> void
 HamiltonFastMarching<Traits>::_StencilDataType<SSP::Lag2, Dummy>::SetStencil(IndexCRef index, StencilType & stencil){
 	const auto rg = directOffsets[indexConverter.Convert(index)];
 	stencil.pOffsets = &rg.front();
-	stencil.nOffsets = rg.end();
+	stencil.nOffsets = rg.size();
 }
 
 // Setup and initialization

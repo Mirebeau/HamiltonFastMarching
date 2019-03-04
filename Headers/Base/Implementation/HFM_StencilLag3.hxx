@@ -17,7 +17,6 @@ struct HamiltonFastMarching<T>::_StencilDataType<SSP::Lag3,Dummy>
 	using Superclass = HFM::_StencilDataTypeBase;
 	
 	IndexType dims; // Needs value
-	virtual void SetStencil(IndexCRef, StencilType &) = 0;
 	virtual void Setup(HFMI *) override;
 	virtual void Initialize(const HFM *) override final;
 protected:
@@ -57,7 +56,7 @@ Initialize(const HFM * pFM_){
 	for(DiscreteType linearIndex=0; linearIndex<size; ++linearIndex){
 		const IndexType index = stencils.Convert(linearIndex);
 		StencilType & stencil = stencils[linearIndex];
-		SetStencil(index,stencil);
+		this->SetStencil(index,stencil);
 		
 		directOffsets.clear();
 		stencil.Neighbors(directOffsets);

@@ -30,7 +30,7 @@ struct StencilSeismic3 final
 	
 	Redeclare4Types(HFM,ParamDefault,ParamInterface,HFMI,DiscreteFlowType)
 	Redeclare5Types(HFM,IndexCRef,VectorType,ScalarType,DiscreteType,OffsetCRef)
-	Redeclare4Types(HFM,RecomputeType,Traits,DomainType,IndexDiff)
+	Redeclare5Types(HFM,RecomputeType,Traits,DomainType,IndexDiff,PointType)
 	Redeclare5Types(TraitsSeismic3,NormType,IndexType,StencilType,OffsetType,DistanceGuess)
 	Redeclare1Type(Superclass,OffsetVals)
 	Redeclare1Constant(HFM,Dimension)
@@ -49,8 +49,7 @@ struct StencilSeismic3 final
 	virtual void SetStencil(IndexCRef index, StencilType & stencil) override;
 	virtual const ParamInterface & Param() const override {return param;}
 	virtual void Setup(HFMI *) override;
-	virtual DistanceGuess GetGuess(IndexCRef index) const override {
-		return GetNorm(index);}
+	virtual DistanceGuess GetGuess(const PointType &) const override;
 private:
 	std::forward_list<OffsetType> l;
 	NormType GetNorm(IndexCRef index) const; // Includes rescaling by h

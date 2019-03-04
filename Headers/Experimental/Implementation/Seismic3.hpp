@@ -15,6 +15,13 @@ auto StencilSeismic3::GetNorm(IndexCRef index) const -> NormType {
 	return NormType{invh2*(*pMetric)(index)};
 }
 
+auto StencilSeismic3::GetGuess(const PointType & p) const -> NormType {
+	const ScalarType invh2 = 1./square(param.gridScale);
+	assert(pMetric!=nullptr);
+	return NormType{invh2*MapWeightedSum<MetricElementType>(*pMetric,pFM->dom.Neighbors(p))};
+}
+
+
 
 auto StencilSeismic3::HopfLaxUpdate(IndexCRef index, const OffsetVals & offsetVal)
 -> std::pair<ScalarType,int> {

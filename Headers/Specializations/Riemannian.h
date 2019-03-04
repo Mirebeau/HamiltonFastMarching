@@ -23,7 +23,7 @@ struct StencilRiemann final
     typedef HamiltonFastMarching<TraitsRiemann<VDimension> > HFM;
     typedef typename HFM::StencilDataType Superclass;
     Redeclare6Types(HFM,ParamDefault,IndexType,StencilType,ParamInterface,HFMI,Traits)
-    Redeclare3Types(HFM,ScalarType,IndexCRef,DistanceGuess)
+    Redeclare4Types(HFM,ScalarType,IndexCRef,DistanceGuess,PointType)
     Redeclare1Constant(HFM,Dimension)
     ParamDefault param;
 
@@ -47,8 +47,11 @@ struct StencilRiemann final
         if(that->io.HasField("dualMetric")) pDualMetric = that->template GetField<MetricElementType>("dualMetric");
         else pMetric = that->template GetField<MetricElementType>("metric");
     }
-    virtual DistanceGuess GetGuess(IndexCRef index) const override {
-        const SymmetricMatrixType m = pDualMetric ? (*pDualMetric)(index).Inverse() : (*pMetric)(index);
-        return m*square(param.gridScale);}
+    virtual DistanceGuess GetGuess(const PointType & p) const override {
+        const SymmetricMatrixType m = pDualMetric ?
+		MapWeightedSum<SymmetricMatrixType>(*pDualMetric,this->pFM->dom.Neighbors(p)).Inverse() :
+		MapWeightedSum<SymmetricMatrixType>(*pMetric,this->pFM->dom.Neighbors(p));
+        return m*square(param.gridScale);
+	}
 };
 

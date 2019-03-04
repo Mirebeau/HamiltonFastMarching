@@ -28,13 +28,23 @@ Setup(HFMI * that){
 template<typename T> auto StencilQuadLinLag2<T>::
 GetNorm(IndexCRef index) const -> NormType {
 	assert(pMetric!=nullptr);
-	const MetricElementType data = (*pMetric)(index);
-	NormType norm{data.first,data.second};
-	const ScalarType h = param.gridScale;
-	norm.m *= square(h);
-	norm.w *= h;
-	return norm;
+	return Rescale((*pMetric)(index));
 }
+
+template<typename T> auto StencilQuadLinLag2<T>::
+GetGuess(const PointType & p) const -> DistanceGuess {
+	assert(pMetric!=nullptr);
+	return Rescale(MapWeightedSum<MetricElementType>(*pMetric,this->pFM->dom.Neighbors(p)));
+}
+
+template<typename T> auto StencilQuadLinLag2<T>::
+Rescale(const MetricElementType & data)
+const -> NormType {
+	const auto & [m,v] = data;
+	const ScalarType h = param.gridScale;
+	return NormType{square(h)*m,h*v};
+}
+
 
 template<typename T> void StencilQuadLinLag2<T>::
 SetNeighbors(IndexCRef index, std::vector<OffsetType> & stencil) {

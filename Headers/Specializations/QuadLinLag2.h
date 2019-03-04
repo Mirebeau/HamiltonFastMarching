@@ -44,7 +44,7 @@ struct StencilQuadLinLag2 final
 : HamiltonFastMarching<T>::StencilDataType {
 	typedef HamiltonFastMarching<T> HFM;
 	typedef typename HFM::StencilDataType Superclass;
-	Redeclare6Types(HFM,ParamDefault,ParamInterface,HFMI,DiscreteFlowType,RecomputeType,Traits)
+	Redeclare7Types(HFM,ParamDefault,ParamInterface,HFMI,DiscreteFlowType,RecomputeType,Traits,PointType)
 	Redeclare7Types(HFM,IndexCRef,VectorType,ScalarType,DiscreteType,OffsetCRef,DomainType,IndexDiff)
 	Redeclare6Types(Traits,NormType,NormType1,IndexType,StencilType,OffsetType,DistanceGuess)
 	Redeclare1Type(Superclass,OffsetVal3)
@@ -65,8 +65,7 @@ struct StencilQuadLinLag2 final
 	virtual void SetNeighbors(IndexCRef index, std::vector<OffsetType> & stencil) override;
 	virtual const ParamInterface & Param() const override {return param;}
 	virtual void Setup(HFMI *) override;
-	virtual DistanceGuess GetGuess(IndexCRef index) const override {
-		return GetNorm(index);}
+	virtual DistanceGuess GetGuess(const PointType &) const override;
 private:
 	std::forward_list<OffsetType> l;
 	NormType GetNorm(IndexCRef index) const;
@@ -77,6 +76,7 @@ private:
 	 std::unique_ptr<BoolField> pWalls = nullptr;*/
 	const DomainType * pDom = nullptr;
 	bool OnWallBoundary(IndexCRef) const;
+	NormType Rescale(const MetricElementType &) const;
 };
 
 

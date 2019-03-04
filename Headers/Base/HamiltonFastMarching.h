@@ -171,13 +171,13 @@ template<typename T> struct HamiltonFastMarching<T>::_StencilDataTypeBase {
 	virtual const ParamInterface & Param() const = 0;
 	virtual DistanceGuess GetGuess(const PointType &) const {
 		ExceptionMacro("Equation factoring error : no guess");};
+	virtual void Setup(HFMI * that){ // Import data from user interface
+		dims = IndexType::CastCoordinates( that->io.template Get<PointType>("dims") );}
 protected:
 	friend struct HamiltonFastMarching<Traits>;
 	virtual ScalarType HopfLaxUpdate(FullIndexCRef, OffsetCRef, ScalarType, ActiveNeighFlagType &) = 0;
 	// Also, a templated HopfLaxRecompute
 	virtual void EraseCache(DiscreteType index) {}
-	virtual void Setup(HFMI * that){ // Import data from user interface
-		dims = IndexType::CastCoordinates( that->io.template Get<PointType>("dims") );}
 	virtual void Initialize(const HFM * _pFM){pFM = _pFM;} // Prepare for fast marching
 	
 	const HFM* pFM;

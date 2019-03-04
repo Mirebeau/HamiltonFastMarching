@@ -48,8 +48,7 @@ struct StencilSeismic2 final
 	virtual void SetNeighbors(IndexCRef index, std::vector<OffsetType> & stencil) override;
 	virtual const ParamInterface & Param() const override {return param;}
 	virtual void Setup(HFMI *) override;
-	virtual DistanceGuess GetGuess(IndexCRef index) const override {
-		return GetNorm(index);}
+	virtual DistanceGuess GetGuess(const PointType & p) const override final;
 private:
 	std::forward_list<OffsetType> l;
 	NormType GetNorm(IndexCRef index) const; // Includes rescaling by h
