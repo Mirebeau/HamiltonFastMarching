@@ -193,12 +193,13 @@ const -> RecomputeType {
 	
 	
 	switch(factoring.method){
-		case FactoringMethod::Static: factoring.SetIndexStatic(updatedIndex);
+		case FactoringMethod::Static: factoring.SetIndexStatic(updatedIndex); break;
 		case FactoringMethod::Dynamic: {
 			stencilData.HopfLaxRecompute(GetValue1,updatedIndex,active,discreteFlow);
 			factoring.SetIndexDynamic(updatedIndex,discreteFlow);
+			break;
 		}
-		default: break; // None
+		default: break; // No factoring method
 	}
     
     auto GetValueCorr = [this,&updatedIndex]
@@ -225,16 +226,26 @@ const -> RecomputeType {
 			
 			while(ord>=3){ // Single iteration
 				OffsetType offset3 = offset2;
-				transform.PullVector(offset3);
+				transform2.PullVector(offset3);
 				IndexType acceptedIndex3;
 				const auto transform3 =
-				VisibleOffset(acceptedIndex, offset3, acceptedIndex3);
+				VisibleOffset(acceptedIndex2, offset3, acceptedIndex3);
 				if(!transform3.IsValid()) break;
 				const DiscreteType acceptedLinearIndex3 = values.Convert(acceptedIndex3);
 				if(!acceptedFlags[acceptedLinearIndex3]) break;
 				const ScalarType acceptedValue3 = values(acceptedIndex3);
 				if(acceptedValue3>acceptedValue2) break;
 				// TODO: ditch if third order correction is larger than second order
+				
+/*				std::cout << "Recompute "
+				ExportVarArrow(updatedIndex)
+				ExportVarArrow(acceptedValue)
+				ExportVarArrow(acceptedValue2)
+				ExportVarArrow(acceptedValue3)
+				ExportVarArrow(acceptedIndex)
+				ExportVarArrow(acceptedIndex2)
+				ExportVarArrow(acceptedIndex3)
+				<< std::endl;*/
 				
 				ord=3;
 				return (6./11.)*

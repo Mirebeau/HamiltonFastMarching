@@ -58,9 +58,9 @@ CorrectionCurrent(const OffsetType & offset,
 		return v.IsNull() ? 0. : dist.Norm(v);
 	};
 	const ScalarType valueZero = dist.Norm(base);
-	const ScalarType deriv =
+	const ScalarType deriv = -
 	dist.Gradient(base).ScalarProduct(VectorType::CastCoordinates(offset));
-
+	
 	switch(order){
 		case 1: return deriv+(valueZero-Value(offset));
 		case 2: return deriv+(1.5*valueZero - 2.*Value(offset) + 0.5*Value(2*offset));
@@ -93,7 +93,17 @@ const -> ScalarType {
 		return pulledBase==off ? 0. : dist.Norm(pulledBase-off);
 	};
 	const ScalarType valueZero = dist.Norm(pulledBase);
-	const ScalarType deriv = dist.Gradient(pulledBase).ScalarProduct(pulledOffset);
+	const ScalarType deriv = - dist.Gradient(pulledBase).ScalarProduct(pulledOffset);
+	
+/*	std::cout << " In correction "
+	ExportVarArrow(IndexDiff::CastCoordinates(offset))
+	ExportVarArrow(order)
+	ExportVarArrow(base)
+	ExportVarArrow(valueZero)
+	ExportVarArrow(Value(pulledOffset))
+	ExportVarArrow(deriv)
+	<< std::endl;*/
+	
 	switch(order){
 		case 1:	return deriv+(valueZero-Value(pulledOffset));
 		case 2: return deriv+(1.5*valueZero - 2.*Value(pulledOffset) + 0.5*Value(2*pulledOffset));
@@ -163,7 +173,6 @@ SetIndexDynamic(IndexCRef index, const DiscreteFlowType & flow) {
 template<typename T> void
 Factoring<T>::
 MakeFactor(FullIndexCRef updated, const DiscreteFlowType & flow){
-	
 	assert(method==FactoringMethod::Dynamic);
 	auto & data = data_dynamic;
     if(data.factoringDone[updated.linear]) return; // Work already done
@@ -277,7 +286,7 @@ template<typename T> bool
 Factoring<T>::
 Setup(HFMI * that){
     auto & io = that->io;
-	
+	pFM = that->pFM.get();
 	// Get the factoring method
 	
 	method=enumFromString<FactoringMethod>

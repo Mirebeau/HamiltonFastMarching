@@ -164,7 +164,7 @@ Initialize(const HFM * pFM_) {
 	const auto offsetEnd = std::unique(offsets.begin(), offsets.end());
 	offsets.resize(offsetEnd-offsets.begin());
 	assert(this->reversedOffsets.empty());
-	this->reversedOffsets.insert(offsets,this->dims.Product());
+	this->reversedOffsets.insert(offsets,stencils.size());
 }
 
 #endif /* HFM_StencilShare_hxx */
