@@ -22,8 +22,8 @@ struct StencilRiemann final
 : HamiltonFastMarching<TraitsRiemann<VDimension> >::StencilDataType {
     typedef HamiltonFastMarching<TraitsRiemann<VDimension> > HFM;
     typedef typename HFM::StencilDataType Superclass;
-    Redeclare6Types(HFM,ParamDefault,IndexType,StencilType,ParamInterface,HFMI,Traits)
-    Redeclare4Types(HFM,ScalarType,IndexCRef,DistanceGuess,PointType)
+    Redeclare10Types(HFM,ParamDefault,IndexType,StencilType,ParamInterface,HFMI,Traits,
+					ScalarType,IndexCRef,DistanceGuess,PointType)
     Redeclare1Constant(HFM,Dimension)
     ParamDefault param;
 

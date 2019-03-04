@@ -27,9 +27,9 @@ struct StencilSeismic2 final
 	typedef HamiltonFastMarching<TraitsSeismic2> HFM;
 	typedef typename HFM::StencilDataType Superclass;
 
-	Redeclare4Types(HFM,ParamDefault,ParamInterface,HFMI,DiscreteFlowType)
-	Redeclare5Types(HFM,IndexCRef,VectorType,ScalarType,DiscreteType,OffsetCRef)
-	Redeclare4Types(HFM,RecomputeType,Traits,DomainType,IndexDiff)
+	Redeclare13Types(HFM,ParamDefault,ParamInterface,HFMI,DiscreteFlowType,
+					IndexCRef,VectorType,ScalarType,DiscreteType,OffsetCRef,RecomputeType,
+					Traits,DomainType,IndexDiff)
 	Redeclare5Types(TraitsSeismic2,NormType,IndexType,StencilType,OffsetType,DistanceGuess)
 	Redeclare1Type(Superclass,OffsetVal3)
 	Redeclare1Constant(HFM,Dimension)

@@ -37,9 +37,9 @@ template<typename T>
 struct Factoring {
     typedef T Traits;
     typedef HamiltonFastMarching<Traits> HFM;
-    Redeclare6Types(HFM,IndexCRef,FullIndexCRef,DiscreteFlowType,OffsetType,ScalarType,DiscreteType)
-    Redeclare6Types(HFM,IndexType,IndexDiff,DomainTransformType,VectorType,HFMI,PointType)
-    Redeclare3Types(HFM,DistanceGuess,DiscreteFlowElement,DomainType)
+    Redeclare15Types(HFM,IndexCRef,FullIndexCRef,DiscreteFlowType,OffsetType,
+					 ScalarType,DiscreteType,IndexType,IndexDiff,DomainTransformType,
+					 VectorType,HFMI,PointType,DistanceGuess,DiscreteFlowElement,DomainType)
     Redeclare1Constant(HFM,Dimension)
     template<typename E, size_t n> using Array = typename Traits::template Array<E,n>;
 	

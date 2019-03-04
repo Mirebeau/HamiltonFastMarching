@@ -24,8 +24,8 @@ struct StencilIsotropic final :
 HamiltonFastMarching<TraitsIsotropic<VDimension> >::StencilDataType {
     typedef HamiltonFastMarching<TraitsIsotropic<VDimension> > HFM;
     typedef typename HFM::StencilDataType Superclass;
-    Redeclare5Types(HFM,ParamDefault,IndexType,StencilType,ParamInterface,HFMI)
-    Redeclare4Types(HFM,DistanceGuess,ScalarType,IndexCRef,PointType)
+    Redeclare9Types(HFM,ParamDefault,IndexType,StencilType,ParamInterface,
+					HFMI,DistanceGuess,ScalarType,IndexCRef,PointType)
     Redeclare1Constant(HFM,Dimension)
     ParamDefault param;
     

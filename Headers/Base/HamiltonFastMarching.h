@@ -33,11 +33,10 @@ template<typename TTraits>
 struct HamiltonFastMarching {
     typedef TTraits Traits;
     Redeclare1Constant(Traits,Dimension)
-    Redeclare6Types(Traits,ScalarType,DiscreteType,ShortType,DomainType,
-					StencilType,DistanceGuess)
-    Redeclare6Types(Traits,PointType,VectorType,IndexType,OffsetType,
-					DifferenceType,IndexDiff)
-    
+    Redeclare12Types(Traits,ScalarType,DiscreteType,ShortType,DomainType,
+					 StencilType,DistanceGuess,PointType,VectorType,IndexType,OffsetType,
+					 DifferenceType,IndexDiff)
+	
     typedef const IndexType & IndexCRef;
     typedef const OffsetType & OffsetCRef;
     struct FullIndexType {IndexType index; DiscreteType linear;};

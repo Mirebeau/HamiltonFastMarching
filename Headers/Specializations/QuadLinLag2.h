@@ -44,8 +44,8 @@ struct StencilQuadLinLag2 final
 : HamiltonFastMarching<T>::StencilDataType {
 	typedef HamiltonFastMarching<T> HFM;
 	typedef typename HFM::StencilDataType Superclass;
-	Redeclare7Types(HFM,ParamDefault,ParamInterface,HFMI,DiscreteFlowType,RecomputeType,Traits,PointType)
-	Redeclare7Types(HFM,IndexCRef,VectorType,ScalarType,DiscreteType,OffsetCRef,DomainType,IndexDiff)
+	Redeclare14Types(HFM,ParamDefault,ParamInterface,HFMI,DiscreteFlowType,RecomputeType,Traits,PointType,
+					 IndexCRef,VectorType,ScalarType,DiscreteType,OffsetCRef,DomainType,IndexDiff)
 	Redeclare6Types(Traits,NormType,NormType1,IndexType,StencilType,OffsetType,DistanceGuess)
 	Redeclare1Type(Superclass,OffsetVal3)
 	Redeclare1Constant(HFM,Dimension)

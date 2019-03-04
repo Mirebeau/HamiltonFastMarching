@@ -13,8 +13,9 @@ template<typename T> struct EuclideanPathLength :
 HamiltonFastMarching<T>::ExtraAlgorithmInterface {
     typedef HamiltonFastMarching<T> HFM;
     typedef typename HFM::ExtraAlgorithmInterface Superclass;
-    Redeclare7Types(HFM,IndexCRef,IndexType,ScalarType,Traits,HFMI,PointType,DiscreteType)
-    Redeclare6Types(HFM,OffsetCRef,VectorType,DiscreteFlowType,RecomputeType,DiscreteFlowElement,Decision)
+    Redeclare13Types(HFM,IndexCRef,IndexType,ScalarType,Traits,HFMI,PointType,
+					 DiscreteType,OffsetCRef,VectorType,DiscreteFlowType,RecomputeType,
+					 DiscreteFlowElement,Decision)
     Redeclare1Constant(HFM,Dimension)
     
     ScalarType stopAtEuclideanLength = Traits::Infinity();

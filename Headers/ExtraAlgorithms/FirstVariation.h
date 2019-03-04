@@ -12,8 +12,9 @@
 template<typename T> struct FirstVariation :
 HamiltonFastMarching<T>::ExtraAlgorithmInterface {
     typedef HamiltonFastMarching<T> HFM;
-    Redeclare7Types(HFM,IndexType,ScalarType,IndexCRef,HFMI,DifferenceType,ActiveNeighFlagType,DiscreteType)
-    Redeclare5Types(HFM,Traits,RecomputeType,DiscreteFlowType,PointType,IndexDiff)
+    Redeclare12Types(HFM,IndexType,ScalarType,IndexCRef,HFMI,DifferenceType,
+					 ActiveNeighFlagType,DiscreteType,Traits,RecomputeType,
+					 DiscreteFlowType,PointType,IndexDiff)
     Redeclare1Constant(HFM,Dimension)
 
     template<typename E, size_t n> using Array = typename HFM::template Array<E,n>;

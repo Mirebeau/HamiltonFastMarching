@@ -10,8 +10,9 @@ template<typename T> struct VoronoiDiagram :
 HamiltonFastMarching<T>::ExtraAlgorithmInterface {
     typedef HamiltonFastMarching<T> HFM;
     typedef typename HFM::ExtraAlgorithmInterface Superclass;
-    Redeclare8Types(HFM,IndexCRef,IndexType,ScalarType,Traits,HFMI,PointType,DiscreteType,ShortType)
-    Redeclare7Types(HFM,OffsetCRef,VectorType,DiscreteFlowType,RecomputeType,DiscreteFlowElement,Decision,IndexDiff)
+    Redeclare15Types(HFM,IndexCRef,IndexType,ScalarType,Traits,HFMI,PointType,
+					 DiscreteType,ShortType,OffsetCRef,VectorType,DiscreteFlowType,
+					 RecomputeType,DiscreteFlowElement,Decision,IndexDiff)
     Redeclare1Constant(HFM,Dimension)
     
     enum StoppingCriterionEnum {kVoronoiNone,kVoronoiRegionsMeeting,kVoronoiOppositesMeeting};
