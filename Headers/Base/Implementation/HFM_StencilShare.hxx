@@ -25,6 +25,7 @@ struct HamiltonFastMarching<T>::_StencilDataType<SSP::Share,Dummy>
 	
 	struct RecomputeDataType {const StencilType & stencil;MultiplierType mult;};
 	RecomputeDataType RecomputeData(IndexCRef); // Needed in some subclasses of HFM...
+	virtual ConstOffsetRange ReversedOffsets(FullIndexCRef) const override final;
 	
 	virtual void Setup(HFMI *) override;
 protected:
@@ -34,7 +35,6 @@ protected:
 	virtual ScalarType HopfLaxUpdate(FullIndexCRef, OffsetCRef, ScalarType, ActiveNeighFlagType &) override final;
 	template<typename F> RecomputeType HopfLaxRecompute(const F &, IndexCRef, ActiveNeighFlagType, DiscreteFlowType &);
 	
-	virtual ConstOffsetRange ReversedOffsets(FullIndexCRef) const override final;
 	virtual void Initialize(const HFM *) override;
 private:
 	typedef typename HFM::template Array<StencilType, T::nStencilDependencies> StencilArrayType;
