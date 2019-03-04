@@ -355,6 +355,7 @@ Run_SetupSolver() {
     {
         std::vector<PointType> seedPoints;
         std::vector<ScalarType> seedValues;
+		
         if(io.HasField("seeds")){
             seedPoints = io.GetVector<PointType>("seeds");
             for(auto & p : seedPoints) p=stencil.Param().ADim(p);
@@ -364,6 +365,64 @@ Run_SetupSolver() {
                     ExceptionMacro("Error : Inconsistent size of seedValues.")
             }
             else seedValues.resize(seedPoints.size(),0.);
+			
+			// If desired, with exact given position get to be spreaded over a few pixels
+			const DiscreteType spreadSeeds = (DiscreteType) io.Get<ScalarType>("spreadSeeds",0);
+			if(!(0<=spreadSeeds && spreadSeeds<=2))
+			   ExceptionMacro("Error : spreadSeeds parameter should be 0, 1 or 2, but  has value "
+							  << spreadSeeds << ".\n");
+
+			if(spreadSeeds>=1){
+				std::vector<PointType> newPoints;
+				std::vector<ScalarType> newValues;
+				std::set<IndexType> indices; // Avoid repetition of spreaded points for a given seed point
+				
+				const auto & dom = pFM->dom;
+				for(size_t i=0; i<seedPoints.size(); ++i){
+					indices.clear();
+					const PointType & p = seedPoints[i];
+					const ScalarType value = seedValues[i];
+					const auto & neighs = dom.Neighbors(p);
+					
+					const auto & distp = stencil.GetGuess(p);
+					for(const auto & [index,w] : neighs){
+						if(w==0) continue;
+						const PointType q = dom.PointFromIndex(index);
+						
+						if(indices.insert(index).second){
+							const auto & distq = stencil.GetGuess(index);
+							newPoints.push_back(q);
+							newValues.push_back(value+ 0.5*( distp.Norm(q-p) + distq.Norm(q-p) ) );
+						}
+						
+						if(spreadSeeds>=2){
+							auto rev = stencil.ReversedOffsets({index,pFM->values.Convert(index)});
+							for(const auto & offset : rev){
+								Redeclare1Type(Traits,IndexDiff);
+								const IndexType neighIndex = index+IndexDiff::CastCoordinates(offset);
+								if(indices.insert(neighIndex).second){
+									const auto & distn = stencil.GetGuess(neighIndex);
+									const PointType neigh = dom.PointFromIndex(neighIndex);
+									
+									newPoints.push_back(neigh);
+									newValues.push_back(value +
+										0.5*(distp.Norm(neigh-p)+distn.Norm(neigh-p)));
+								}
+							}
+							
+						}
+					}
+				}
+				std::swap(seedPoints,newPoints);
+				std::swap(seedValues,newValues);
+				
+					// Export generated data
+				std::vector<PointType> seedPointsRedim;
+				for(const PointType & p : seedPoints) {seedPointsRedim.push_back(stencil.Param().ReDim(p));}
+				io.SetVector("spreadedSeeds", seedPointsRedim);
+				io.SetVector("spreadedSeedValues", seedValues);
+			}
+			
         }
         
         if(HFM::hasBundle && io.HasField("seeds_Unoriented")){
@@ -388,7 +447,8 @@ Run_SetupSolver() {
             if(!pFM->dom.PeriodizeNoBase(seedIndex).IsValid()){
                 WarnMsg() << "Error : seed " << stencil.Param().ReDim(seedPoints[i]) << " is out of range.\n";
                 continue;}
-            pFM->seeds.insert({seedIndex,seedValues[i]});}
+            pFM->seeds.insert({seedIndex,seedValues[i]});
+		}
         if(pFM->seeds.empty() && !seedPoints.empty())
             ExceptionMacro("Error : seeds incorrectly set");
     }

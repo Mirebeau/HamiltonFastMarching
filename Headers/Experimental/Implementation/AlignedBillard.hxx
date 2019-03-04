@@ -9,16 +9,7 @@
 #define AlignedBillard_hxx
 
 
-// Transform does essentially nothing
-template<typename T> struct
-AlignedBillardGrid<T>::Transform {
-    bool IsValid() const {return valid;}
-    template<typename TVec> void PullVector(TVec & v) const {};
-    void Invalidate(){valid=false;}
-//    static Transform Error() {Transform result; result.Invalidate(); return result;}
-protected:
-    bool valid = true;
-};
+
 
 // ----  Periodize ------
 template<typename T> auto

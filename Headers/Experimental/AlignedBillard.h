@@ -62,10 +62,21 @@ struct TraitsAlignedBillard : TraitsBase<2> {
     typedef AlignedBillardGrid<TraitsAlignedBillard> DomainType;
 };
 
+// Transform does essentially nothing
+template<typename T> struct
+AlignedBillardGrid<T>::Transform {
+	bool IsValid() const {return valid;}
+	template<typename TVec> void PullVector(TVec & v) const {};
+	void Invalidate(){valid=false;}
+	//    static Transform Error() {Transform result; result.Invalidate(); return result;}
+protected:
+	bool valid = true;
+};
 
 
 struct StencilAlignedBillard final :
 HamiltonFastMarching<TraitsAlignedBillard>::StencilDataType {
+	
     typedef HamiltonFastMarching<TraitsAlignedBillard> HFM;
     typedef typename HFM::StencilDataType Superclass;
     Redeclare5Types(HFM,ParamDefault,IndexType,StencilType,ParamInterface,HFMI)
@@ -112,6 +123,7 @@ protected:
         
         Superclass::Initialize(pHFM);
     }
+	 
 };
 
 #include "Implementation/AlignedBillard.hxx"

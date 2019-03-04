@@ -164,16 +164,24 @@ typedef StencilStoragePolicy SSP;
 // ******** Stencil data, base class *********
 
 template<typename T> struct HamiltonFastMarching<T>::_StencilDataTypeBase {
-	IndexType dims; // Needs value
+	IndexType dims;
 	virtual ~_StencilDataTypeBase(){};
-	virtual void SetStencil(IndexCRef, StencilType &) = 0; // Needs specialization
+
+	virtual void SetStencil(IndexCRef, StencilType &) = 0; 
 	virtual const ParamInterface & Param() const = 0;
+
 	virtual DistanceGuess GetGuess(const PointType &) const {
 		ExceptionMacro("Equation factoring error : no guess");};
 	virtual DistanceGuess GetGuess(const IndexType & index) const {
 		return GetGuess(pFM->dom.PointFromIndex(index));}
+	
 	virtual void Setup(HFMI * that){ // Import data from user interface
 		dims = IndexType::CastCoordinates( that->io.template Get<PointType>("dims") );}
+	
+	using MultiOffsetVector = MultiVector<OffsetType,DiscreteType>;
+	using ConstOffsetRange = typename MultiOffsetVector::ConstRangeType;
+	virtual ConstOffsetRange ReversedOffsets(FullIndexCRef full) const {
+		return reversedOffsets[full.linear];}
 protected:
 	friend struct HamiltonFastMarching<Traits>;
 	virtual ScalarType HopfLaxUpdate(FullIndexCRef, OffsetCRef, ScalarType, ActiveNeighFlagType &) = 0;
@@ -182,11 +190,7 @@ protected:
 	virtual void Initialize(const HFM * _pFM){pFM = _pFM;} // Prepare for fast marching
 	
 	const HFM* pFM;
-	using MultiOffsetVector = MultiVector<OffsetType,DiscreteType>;
-	using ConstOffsetRange = typename MultiOffsetVector::ConstRangeType;
 	MultiOffsetVector reversedOffsets;
-	virtual ConstOffsetRange ReversedOffsets(FullIndexCRef full) const {
-		return reversedOffsets[full.linear];}
 	
 };
 

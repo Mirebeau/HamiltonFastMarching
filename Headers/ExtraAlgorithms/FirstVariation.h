@@ -27,7 +27,8 @@ HamiltonFastMarching<T>::ExtraAlgorithmInterface {
     std::vector<std::pair<IndexType,ScalarType> >
     BackwardVariation(const std::vector<std::pair<IndexType,ScalarType> > &, Array<MultType, Dimension> &) const;
     void ForwardVariation(const Array<MultType, Dimension+1> &, Array<ScalarType, Dimension+1> &) const;
-    
+	
+	virtual void Setup(HFMI*) override;
     virtual void Finally(HFMI*) override;
     virtual bool ImplementIn(HFM*_pFM) override {pFM=_pFM; return true;}
 protected:
@@ -46,6 +47,14 @@ protected:
     
 //    template<bool b=HFM::hasMultiplier, typename Dummy=void> struct MultArrayIO;
 };
+
+// --------- Setup ---------
+template<typename T> void FirstVariation<T>::Setup(HFMI*that){
+	const int spreadSeeds = (int) that->io.template Get<ScalarType>("spreadSeeds",0.);
+	if(spreadSeeds>0)
+		ExceptionMacro("First variation error : spread seeds are not supported.");
+}
+
 
 // --------- Export -------
 

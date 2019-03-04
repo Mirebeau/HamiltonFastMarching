@@ -34,8 +34,8 @@ Neighbors(const PointType & p, bool requireTrivial) const -> NeighborsType {
 		if(transform.IsTrivial() || (transform.IsTrivial() && !requireTrivial) ) {wSum+=w;}
 		else {w=0.;}
 	}
-	if(wSum>0)
-		for(auto & [q,w] : result){w/=wSum;}
+	if(wSum==0)
+		ExceptionMacro("Error : point " << p << " has no valid neighbors in the grid domain");
 	return result;
 }
 

@@ -11,16 +11,6 @@ template<typename Traits> void
 HamiltonFastMarching<Traits>::FlowDataType::PrintSelf(std::ostream & os) const {
     os << "{" << flow << "," << value << "," << width << "}";
 }
-/*
-template<typename Traits> void
-HamiltonFastMarching<Traits>::StencilType::PrintSelf(std::ostream & os) const {
-    os << "{";
-    if(Traits::nForward) os ExportArrayArrow(forward);
-    if(Traits::nSymmetric) os ExportArrayArrow(symmetric);
-    if(Traits::nMaxForward) os ExportArrayRecursiveArrow(maxForward, 1);
-    if(Traits::nMaxSymmetric) os ExportArrayRecursiveArrow(maxSymmetric, 1);
-    os << "}";
-}*/
 
 // --------- Construction -------
 
@@ -253,55 +243,15 @@ const -> RecomputeType {
 				 );
 			}
 			ord=2;
-/*			std::cout
-			ExportVarArrow(acceptedValue)
-			ExportVarArrow(acceptedValue2)
-			ExportVarArrow(useFactoring)
-			ExportVarArrow(dynamicFactoring->Correction(offset,2))
-			ExportVarArrow(dynamicFactoring->Correction(offset,1))
-			<< std::endl;*/
 			return (2./3.)*
 			(2.*acceptedValue-0.5*acceptedValue2
 			 +factoring.Correction(offset,2)
 			 );
 		}
-		/*
-        const bool trySnd = order>=2 && ord==2;
-        while(false && true){
-            if(!trySnd) break;
-            OffsetType offset2 = offset;
-            transform.PullVector(offset2);
-            IndexType acceptedIndex2;
-            if(!VisibleOffset(acceptedIndex, offset2, acceptedIndex2).IsValid()) break;
-            const DiscreteType acceptedLinearIndex2 = values.Convert(acceptedIndex2);
-            if(!acceptedFlags[acceptedLinearIndex2]) break;
-            const ScalarType acceptedValue2 = values(acceptedIndex2);
-            if(acceptedValue2>acceptedValue) break;
-            ord=2;
-            return (4./3.)*acceptedValue - (1./3.)*acceptedValue2
-            + dynamicFactoring->Correction(offset,true);
-        }*/
         ord=1;
 		return acceptedValue
 		+factoring.Correction(offset,1);
     };
-    
-    
-/*    if(updatedIndex==IndexType{14,12}){
-        discreteFlow.clear();
-        const RecomputeType rec2 = stencilData.HopfLaxRecompute(GetValueCorr,updatedIndex,active,discreteFlow);
-        int snd0 = 0;
-        std::cout << "Recomputing "
-        ExportVarArrow(updatedIndex)
-        ExportVarArrow(GetValue(OffsetType{-1,0},snd0))
-//        ExportVarArrow(GetValue(OffsetType{0,-1},snd0))
-        ExportVarArrow(GetValueCorr(OffsetType{-1,0},snd0))
-//        ExportVarArrow(GetValueCorr(OffsetType{0,-1},snd0))
-        ExportVarArrow(rec.value)
-        ExportVarArrow(rec2.value)
-        << "\n";
-        
-    }*/
     
     discreteFlow.clear();
     return stencilData.HopfLaxRecompute(GetValueCorr,updatedIndex,active,discreteFlow);
