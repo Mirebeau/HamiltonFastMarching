@@ -53,27 +53,51 @@ Lagrangian2Stencil<TO,TS,TD>::PrintSelf(std::ostream & os) const {
     os << "}";
 }
 
-// -----
-
-// TODO : use two vectors instead of a forward list ?
-template<typename TPred, typename TVec>
-void SternBrocotRefine(const TPred & stop, std::forward_list<TVec> & l){
-    typedef TVec VectorType;
-    assert(!l.empty());
-    int size = 8; // There is no l.size(), but this is a typical upper bound.
-    auto it0 = l.begin(), it1=it0; ++it1;
-    for(; it1!=l.end(); ){
-        const VectorType & u=*it0, & v=*it1;
-        if(stop(u,v)){
-            ++it0;
-            ++it1;
-        } else {
-            it1 = l.insert_after(it0,u+v);
-            ++size;
-            if(size>=127){ExceptionMacro("Stern-Brocot refine error : excessive stencil size. "
-                                         "Metric is either non-definite or too anisotropic.");}
-        }            
-    }
+// Refines the orig stencil, according to the stop predicate, and stores the result in refined
+// (with order reversed).
+template<typename Predicate, typename VectorType>
+void SternBrocotRefine(const Predicate & stop,
+					   std::vector<VectorType> & refined, std::vector<VectorType> & orig){
+	assert(!orig.empty());
+	refined.push_back(orig.front());
+	int size=orig.size();
+	while(!orig.empty()){
+		const VectorType & u = refined.back(), & v = orig.back();
+		if(stop(u,v)){
+			refined.push_back(v);
+			orig.pop_back();
+		} else {
+			orig.push_back(u+v);
+			++size;
+			if(size>=127){ExceptionMacro("Stern-Brocot refine error : excessive stencil size. "
+										 "Metric is either non-definite or too anisotropic.");}
+		}
+	}
+	refined.pop_back();
 }
 
+
+// -----
+/*
+ // Alternative version usig a forward list, slightly less efficient.
+ template<typename TPred, typename TVec>
+ void SternBrocotRefine(const TPred & stop, std::forward_list<TVec> & l){
+ typedef TVec VectorType;
+ assert(!l.empty());
+ int size = 8; // There is no l.size(), but this is a typical upper bound.
+ auto it0 = l.begin(), it1=it0; ++it1;
+ for(; it1!=l.end(); ){
+ const VectorType & u=*it0, & v=*it1;
+ if(stop(u,v)){
+ ++it0;
+ ++it1;
+ } else {
+ it1 = l.insert_after(it0,u+v);
+ ++size;
+ if(size>=127){ExceptionMacro("Stern-Brocot refine error : excessive stencil size. "
+ "Metric is either non-definite or too anisotropic.");}
+ }
+ }
+ }
+ */
 #endif /* Lagrangian2Stencil_h */

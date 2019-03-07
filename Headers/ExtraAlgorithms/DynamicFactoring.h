@@ -44,7 +44,7 @@ struct Factoring {
     Redeclare1Constant(HFM,Dimension)
     template<typename E, size_t n> using Array = typename Traits::template Array<E,n>;
 	
-	bool NeedsRecompute(IndexCRef) const;
+	bool NeedsRecompute(IndexCRef);
 	bool SetIndexStatic(IndexCRef);
     bool SetIndexDynamic(IndexCRef,const DiscreteFlowType &);
     ScalarType Correction(const OffsetType &, int) const;

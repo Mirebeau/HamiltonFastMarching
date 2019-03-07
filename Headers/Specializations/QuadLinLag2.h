@@ -66,14 +66,14 @@ struct StencilQuadLinLag2 final
 	virtual const ParamInterface & Param() const override {return param;}
 	virtual void Setup(HFMI *) override;
 	virtual DistanceGuess GetGuess(const PointType &) const override;
+	
+	ScalarType cosAngleMin=0.5;
 private:
-	std::forward_list<OffsetType> l;
+	std::vector<OffsetType> tmp_stencil;
 	NormType GetNorm(IndexCRef index) const;
 	// Refinement near walls
 	ScalarType wallBoundaryAngularResolution = 0.2;
 	typename Traits::template Array<bool,Dimension> walls;
-	/*    typedef typename HFM::template DataSource<bool> BoolField;
-	 std::unique_ptr<BoolField> pWalls = nullptr;*/
 	const DomainType * pDom = nullptr;
 	bool OnWallBoundary(IndexCRef) const;
 	NormType Rescale(const MetricElementType &) const;
@@ -83,5 +83,5 @@ private:
 typedef StencilQuadLinLag2<TraitsRanderLag2> StencilRanderLag2;
 typedef StencilQuadLinLag2<TraitsAsymmetricQuadraticLag2> StencilAsymmetricQuadraticLag2;
 
-#include "QuadLinLag2.hxx"
+#include "Implementation/QuadLinLag2.hxx"
 #endif /* QuadLinLag2_h */

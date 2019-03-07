@@ -115,10 +115,16 @@ const -> ScalarType {
 
 
 template<typename T> bool Factoring<T>::
-NeedsRecompute(IndexCRef index) const {
-	if(method == FactoringMethod::None) return false;
-	assert(!factoringRegion.empty());
-	return factoringRegion(index);
+NeedsRecompute(IndexCRef index) {
+	switch(method){
+		case FactoringMethod::None: return false;
+			
+		case FactoringMethod::Dynamic: data_dynamic.guesses.clear();
+		case FactoringMethod::Static:
+		default:
+			assert(!factoringRegion.empty());
+			return factoringRegion(index);
+	}
 }
 
 template<typename T> bool Factoring<T>::
@@ -180,13 +186,13 @@ MakeFactor(FullIndexCRef updated, const DiscreteFlowType & flow){
     
     data.currentNeighbors.clear();
     data.currentNeighbors2.clear();
-    
-    
+	
     const ScalarType wSum = std::accumulate(flow.begin(), flow.end(), 0.,
          [](ScalarType a, const DiscreteFlowElement & b)->ScalarType{return a+b.weight;});
     assert(wSum>0);
     
-    for(const auto & [offset,weight] : flow){
+    for(const auto & [offset,w] : flow){
+		const ScalarType weight = w/wSum;
         IndexType neigh = updated.index+IndexDiff::CastCoordinates(offset);
         assert(pFM!=nullptr);
         const auto transform = pFM->dom.Periodize(neigh,updated.index);
@@ -207,11 +213,9 @@ MakeFactor(FullIndexCRef updated, const DiscreteFlowType & flow){
         }
     }
     
-#ifdef Debug
-    const ScalarType weightSum = std::accumulate(currentNeighbors.begin(),currentNeighbors.end(),0.,[](ScalarType a, const std::pair<OffsetType,ScalarType> & b) -> ScalarType {return a+b.second;});
-    assert(weightSum<1.001);
-#endif
-    
+	assert(1.001 > std::accumulate(data.currentNeighbors.begin(),data.currentNeighbors.end(),0.,
+								   [](ScalarType a, const std::pair<OffsetType,ScalarType> & b) -> ScalarType {return a+b.second;}) );
+	
     // Merge duplicates and insert
     std::sort(data.currentNeighbors.begin(),data.currentNeighbors.end());
     for(const auto & [offset,weight] : data.currentNeighbors){
@@ -295,6 +299,7 @@ Setup(HFMI * that){
 	if(method==FactoringMethod::None) {return false;}
 	
 	// Get the factoring point choice
+	if(pFM->order==3) pointChoice=FactoringPointChoice::Both; // Appropriate default for third order
 	pointChoice = enumFromString<FactoringPointChoice>
 	(io.GetString("factoringPointChoice",enumToRealString(pointChoice)));
 	if(0>(int)pointChoice){
@@ -313,9 +318,9 @@ Setup(HFMI * that){
 
 	SetupCenters(that);
 	SetupRegion(that);
-	
+
 	// Export some requested data
-	if(io.template Get<ScalarType>("exportFactoringCenters",0.,2)){
+	if(io.template Get<ScalarType>("exportFactoringCenters",0.,2)!=0){
 		const auto & param = that->pFM->stencilData.Param();
 		std::vector<PointType> pts;
 		for(const auto & [p,d] : factoringCenters) {
@@ -326,6 +331,8 @@ Setup(HFMI * that){
 	if(io.template Get<ScalarType>("exportFactoringRegion",0.,2)!=0){
 		io.SetArray("factoringRegion",factoringRegion.template Cast<ScalarType>());}
 
+	
+	
     return true;
 }
 
@@ -375,12 +382,12 @@ SetupRegion(HFMI*that){
 		queue.push({0.,arr.Convert(dom.IndexFromPoint(p))});}
 	
 	while(!queue.empty()){
-		const auto [value,current] = queue.top();
+		const auto [minusValue,current] = queue.top();
 		queue.pop();
 		if(factoringRegion[current]) continue;
 		factoringRegion[current]=true;
 		for(const auto & [offset,cost] : edges){
-			const ScalarType neighVal = value+cost;
+			const ScalarType neighVal = -minusValue+cost;
 			if(neighVal>factoringRadius) continue;
 			const IndexType index = arr.Convert(current);
 			IndexType neigh = index+IndexDiff::CastCoordinates(offset);

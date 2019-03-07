@@ -91,16 +91,14 @@ auto StencilSeismic2::HopfLaxRecompute(IndexCRef index, DiscreteFlowType & flow)
 
 void StencilSeismic2::SetNeighbors(IndexCRef index, std::vector<OffsetType> & stencil){
 	const NormType & norm = GetNorm(index);
-	l.clear();
-	l.insert_after(l.before_begin(),{OffsetType(1,0),OffsetType(0,1),OffsetType(-1,0),OffsetType(0,-1),OffsetType(1,0)});
+	assert(tmp_stencil.empty());
+	tmp_stencil.insert(tmp_stencil.end(),{OffsetType(1,0),OffsetType(0,-1),OffsetType(-1,0),OffsetType(0,1)});
 	
-	SternBrocotRefine([&norm,this](OffsetCRef u, OffsetCRef v) -> bool {
-		return norm.CosAngle(VectorType::CastCoordinates(u), VectorType::CastCoordinates(v)) >= this->cosAngleMin;}, l);
-
-/*	std::cout << index << std::endl;
-	for(auto & v : l) std::cout << VectorType::CastCoordinates(v); std::cout << std::endl;*/
-	stencil.insert(stencil.end(),l.begin(),l.end());
-	stencil.pop_back();
+	auto pred = [&norm,this](OffsetCRef u, OffsetCRef v) -> bool {
+		return CosAngle(norm,VectorType::CastCoordinates(u),
+						VectorType::CastCoordinates(v)) >= this->cosAngleMin;};
+	
+	SternBrocotRefine(pred, stencil, tmp_stencil);
 }
 
 void StencilSeismic2::Setup(HFMI * that){

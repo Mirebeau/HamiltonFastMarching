@@ -12,6 +12,11 @@ HamiltonFastMarching<Traits>::FlowDataType::PrintSelf(std::ostream & os) const {
     os << "{" << flow << "," << value << "," << width << "}";
 }
 
+template<typename Traits> void
+HamiltonFastMarching<Traits>::FullIndexType::PrintSelf(std::ostream & os) const {
+	os << "{" << index << "," << linear << "}";
+}
+
 // --------- Construction -------
 
 template<typename T> HamiltonFastMarching<T>::
@@ -128,6 +133,7 @@ HamiltonFastMarching<T>::ConditionalUpdate(IndexCRef acceptedIndex,
                                            ScalarType acceptedValue){
     FullIndexType updated;
     const auto transform = VisibleOffset(acceptedIndex,-offset, updated.index);
+	
     if(!transform.IsValid()) return;
     transform.PullVector(offset);    
     updated.linear = values.Convert(updated.index);
@@ -136,8 +142,8 @@ HamiltonFastMarching<T>::ConditionalUpdate(IndexCRef acceptedIndex,
     // Next line forbids updating of seeds or given data.
     // Can be specialized to allow e.g. for sequential computation of Voronoi diagrams.
     if(activeNeighs[updated.linear].none() && values[updated.linear]!=Traits::Infinity()) return;
-    
     if(values[updated.linear]<=acceptedValue) return;
+	
     Update(updated, offset, acceptedValue); // also pushes in queue
 }
 
@@ -149,7 +155,7 @@ Update(FullIndexCRef updated, OffsetCRef offset, ScalarType acceptedValue){
 /*    // Alternatively, only insert in queue if value is strictly decreased.
     ScalarType & val = values[updatedLinearIndex];
     if(result.first>=val) return;*/
-    
+	
     const ScalarType updatedValue =
     stencilData.HopfLaxUpdate(updated,offset,acceptedValue,active);
     values[updated.linear] = updatedValue;
@@ -182,7 +188,7 @@ const -> RecomputeType {
     const ActiveNeighFlagType active = activeNeighs[updatedLinearIndex];
     if(active.none()) return {values[updatedLinearIndex],0.}; // Handled below
 	
-	// First order scheme, without factorisation.
+	// First order scheme, without factorisation, used for dynamic factoring pre-process.
 	auto GetValue1 = [this,&updatedIndex](OffsetType offset, int & ord) -> ScalarType {
 		IndexType acceptedIndex = updatedIndex+IndexDiff::CastCoordinates(offset);
 		const auto transform = dom.Periodize(acceptedIndex,updatedIndex);
@@ -194,18 +200,24 @@ const -> RecomputeType {
 	
 	switch(factoring.method){
 		case FactoringMethod::Static: factoring.SetIndexStatic(updatedIndex); break;
-		case FactoringMethod::Dynamic: {
+		case FactoringMethod::Dynamic:
+		if(factoring.NeedsRecompute(updatedIndex)) {
 			stencilData.HopfLaxRecompute(GetValue1,updatedIndex,active,discreteFlow);
 			factoring.SetIndexDynamic(updatedIndex,discreteFlow);
+			discreteFlow.clear();
 			break;
 		}
-		default: break; // No factoring method
+		case FactoringMethod::None:
+		default: break;
 	}
+	
+	// Used in criteria for ditching the high order scheme
+	const ScalarType oldValue = values[updatedLinearIndex];
     
-    auto GetValueCorr = [this,&updatedIndex]
+    auto GetValueCorr = [this,&updatedIndex,&oldValue]
 	(OffsetType offset, int & ord) -> ScalarType {
         //order code : 0 -> invalid, else requested/used order
-        
+		
         IndexType acceptedIndex = updatedIndex+IndexDiff::CastCoordinates(offset);
         const auto transform = dom.Periodize(acceptedIndex,updatedIndex);
         if(!transform.IsValid()) {ord=0; return -Traits::Infinity();}
@@ -221,8 +233,15 @@ const -> RecomputeType {
 			const DiscreteType acceptedLinearIndex2 = values.Convert(acceptedIndex2);
 			if(!acceptedFlags[acceptedLinearIndex2]) break;
 			const ScalarType acceptedValue2 = values(acceptedIndex2);
+			// Ditch if non-causal. Implied by next test, if maxRatioOrder2 <=1
 			if(acceptedValue2>acceptedValue) break;
-			// TODO: ditch if second order correction is larger than first order
+			
+			// Estimate only reasonable if the scheme is strictly causal
+			const ScalarType offsetNormApprox = oldValue-acceptedValue;
+			if(strictlyCausal){ // Ditch if not a sufficiently small correction
+				const ScalarType diff2 = oldValue-2*acceptedValue+acceptedValue2;
+				if(std::abs(diff2) > maxRatioOrder2*offsetNormApprox) break;
+			}
 			
 			while(ord>=3){ // Single iteration
 				OffsetType offset3 = offset2;
@@ -234,18 +253,13 @@ const -> RecomputeType {
 				const DiscreteType acceptedLinearIndex3 = values.Convert(acceptedIndex3);
 				if(!acceptedFlags[acceptedLinearIndex3]) break;
 				const ScalarType acceptedValue3 = values(acceptedIndex3);
+				//Ditch if non-causal
 				if(acceptedValue3>acceptedValue2) break;
-				// TODO: ditch if third order correction is larger than second order
 				
-/*				std::cout << "Recompute "
-				ExportVarArrow(updatedIndex)
-				ExportVarArrow(acceptedValue)
-				ExportVarArrow(acceptedValue2)
-				ExportVarArrow(acceptedValue3)
-				ExportVarArrow(acceptedIndex)
-				ExportVarArrow(acceptedIndex2)
-				ExportVarArrow(acceptedIndex3)
-				<< std::endl;*/
+				if(strictlyCausal){// Ditch if not a sufficiently small correction
+					const ScalarType diff3 = oldValue-3*acceptedValue+3*acceptedValue2-acceptedValue3;
+					if(std::abs(diff3) > maxRatioOrder3*offsetNormApprox) break;
+				}
 				
 				ord=3;
 				return (6./11.)*
@@ -264,9 +278,101 @@ const -> RecomputeType {
 		+factoring.Correction(offset,1);
     };
     
-    discreteFlow.clear();
+	assert(discreteFlow.empty());
     return stencilData.HopfLaxRecompute(GetValueCorr,updatedIndex,active,discreteFlow);
     
+}
+
+// ------- Getting values around a point ------
+
+template<typename Traits> template<bool useFactoring, bool smallCorrection>
+void HamiltonFastMarching<Traits>::SetIndex(IndexCRef index) const {
+
+	auto & tmp = getNeighborValue_tmp;
+	tmp.index = index;
+
+	if(smallCorrection){
+		tmp.value = values(index);
+	}
+	
+	if(useFactoring){
+		switch (factoring.method) {
+			case FactoringMethod::None:break;
+			case FactoringMethod::Static:factoring.SetIndexStatic(index); break;
+			case FactoringMethod::Dynamic:
+			default:
+				assert(false);				
+		}
+	}
+}
+
+template<typename Traits> template<bool useFactoring, bool smallCorrection, int maxOrder>
+auto HamiltonFastMarching<Traits>::
+GetNeighborValue(OffsetType offset,int& ord)
+const -> ScalarType {
+	//order code : 0 -> invalid, else requested/used order
+	assert(ord<=maxOrder);
+	
+	const auto & index = getNeighborValue_tmp.index;
+	const auto & oldValue = getNeighborValue_tmp.value;
+	
+	IndexType acceptedIndex = index+IndexDiff::CastCoordinates(offset);
+	const auto transform = dom.Periodize(acceptedIndex,index);
+	if(!transform.IsValid()) {ord=0; return -Traits::Infinity();}
+	const ScalarType acceptedValue = values(acceptedIndex);
+	
+	ord=std::min(order,ord);
+	while(maxOrder>=2 && ord>=2){ // Single iteration
+		OffsetType offset2 = offset;
+		transform.PullVector(offset2);
+		IndexType acceptedIndex2;
+		const auto transform2 = VisibleOffset(acceptedIndex, offset2, acceptedIndex2);
+		if(!transform2.IsValid()) break;
+		const DiscreteType acceptedLinearIndex2 = values.Convert(acceptedIndex2);
+		if(!acceptedFlags[acceptedLinearIndex2]) break;
+		const ScalarType acceptedValue2 = values(acceptedIndex2);
+		// Ditch if non-causal. (Implied by next test, smallCorrection, if maxRatioOrder2 <=1)
+		if(acceptedValue2>acceptedValue) break;
+		
+		// The estimate below is only reasonable if the scheme is strictly causal
+		const ScalarType offsetNormApprox = oldValue-acceptedValue;
+		if(smallCorrection){ // Ditch if not a sufficiently small correction
+			const ScalarType diff2 = oldValue-2*acceptedValue+acceptedValue2;
+			if(std::abs(diff2) > maxRatioOrder2*offsetNormApprox) break;
+		}
+		
+		while(maxOrder>=3 && ord>=3){ // Single iteration
+			OffsetType offset3 = offset2;
+			transform2.PullVector(offset3);
+			IndexType acceptedIndex3;
+			const auto transform3 =
+			VisibleOffset(acceptedIndex2, offset3, acceptedIndex3);
+			if(!transform3.IsValid()) break;
+			const DiscreteType acceptedLinearIndex3 = values.Convert(acceptedIndex3);
+			if(!acceptedFlags[acceptedLinearIndex3]) break;
+			const ScalarType acceptedValue3 = values(acceptedIndex3);
+			//Ditch if non-causal
+			if(acceptedValue3>acceptedValue2) break;
+			
+			if(smallCorrection){// Ditch if not a sufficiently small correction
+				const ScalarType diff3 = oldValue-3*acceptedValue+3*acceptedValue2-acceptedValue3;
+				if(std::abs(diff3) > maxRatioOrder3*offsetNormApprox) break;
+			}
+			
+			ord=3;
+			ScalarType result = 3.*acceptedValue -1.5*acceptedValue2 +(1./3.)*acceptedValue3;
+			if(useFactoring) {result+= factoring.Correction(offset,3);}
+			return (6./11.)* result;
+		}
+		ord=2;
+		ScalarType result = 2.*acceptedValue -0.5*acceptedValue2;
+		if(useFactoring) {result+= factoring.Correction(offset,2);}
+		return (2./3.)*result;
+	}
+	ord=1;
+	ScalarType result = acceptedValue;
+	if(useFactoring) result+=factoring.Correction(offset,1);
+	return result;
 }
 
 template<typename Traits> auto HamiltonFastMarching<Traits>::

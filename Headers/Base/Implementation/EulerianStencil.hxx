@@ -172,7 +172,6 @@ HopfLaxRecompute(const F & getVal, const MultiplierType & mult,
         int ord = 3;
         const ScalarType val = getVal(offset,ord);
         assert(ord>=1);
-		// TODO : Third order
         orderNeigh[discreteFlow.size()] = ord;
         discreteFlow.push_back({offset,val});
     };

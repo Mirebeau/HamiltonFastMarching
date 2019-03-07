@@ -86,51 +86,91 @@ Initialize(const HFM * _pFM){
 // HofLaxUpdate
 template<typename Traits> template<typename Dummy> auto
 HamiltonFastMarching<Traits>::_StencilDataType<SSP::Lag2, Dummy>::
-HopfLaxUpdate(FullIndexCRef full, OffsetCRef acceptedOffset, ScalarType acceptedValue, ActiveNeighFlagType & active) -> ScalarType {
+HopfLaxUpdate(FullIndexCRef full, OffsetCRef acceptedOffset,
+			  ScalarType __acceptedValue__, ActiveNeighFlagType & active) -> ScalarType {
 	const IndexType updatedIndex = full.index;
 	
-	// Get the sector
+	// Get the stencil
 	StencilType stencil;
 	SetStencil(updatedIndex, stencil);
-	int i = 0;
-	for(;stencil.Sector(i,0)!=acceptedOffset; ++i){ // Find the relevant sector
-		assert(i<stencil.NSectors());}
 	
-	OffsetVal3 offsetVal;
-	std::array<ShortType, 3> act;
-	act[0] = i;
-	offsetVal.push_back({acceptedOffset,acceptedValue});
-	
-	const auto & fm = *this->pFM;
-	
-	while(true){
-		const OffsetType offset = stencil.Sector(i,1);
-		IndexType neigh = updatedIndex+IndexDiff::CastCoordinates(offset);
-		if(fm.dom.Periodize(neigh,updatedIndex).IsValid()) break;
-		if(fm.acceptedFlags(neigh)) break;
-		act[1] = i;
-		offsetVal.push_back({offset,fm.values(neigh)});
-		break;
+	// Get the relevant sectors
+	std::array<int,2> sectors;
+	{
+		int i = 0;
+		for(;stencil.Sector(i,0)!=acceptedOffset; ++i){
+			assert(i<stencil.NSectors());}
+		sectors[0] = i;
+		sectors[1] = i==0 ? stencil.NSectors()-1 : i-1;
 	}
 	
-	while(true){
-		const int j = (i==0 ? stencil.NSectors()-1 : i-1);
-		const OffsetType offset = stencil.Sector(j,0);
-		IndexType neigh = updatedIndex+IndexDiff::CastCoordinates(offset);
-		if(fm.dom.Periodize(neigh,updatedIndex).IsValid()) break;
-		if(fm.acceptedFlags(neigh)) break;
-		act[offsetVal.size()] = j;
-		offsetVal.push_back({offset,fm.values(neigh)});
-		break;
+	// Get the relevant offsets, in addition to acceptedOffset
+	const std::array<OffsetType,2> neighOffsets {
+		stencil.Sector(sectors[0],1),
+		stencil.Sector(sectors[1],0)
+	};
+	
+	// A failed experiment. TODO : remove ?
+	const bool useSecondOrderOnFirstPass = false;
+	if(useSecondOrderOnFirstPass){ // -----------------------
+		auto & fm = *(this->pFM);
+		fm.template SetIndex<true,true>(updatedIndex); // useFactoring, smallCorrection
+		int order=2;
+		// Corrected value (with second order and factoring), hides function parameter
+		const ScalarType acceptedValue =
+		fm.template GetNeighborValue<true,true,2>(acceptedOffset,order);
+		assert(order>=1);
+		
+		ScalarType oldValue = fm.values[full.linear];
+		
+		for(int i=0; i<2; ++i){
+			int ord = order;
+			const ScalarType neighVal =
+			fm.template GetNeighborValue<true,true,2>(neighOffsets[i],ord);
+			if(ord==0) continue;
+			const ScalarType acceptedVal =
+			ord==order ? acceptedValue :
+			fm.template GetNeighborValue<true,true,1>(acceptedOffset,ord);
+			OffsetVal3 offsetVal{ {acceptedOffset,acceptedVal}, {neighOffsets[i], neighVal} };
+			
+			const auto [newValue,newActive] = HopfLaxUpdate(updatedIndex,offsetVal);
+			if(newValue<oldValue){
+				oldValue = newValue;
+				active.sectorIndex = sectors[i];
+			}
+		}
+		return oldValue;
+		
+	} else { // ------- do not use second order on first pass... -----------
+		auto & fm = *(this->pFM);
+		fm.template SetIndex<true,false>(updatedIndex); // useFactoring, smallCorrection
+		int order=1;
+
+		// Get accepted value, with factoring correction
+		OffsetVal3 offsetVal;
+		offsetVal.push_back({acceptedOffset,
+			fm.template GetNeighborValue<true,false,1>(acceptedOffset,order)});
+		assert(order==1);
+		
+		std::array<ShortType, 3> act;
+		act[0] = sectors[0];
+		
+		// Get neighbor values
+		for(int i=0; i<2; ++i){
+			int ord=order;
+			const ScalarType neighVal =
+			fm.template GetNeighborValue<true,false,1>(neighOffsets[i],ord);
+			if(ord==1){
+				act[offsetVal.size()]=sectors[i];
+				offsetVal.push_back({neighOffsets[i],neighVal});
+			}
+		}
+		const auto [newValue,newActive] = HopfLaxUpdate(updatedIndex,offsetVal);
+		const ScalarType oldValue = fm.values[full.linear];
+		if(newValue>=oldValue) return oldValue;
+		active.sectorIndex = act[newActive];
+		return newValue;
 	}
-	
-	const auto [newValue,newActive] = HopfLaxUpdate(updatedIndex,offsetVal);
-	const ScalarType oldValue = fm.values[full.linear];
-	
-	if(newValue>=oldValue) return oldValue;
-	
-	active.sectorIndex = act[newActive];
-	return newValue;
 }
 
 // HopfLaxRecompute

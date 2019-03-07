@@ -21,6 +21,8 @@
 #include "JMM_CPPLibs/Macros/TemplateLog2.h"
 /*
 // Note : walls must not be taken into account at initialization with mult based.
+ 
+ Failsafe mechanism enableMaxRatioOrder, for high order schemes, requires an estimate of the offset primal norm. For now, we use a rough estimate, requiring the strict causality of the scheme.
  */
 
 template<typename T> struct HFMInterface;
@@ -39,7 +41,7 @@ struct HamiltonFastMarching {
 	
     typedef const IndexType & IndexCRef;
     typedef const OffsetType & OffsetCRef;
-    struct FullIndexType {IndexType index; DiscreteType linear;};
+    struct FullIndexType {IndexType index; DiscreteType linear; PrintSelfMacro(FullIndexType)};
     typedef const FullIndexType & FullIndexCRef;
     typedef HamiltonFastMarching HFM;
     typedef HFMInterface<Traits> HFMI;
@@ -55,9 +57,13 @@ struct HamiltonFastMarching {
 
     std::map<IndexType,ScalarType,typename IndexType::LexicographicCompare> seeds;
     void Run();
+	Array<ScalarType,Dimension> values;
+
+	// High order scheme extension.
 	int order = 1;
-    Array<ScalarType,Dimension> values;
-    
+	static const bool strictlyCausal = DifferenceType::multSize<0; // A.k.a. semi-Lagrangian.
+	ScalarType maxRatioOrder2 = 0.5, maxRatioOrder3 = 0.25; // Fallback to low order. Req above
+	
     // Geodesic related functions. Require values and activeNeighs to be correctly set,
     // either by running the algorithm or restoring them from a previous run
     struct GeodesicSolverInterface;
@@ -102,20 +108,33 @@ struct HamiltonFastMarching {
 	mutable FactoringType factoring;
     
     HamiltonFastMarching(StencilDataType &);
+	
+	// Access to values around a point
+	template<bool useFactoring, bool smallCorrection>
+	void SetIndex(IndexCRef) const;
+	template<bool useFactoring, bool smallCorrection, int maxOrder>
+	ScalarType GetNeighborValue(OffsetType,int&) const;
 protected:
     struct QueueElement;
     std::priority_queue<QueueElement> queue;
     
     void RunInit();
     bool RunOnce(); // returns true if should stop
-    
-    int PostProcess(IndexCRef); // returns a combination of decitions. Priority: kTerminate > kContinue > kAccept
+	
+	// returns a combination of decisions. Priority: kTerminate > kContinue > kAccept
+    int PostProcess(IndexCRef);
     int PostProcessWithRecompute(IndexCRef, const RecomputeType &, const DiscreteFlowType &);
     
     Array<bool,Dimension> acceptedFlags;
     void ConditionalUpdate(IndexCRef,OffsetType,ScalarType);
     void Update(FullIndexCRef, OffsetCRef, ScalarType);
     friend struct _StencilDataType<policy, void>;
+	
+private:
+	struct {
+		IndexType index;
+		ScalarType value;
+	} mutable getNeighborValue_tmp;
 };
 
 // ------- Some sub-structures of interest -------

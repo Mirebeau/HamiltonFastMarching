@@ -9,6 +9,7 @@ set(Base_Implementation_Headers ${Base_Implementation_Headers} PARENT_SCOPE)
 
 add_subdirectory(Specializations)
 set(Specializations_Headers ${Specializations_Headers} PARENT_SCOPE)
+set(Specializations_Implementation_Headers ${Specializations_Implementation_Headers} PARENT_SCOPE)
 
 add_subdirectory(ExtraAlgorithms)
 set(ExtraAlgorithms_Headers ${ExtraAlgorithms_Headers} PARENT_SCOPE)

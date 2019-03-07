@@ -14,6 +14,7 @@ Setup(HFMI * that){
 	Superclass::Setup(that); param.Setup(that);
 	pMetric = that->template GetField<MetricElementType>("metric",false);
 	auto & io = that->io;
+	cosAngleMin = io.template Get<ScalarType>("cosAngleMin",cosAngleMin);
 	if(io.template Get<ScalarType>("refineStencilAtWallBoundary",0.) && io.HasField("walls")){
 		wallBoundaryAngularResolution = io.template Get<ScalarType>("wallBoundaryAngularResolution",wallBoundaryAngularResolution,2);
 		const DomainType & dom = that->pFM->dom;
@@ -49,25 +50,28 @@ const -> NormType {
 template<typename T> void StencilQuadLinLag2<T>::
 SetNeighbors(IndexCRef index, std::vector<OffsetType> & stencil) {
 	const NormType & norm = GetNorm(index);
-	l.clear();
-	l.insert_after(l.before_begin(),{OffsetType(1,0),OffsetType(0,1),OffsetType(-1,0),OffsetType(0,-1),OffsetType(1,0)});
-	
+	assert(tmp_stencil.empty());
+	tmp_stencil.insert(tmp_stencil.end(),{OffsetType(1,0),OffsetType(0,-1),OffsetType(-1,0),OffsetType(0,1)});
+
 	if(OnWallBoundary(index)){
-		SternBrocotRefine([&norm,this,&index](OffsetCRef u, OffsetCRef v) -> bool {
+		auto pred = [&norm,this,&index](OffsetCRef u, OffsetCRef v) -> bool {
 			const VectorType vu = VectorType::CastCoordinates(u), vv = VectorType::CastCoordinates(v);
 			IndexType pu = index + IndexDiff::CastCoordinates(u), pv = index + IndexDiff::CastCoordinates(v);
 			if(!this->pDom->Periodize(pu,index).IsValid() || !this->pDom->Periodize(pv,index).IsValid()) return true;
 			const bool wu = this->walls(pu), wv = this->walls(pv);
 			if(wu && wv) return true;
-			if(!wu && !wv) return norm.IsAcute(vu, vv);
+			if(!wu && !wv) return CosAngle(norm, vu, vv)>=this->cosAngleMin;
 			return square(LinearAlgebra::Determinant(vu,vv)/this->wallBoundaryAngularResolution) > vu.SquaredNorm()*vv.SquaredNorm();
-		},l);
+		};
+		
+		SternBrocotRefine(pred, stencil, tmp_stencil);
 	} else {
-		SternBrocotRefine([&norm](OffsetCRef u, OffsetCRef v) -> bool {
-			return norm.IsAcute(VectorType::CastCoordinates(u), VectorType::CastCoordinates(v));}, l);
+		auto pred = [&norm,this](OffsetCRef u, OffsetCRef v) -> bool {
+			return CosAngle(norm, VectorType::CastCoordinates(u),
+							VectorType::CastCoordinates(v))>=this->cosAngleMin;};
+		
+		SternBrocotRefine(pred, stencil, tmp_stencil);
 	}
-	stencil.insert(stencil.end(),l.begin(),l.end());
-	stencil.pop_back();
 	
 	// TODO : add criterion for walls, etc.
 	// Add passthrough in WallObstruction test
@@ -174,7 +178,7 @@ HopfLaxRecompute(IndexCRef index, DiscreteFlowType & flow) -> RecomputeType {
 	const VectorType d{flow[0].weight,flow[1].weight}; // Values at the neighbors
 	VectorType g;
 	ScalarType value = HopfLaxMinimize(norm,d,g);
-	
+		
 	// If minimum is attained in the segment interior, then return.
 	if(value<Traits::Infinity()){
 		ScalarType width(0.);

@@ -50,11 +50,13 @@ protected:
 
 // --------- Setup ---------
 template<typename T> void FirstVariation<T>::Setup(HFMI*that){
-	const int spreadSeeds = (int) that->io.template Get<ScalarType>("spreadSeeds",0.);
-	if(spreadSeeds>0)
-		ExceptionMacro("First variation error : spread seeds are not supported.");
+	auto & io = that->io;
+	if(io.HasField("inspectSensitivity") || io.HasField("costVariation") || io.HasField("seedValueVariation")){
+		const int spreadSeeds = (int) that->io.template Get<ScalarType>("spreadSeeds",0.);
+		if(spreadSeeds>0)
+			WarnMsg() << "First variation error : spread seeds are not supported.";
+	}
 }
-
 
 // --------- Export -------
 
@@ -185,7 +187,7 @@ FirstVariation<T>::ValueVariationHelper<true,Dummy> {
         for(const auto & flowElem : flow){
             const ScalarType weight = flowElem.weight;
             IndexType neigh = index+IndexDiff::CastCoordinates(flowElem.offset);
-            const auto transform = pFM->dom.Periodize(neigh, index);
+            [[maybe_unused]] const auto transform = pFM->dom.Periodize(neigh, index);
             assert(transform.IsValid());
             neighbors.push_back({neigh,weight});
             valueDiff -= weight*pFM->values(neigh);

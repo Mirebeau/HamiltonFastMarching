@@ -34,14 +34,10 @@ auto StencilSeismic3::HopfLaxUpdate(IndexCRef index, const OffsetVals & offsetVa
 	
 	// Make accessors to other offsets data
 	const int nNeigh = offsetVal.size()-1;
-	auto offset = [nNeigh,&offsetVal](int i) -> VectorType {
-		assert(i<nNeigh);
-		return VectorType::CastCoordinates(offsetVal[i].first);
-	};
-	auto val = [nNeigh,&offsetVal](int i) -> ScalarType {
-		assert(i<nNeigh);
-		return offsetVal[i].second;
-	};
+	auto offset = [&offsetVal](int i) -> VectorType {
+		return VectorType::CastCoordinates(offsetVal[i].first);};
+	auto val = [&offsetVal](int i) -> ScalarType {
+		return offsetVal[i].second;};
 	
 	// Evaluate the operator
 	int sectorIndex = -1;
