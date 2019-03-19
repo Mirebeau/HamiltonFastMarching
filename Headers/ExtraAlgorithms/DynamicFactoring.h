@@ -91,6 +91,9 @@ protected:
 	void SetupRegion(HFMI*);
     std::vector<std::pair<IndexDiff,ScalarType> > edges;
     bool OnBoundary(IndexCRef,const DomainType &) const;
+	
+	
+	struct PoincareExact; mutable bool useExact=false;// DEBUG
 };
 
 template<typename T>

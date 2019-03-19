@@ -392,7 +392,8 @@ Run_SetupSolver() {
 						if(indices.insert(index).second){
 							const auto & distq = stencil.GetGuess(index);
 							newPoints.push_back(q);
-							newValues.push_back(value+ 0.5*( distp.Norm(q-p) + distq.Norm(q-p) ) );
+							const VectorType v = p-q; // Directed toward seed.
+							newValues.push_back(value+ 0.5*( distp.Norm(v) + distq.Norm(v) ) );
 						}
 						
 						if(spreadSeeds>=2){
@@ -405,8 +406,9 @@ Run_SetupSolver() {
 									const PointType neigh = dom.PointFromIndex(neighIndex);
 									
 									newPoints.push_back(neigh);
+									const VectorType v = p-neigh; // Toward seed.
 									newValues.push_back(value +
-										0.5*(distp.Norm(neigh-p)+distn.Norm(neigh-p)));
+										0.5*(distp.Norm(v)+distn.Norm(v)));
 								}
 							}
 							

@@ -21,6 +21,48 @@ ElementaryGuess::PrintSelf(std::ostream & os) const {
 
 template<typename T> auto Factoring<T>::
 Correction(const OffsetType & offset, int ord) const -> ScalarType {
+	
+	/*
+	// ----- Debug with exact value for Poincare Half disk test ---
+	// Scale is 0.1,
+	const PointType seed(0.,1.5);
+	auto Value = [&seed](const PointType & q){
+		const VectorType v = q-seed;
+		const VectorType w (q[0]-seed[0],q[1]+seed[1]);
+		return log( (w.Norm()+v.Norm()) / (w.Norm()-v.Norm()) );
+	};
+	auto Gradient = [&seed](const PointType & q){
+		const VectorType v = q-seed;
+		const VectorType w (q[0]-seed[0],q[1]+seed[1]);
+		const ScalarType wN = w.Norm(), vN = v.Norm();
+		const VectorType wU = w/wN, vU = v/vN;
+		return (wU+vU)/(wN+vN) - (wU-vU)/(wN-vN);
+	};
+	
+	const ScalarType h = 0.1;
+	const PointType  q = seed - h * data_static.base;
+	const VectorType o = h*VectorType::CastCoordinates(offset);
+	
+	
+	std::cout << "In correction "
+	ExportVarArrow(q)
+	ExportVarArrow(q+o)
+	ExportVarArrow(Value(q))
+	ExportVarArrow(Value(q+o))
+	ExportVarArrow(Gradient(q))
+	<< std::endl;
+	
+	
+	switch(ord){
+			//case 1: return deriv+(valueZero-Value(offset));
+		case 1: return Gradient(q).ScalarProduct(o) + (Value(q)-Value(q+o));
+		default:assert(false);
+	}
+	*/
+	
+	// ---------
+	
+	
 	auto Correct = [&](const ElementaryGuess & data){
 		switch(this->pointChoice){
 			case FactoringPointChoice::Current:
@@ -35,6 +77,24 @@ Correction(const OffsetType & offset, int ord) const -> ScalarType {
 	
 	if(method==FactoringMethod::Static && data_static.centerIndex != -1){
 		return Correct(data_static);
+
+		//DEBUG
+		useExact=false;
+		const ScalarType correction_inexact = Correct(data_static);
+		useExact=true;
+		const ScalarType correction_exact = Correct(data_static);
+		const ScalarType correction_rdiff = (correction_inexact-correction_exact)/correction_exact;
+		std::cout << "In correction "
+		ExportVarArrow(correction_inexact)
+		ExportVarArrow(correction_exact)
+		ExportVarArrow(correction_rdiff)
+		ExportVarArrow(data_static.base)
+		ExportVarArrow(offset)
+		ExportVarArrow(ord)
+		<< std::endl << std::endl;
+		return correction_exact;
+		
+		return Correct(data_static);
 	} else if(method==FactoringMethod::Dynamic && !data_dynamic.guesses.empty() ){
 		return std::accumulate(data_dynamic.guesses.begin(),data_dynamic.guesses.end(),0.,
 				[&](ScalarType a, const std::pair<ScalarType,ElementaryGuess> & b)->ScalarType{
@@ -42,15 +102,44 @@ Correction(const OffsetType & offset, int ord) const -> ScalarType {
 	} else {
 		return 0.;
 	}
-	
-	
 }
+
+// ---------------- DEBUG -----------------
+template<typename T>
+struct Factoring<T>::PoincareExact {
+	const PointType seed = PointType(0.,1.5);
+	const ScalarType h = 0.1;
+	ScalarType Value(const PointType & q) const {
+		const VectorType v = q-seed;
+		const VectorType w (q[0]-seed[0],q[1]+seed[1]);
+		return log( (w.Norm()+v.Norm()) / (w.Norm()-v.Norm()) );
+	};
+	VectorType Gradient(const PointType & q) const {
+		const VectorType v = q-seed;
+		const VectorType w (q[0]-seed[0],q[1]+seed[1]);
+		const ScalarType wN = w.Norm(), vN = v.Norm();
+		const VectorType wU = w/wN, vU = v/vN;
+		return h*((wU+vU)/(wN+vN) - (wU-vU)/(wN-vN));
+	};
+	PointType Pos(const VectorType &base) const {
+		return seed-h*base;
+	}
+};
+
 
 template<typename T> auto Factoring<T>::
 CorrectionCurrent(const OffsetType & offset,
 				  int order,
 				  const VectorType & base
 ) const -> ScalarType {
+/*	if(order>=2){
+	std::cout << "In Correction current"
+	ExportVarArrow(order)
+	ExportVarArrow(base)
+	ExportVarArrow(offset)
+	<< std::endl;
+	}*/
+	
 	assert(pointChoice==FactoringPointChoice::Current || pointChoice==FactoringPointChoice::Both);
 	const DistanceGuess & dist = this->currentGuess;
 	auto Value = [&base,&dist](const OffsetType & off) -> ScalarType {
@@ -61,18 +150,69 @@ CorrectionCurrent(const OffsetType & offset,
 	const ScalarType deriv = -
 	dist.Gradient(base).ScalarProduct(VectorType::CastCoordinates(offset));
 	
+	
+	if(useExact){// DEBUG
+		PoincareExact exact;
+		auto Value = [&](VectorType off){
+			return exact.Value(exact.Pos(base-off ));
+		};
+		const VectorType pulledOffset = VectorType::CastCoordinates(offset);
+		const ScalarType deriv = exact.Gradient(exact.Pos(base)).ScalarProduct(pulledOffset);
+		const ScalarType valueZero = Value(VectorType::Constant(0));
+		switch(order){
+			case 1: return deriv+ (valueZero - Value(pulledOffset));
+			case 2: return deriv+(1.5*valueZero - 2.*Value(pulledOffset) + 0.5*Value(2*pulledOffset));
+			case 3: return deriv
+				+ ((11./6.)*valueZero-3.*Value(pulledOffset)+1.5*Value(2*pulledOffset)-(1./3.)*Value(3*pulledOffset));
+				
+		}
+	} 	// End DEBUG
+	
+	
+	
 	switch(order){
 		case 1: return deriv+(valueZero-Value(offset));
 		case 2: return deriv+(1.5*valueZero - 2.*Value(offset) + 0.5*Value(2*offset));
 		case 3: {
+			return deriv
+			+ ((11./6.)*valueZero-3.*Value(offset)+1.5*Value(2*offset)-(1./3.)*Value(3*offset));
+			
+			// Below is old, erroneous implem
+			// According to further calculations, the spatial derivative of the metric should not be added, since we do not change the base point in the Value lambda function.
+			
+			
 			IndexType neigh = currentIndex+IndexDiff::CastCoordinates(offset);
 			const DomainTransformType transform = pFM->dom.Periodize(neigh, currentIndex);
 			assert(transform.IsValid());
 			VectorType pulledBase = base; transform.PullVector(pulledBase);
 			const DistanceGuess neighGuess = pFM->stencilData.GetGuess(neigh);
+			
+			// Testing with a second neighbor
+			IndexType neigh2 = currentIndex+2*IndexDiff::CastCoordinates(offset);
+			const DistanceGuess neighGuess2 = pFM->stencilData.GetGuess(neigh2);
+			
+			const ScalarType diff = neighGuess.Norm(pulledBase) - valueZero;
+			const ScalarType diff2 = (-0.5*neighGuess2.Norm(pulledBase)+2*neighGuess.Norm(pulledBase) - 1.5*valueZero);
+			std::cout << "In Correction current - 3 : "
+			ExportVarArrow(base)
+			ExportVarArrow(offset)
+			ExportVarArrow(deriv)
+			ExportVarArrow(diff)
+			ExportVarArrow(diff2)
+			<< std::endl
+			ExportVarArrow(dist)
+			ExportVarArrow(neighGuess)
+			ExportVarArrow(neighGuess2)
+			<< std::endl;
+			
+			
 			return deriv
 			+ ((11./6.)*valueZero-3.*Value(offset)+1.5*Value(2*offset)-(1./3.)*Value(3*offset))
-			+ (valueZero - neighGuess.Norm(pulledBase));
+			+ (-0.5*neighGuess2.Norm(pulledBase)+2*neighGuess.Norm(pulledBase) - 1.5*valueZero);
+			
+			return deriv
+			+ ((11./6.)*valueZero-3.*Value(offset)+1.5*Value(2*offset)-(1./3.)*Value(3*offset))
+			+ (neighGuess.Norm(pulledBase) - valueZero);
 		}
 		default: assert(false); return -Traits::Infinity();
 	}
@@ -83,31 +223,47 @@ CorrectionKey(const OffsetType & offset, int order, const ElementaryGuess & gues
 const -> ScalarType {
 	assert(0<=guess.centerIndex && guess.centerIndex<factoringCenters.size());
 	const auto & dist = factoringCenters[guess.centerIndex].second;
-	const auto & base = guess.base;
 	const auto & transform = guess.transform;
 
-	VectorType pulledBase = base; transform.PullVector(pulledBase);
+	VectorType pulledBase = guess.base; transform.PullVector(pulledBase);
 	VectorType pulledOffset = VectorType::CastCoordinates(offset); transform.PullVector(pulledOffset);
 	
 	auto Value = [&pulledBase,&dist](const VectorType & off) -> ScalarType {
-		return pulledBase==off ? 0. : dist.Norm(pulledBase-off);
+		const VectorType v=pulledBase-off;
+		return v.IsNull() ? 0. : dist.Norm(v);
 	};
 	const ScalarType valueZero = dist.Norm(pulledBase);
-	const ScalarType deriv = - dist.Gradient(pulledBase).ScalarProduct(pulledOffset);
+	const ScalarType deriv = -dist.Gradient(pulledBase).ScalarProduct(pulledOffset);
 	
-/*	std::cout << " In correction "
-	ExportVarArrow(IndexDiff::CastCoordinates(offset))
-	ExportVarArrow(order)
-	ExportVarArrow(base)
-	ExportVarArrow(valueZero)
-	ExportVarArrow(Value(pulledOffset))
-	ExportVarArrow(deriv)
-	<< std::endl;*/
+	if(useExact){// DEBUG
+		PoincareExact exact;
+		auto Value = [&](VectorType off){
+			return exact.Value(exact.Pos(guess.base-off ));
+		};
+		const ScalarType deriv = exact.Gradient(exact.Pos(guess.base)).ScalarProduct(pulledOffset);
+		const ScalarType valueZero = Value(VectorType::Constant(0));
+		switch(order){
+			case 1: return deriv+ (valueZero - Value(pulledOffset));
+			case 2: return deriv+(1.5*valueZero - 2.*Value(pulledOffset) + 0.5*Value(2*pulledOffset));
+			case 3: return deriv
+				+ ((11./6.)*valueZero-3.*Value(pulledOffset)+1.5*Value(2*pulledOffset)-(1./3.)*Value(3*pulledOffset));
+
+		}
+	} 	// End DEBUG
+
 	
 	switch(order){
 		case 1:	return deriv+(valueZero-Value(pulledOffset));
 		case 2: return deriv+(1.5*valueZero - 2.*Value(pulledOffset) + 0.5*Value(2*pulledOffset));
-		case 3: return deriv
+		case 3:
+			/*
+			std::cout << "In correction key "
+			ExportVarArrow(pulledBase)
+			ExportVarArrow(offset)
+			ExportVarArrow(deriv)
+			<< std::endl;
+			*/
+			return deriv
 			+ ((11./6.)*valueZero-3.*Value(pulledOffset)+1.5*Value(2*pulledOffset)-(1./3.)*Value(3*pulledOffset));
 		default: assert(false); return -Traits::Infinity();
 	}

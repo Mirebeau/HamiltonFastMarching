@@ -210,15 +210,17 @@ void Run(IO & io){
 #ifdef Custom
 // This custom executable is here to let the user choose the adequate combination of (FastMarchingClass, Model) for his/her application.
 
-    HFMSpecializationMacro(AlignedBillard)
-    
+	
 //    HFMSpecializationMacro(IsotropicDiff<2>)
 //    HFMSpecializationMacro(RiemannLifted2<Boundary::Closed>)
-    
+	
     HFMSpecializationMacro(RanderLag2)
+	/*
     HFMSpecializationMacro(AsymmetricQuadraticLag2)
 	HFMSpecializationMacro(Seismic2)
 	HFMSpecializationMacro(Seismic3)
+	 HFMSpecializationMacro(AlignedBillard)
+	 */
 /*
     {
         typedef HFMInterface<TraitsLagrangian2> HFMI;
