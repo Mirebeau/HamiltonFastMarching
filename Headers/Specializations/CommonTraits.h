@@ -16,7 +16,7 @@
 
 #ifdef HighVoronoi // Will need high dimensional Voronoi reduction
 #include <type_traits> // std::conditional
-#include "LinearAlgebra/VoronoiReduction.h"
+#include "JMM_CPPLibs/LinearAlgebra/VoronoiReduction.h"
 #endif
 
 template<int VDim> struct TraitsBase {
