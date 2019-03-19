@@ -10,11 +10,13 @@
 
 template<Boundary cond>
 struct TraitsRiemannLifted2 : TraitsBase<3> {
-    typedef Difference<0> DifferenceType;
-    typedef const std::array<Boundary,Dimension> BoundCondType;
-    constexpr static BoundCondType boundaryConditions = {{Boundary::Closed, Boundary::Closed, cond}};
-    static const DiscreteType nSymmetric=3+1;
-    
+	using DifferenceType = EulerianDifference<OffsetType, ScalarType, 0>;
+	using StencilType = EulerianStencil<DifferenceType, 3+1>; // symmetric
+	
+	typedef const std::array<Boundary,Dimension> BoundCondType;
+	constexpr static BoundCondType boundaryConditions = {{Boundary::Closed, Boundary::Closed, cond}};
+	using DomainType = PeriodicGrid<TraitsRiemannLifted2>;
+	
     // Stencils actually depend on all coordinates. This is to get proper domain parametrization.
     static const DiscreteType nStencilDependencies=1;
     typedef const std::array<DiscreteType, nStencilDependencies> StencilDepType;
@@ -41,10 +43,11 @@ struct StencilRiemannLifted2 : HamiltonFastMarching<TraitsRiemannLifted2<cond> >
         MetricElementType met;
         if(pDualMetric) met = (*pDualMetric)(index);
         else {met = (*pMetric)(index); met.first = met.first.Inverse(); met.second=1/met.second;}
-        
-        Voronoi1Mat<ReductionType>(&stencil.symmetric[0], met.first/square(param.gridScale));
-        stencil.symmetric[3].offset = {0,0,1};
-        stencil.symmetric[3].baseWeight = met.second/square(param.dependScale);
+		
+		auto & symmetric = stencil.symmetric[0];
+        Voronoi1Mat<ReductionType>(&symmetric[0], met.first/square(param.gridScale));
+        symmetric[3].offset = {0,0,1};
+        symmetric[3].baseWeight = met.second/square(param.dependScale);
     };
     virtual const ParamInterface & Param() const override {return param;}
     virtual void Setup(HFMI *that) override {
@@ -59,13 +62,15 @@ struct StencilRiemannLifted2 : HamiltonFastMarching<TraitsRiemannLifted2<cond> >
 };
 
 struct TraitsRiemannLifted3 : TraitsBase<4> {
-    typedef Difference<0> DifferenceType;
-    constexpr static std::array<Boundary,Dimension> boundaryConditions = {{Boundary::Closed, Boundary::Closed, Boundary::Closed, Boundary::Closed}};
-    static const DiscreteType nSymmetric=6+1;
-    
+	using DifferenceType = EulerianDifference<OffsetType,ScalarType,0>;
+	using StencilType = EulerianStencil<DifferenceType,6+1>;
+
+	constexpr static std::array<Boundary,Dimension> boundaryConditions = {{Boundary::Closed, Boundary::Closed, Boundary::Closed, Boundary::Closed}};
+	using DomainType = PeriodicGrid<TraitsRiemannLifted3>;
+	
     // Stencils actually depend on all coordinates. This is to get proper domain parametrization.
     static const DiscreteType nStencilDependencies=1;
-    constexpr static std::array<DiscreteType, nStencilDependencies> stencilDependencies = {{2}};
+    constexpr static std::array<DiscreteType, nStencilDependencies> stencilDependencies = {{3}};
 };
 constexpr decltype(TraitsRiemannLifted3::boundaryConditions) TraitsRiemannLifted3::boundaryConditions;
 constexpr decltype(TraitsRiemannLifted3::stencilDependencies) TraitsRiemannLifted3::stencilDependencies;
@@ -80,18 +85,13 @@ struct StencilRiemannLifted3 : HamiltonFastMarching<TraitsRiemannLifted3>::Stenc
     std::unique_ptr<MetricType> pDualMetric;
     
     typename HFM::ParamDefault param;
-    // Traits used to get a specific scale for the last coordinate
-/*    struct DummyTraits : Traits {
-        typedef Difference<1> DifferenceType; static const DiscreteType nStencilDependencies = 1;
-        constexpr static std::array<DiscreteType, nStencilDependencies> stencilDependencies = {{3}};};
-    typedef HamiltonFastMarching<DummyTraits>::StencilDataType::ParamType ParamType;
-    ParamType param;*/
     
     virtual void SetStencil(const IndexType & index, StencilType & stencil) override {
         const MetricElementType & met = (*pDualMetric)(index);
-        Voronoi1Mat<ReductionType>(&stencil.symmetric[0], met.first/square(param.gridScale));
-        stencil.symmetric[6].offset = {0,0,0,1};
-        stencil.symmetric[6].baseWeight = met.second/square(param.dependScale);
+		auto & symmetric = stencil.symmetric[0];
+        Voronoi1Mat<ReductionType>(&symmetric[0], met.first/square(param.gridScale));
+        symmetric[6].offset = {0,0,0,1};
+        symmetric[6].baseWeight = met.second/square(param.dependScale);
     };
     virtual const ParamInterface & Param() const override {return param;}
     virtual void Setup(HFMI *that) override {
@@ -100,7 +100,5 @@ struct StencilRiemannLifted3 : HamiltonFastMarching<TraitsRiemannLifted3>::Stenc
         param.Setup(that->io,bundleScale);
         pDualMetric=that->template GetField<MetricElementType>("dualMetric");}
 };
-//constexpr decltype(StencilRiemannLifted3::DummyTraits::stencilDependencies) StencilRiemannLifted3::DummyTraits::stencilDependencies;
-
 
 #endif /* RiemannLifted_h */

@@ -28,7 +28,7 @@ struct TraitsR2S1NonShared : TraitsBase<3> {
     typedef EulerianDifference<OffsetType, ScalarType, 0> DifferenceType;
     constexpr static std::array<Boundary, Dimension> boundaryConditions =
     {{Boundary::Closed, Boundary::Closed, Boundary::Periodic}};
-    
+	using DomainType = PeriodicGrid<TraitsR2S1NonShared>;
     // Stencils actually depend on all coordinates (no multiplier). This is to get proper domain parametrization.
     static const DiscreteType nStencilDependencies=1;
     constexpr static std::array<DiscreteType, nStencilDependencies> stencilDependencies = {{2}};
@@ -40,7 +40,6 @@ constexpr decltype(TraitsR2S1NonShared::stencilDependencies) TraitsR2S1NonShared
 // ----------- 2D Reeds-Shepp Extended model ---------
 struct TraitsReedsSheppExt2 : TraitsR2S1NonShared {
     typedef EulerianStencil<DifferenceType,6+1> StencilType;
-    typedef PeriodicGrid<TraitsReedsSheppExt2> DomainType;
 };
 
 struct StencilReedsSheppExt2 final
@@ -85,7 +84,6 @@ struct StencilReedsSheppExt2 final
 
 struct TraitsReedsSheppForwardExt2 : TraitsR2S1NonShared {
     typedef EulerianStencil<DifferenceType,1,6> StencilType;
-    typedef PeriodicGrid<TraitsReedsSheppForwardExt2> DomainType;
 };
 
 struct StencilReedsSheppForwardExt2 final
@@ -131,7 +129,6 @@ struct StencilReedsSheppForwardExt2 final
 
 struct TraitsDubinsExt2 : TraitsR2S1NonShared {
     typedef EulerianStencil<DifferenceType,0,6,2> StencilType;
-    typedef PeriodicGrid<TraitsDubinsExt2> DomainType;
 };
 
 struct StencilDubinsExt2 final
@@ -176,7 +173,8 @@ struct StencilDubinsExt2 final
 
 template<int nFejer>
 struct TraitsElasticaExt2 : TraitsR2S1NonShared {
-    typedef EulerianStencil<DifferenceType,0,6*nFejer> StencilType;
+	using DifferenceType = typename TraitsR2S1NonShared::DifferenceType;
+    using StencilType = EulerianStencil<DifferenceType,0,6*nFejer>;
 };
 
 template<int nFejer>
@@ -184,7 +182,8 @@ struct StencilElasticaExt2 final
 : HamiltonFastMarching<TraitsElasticaExt2<nFejer> >::StencilDataType {
     typedef HamiltonFastMarching<TraitsElasticaExt2<nFejer> > HFM;
     typedef typename HFM::StencilDataType Superclass;
-    Redeclare7Types(Superclass,Traits,ScalarType,IndexCRef,VectorType,StencilType,ParamInterface,HFMI)
+    Redeclare7Types(Superclass,Traits,ScalarType,IndexCRef,
+					VectorType,StencilType,ParamInterface,HFMI)
     Redeclare1Constant(Traits,mathPi)
     typename HFM::ParamDefault param;
     ScalarType eps=0.1;
@@ -222,7 +221,5 @@ struct StencilElasticaExt2 final
         pKappa = that->template GetField<ScalarType>("kappa");
         param.Setup(that->io,2*mathPi/this->dims.back());}
 };
-
-
 
 #endif /* PrescribedCurvature2_h */

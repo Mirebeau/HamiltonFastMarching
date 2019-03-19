@@ -1,6 +1,7 @@
 set(Base_Headers
 	${CMAKE_CURRENT_SOURCE_DIR}/BaseGrid.h
 	${CMAKE_CURRENT_SOURCE_DIR}/PeriodicGrid.h
+	${CMAKE_CURRENT_SOURCE_DIR}/CommonStencil.h
 	${CMAKE_CURRENT_SOURCE_DIR}/EulerianStencil.h
 	${CMAKE_CURRENT_SOURCE_DIR}/Lagrangian2Stencil.h
 	${CMAKE_CURRENT_SOURCE_DIR}/Lagrangian3Stencil.h

@@ -51,7 +51,6 @@ struct StencilSeismic3 final
 	virtual void Setup(HFMI *) override;
 	virtual DistanceGuess GetGuess(const PointType &) const override;
 private:
-	std::forward_list<OffsetType> l;
 	NormType GetNorm(IndexCRef index) const; // Includes rescaling by h
 };
 

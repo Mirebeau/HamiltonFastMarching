@@ -79,9 +79,5 @@ private:
 	NormType Rescale(const MetricElementType &) const;
 };
 
-
-typedef StencilQuadLinLag2<TraitsRanderLag2> StencilRanderLag2;
-typedef StencilQuadLinLag2<TraitsAsymmetricQuadraticLag2> StencilAsymmetricQuadraticLag2;
-
 #include "Implementation/QuadLinLag2.hxx"
 #endif /* QuadLinLag2_h */

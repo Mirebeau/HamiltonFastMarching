@@ -218,5 +218,4 @@ template<> const std::array<double, 8> StencilElastica2<8>::fejerWeights =
 template<> const std::array<double, 9> StencilElastica2<9>::fejerWeights =
 {{0.0527366, 0.179189, 0.264037, 0.330845, 0.346384, 0.330845, 0.264037, 0.179189, 0.0527366}};
 
-
 #endif /* Curvature2_h */

@@ -56,7 +56,7 @@
 #define Differentiable_IsotropicDiff4   1
 #define Differentiable_RiemannDiff2     1
 
-#define AsymmetricQuadratic_AsymmetricQuadratic2    1
+//#define AsymmetricQuadratic_AsymmetricQuadratic2    1 // Now use semi-lag scheme
 #define AsymmetricQuadratic_AsymmetricQuadratic3    1
 #define AsymmetricQuadratic_AsymmetricQuadratic4    1
 #define AsymmetricQuadratic_AsymmetricQuadratic3p1  1
@@ -65,35 +65,71 @@
 #define RiemannLifted_RiemannLifted2_Periodic       1
 #define RiemannLifted_RiemannLifted3                1
 
-#define HalfDisk_HalfDisk2              1
-#define HalfDisk_HalfDisk3              1
-#define HalfDisk_HalfDisk3p1            1
+#define QuadLinLag2_Rander2 1
+#define QuadLinLag2_AsymmetricQuadratic2 1
 
-
+#define Seismic2_Seismic2 1
+#define Seismic3_Seismic3 1
+#define AlignedBillard_AlignedBillard 1
 
 // **** Include the correct header ****
 // Standard specializations
 #if PPCAT(Isotropic_,ModelName)
 #include "Specializations/Isotropic.h"
+using StencilIsotropic1 = StencilIsotropic<1>;
+using StencilIsotropic2 = StencilIsotropic<2>;
+using StencilIsotropic3 = StencilIsotropic<3>;
+using StencilIsotropic4 = StencilIsotropic<4>;
+using StencilIsotropic5 = StencilIsotropic<5>;
+using StencilDiagonal2 = StencilDiagonal<2>;
+using StencilDiagonal3 = StencilDiagonal<3>;
+using StencilDiagonal4 = StencilDiagonal<4>;
+using StencilDiagonal5 = StencilDiagonal<5>;
 #elif PPCAT(Riemannian_,ModelName)
 #include "Specializations/Riemannian.h"
+using StencilRiemann2 = StencilRiemann<2>;
+using StencilRiemann3 = StencilRiemann<3>;
+using StencilRiemann4 = StencilRiemann<4>;
+using StencilRiemann5 = StencilRiemann<5>;
 #elif PPCAT(Curvature2_,ModelName)
 #include "Specializations/Curvature2.h"
+using StencilElastica2_9 = StencilElastica2<9>;
+using StencilElastica2_5 = StencilElastica2<5>;
+#define Elastica2 Elastica2_5 // Default discretization
 #elif PPCAT(Curvature3_,ModelName)
 #include "Specializations/Curvature3.h"
+#elif PPCAT(QuadLinLag2_,ModelName)
+#include "Specializations/QuadLinLag2.h"
+using StencilRander2 = StencilQuadLinLag2<TraitsRanderLag2>;
+using StencilAsymmetricQuadratic2 = StencilQuadLinLag2<TraitsAsymmetricQuadraticLag2>;
+
 
 // Experimental specializations
 #elif PPCAT(PrescribedCurvature2_,ModelName)
 #include "Experimental/PrescribedCurvature2.h"
+using StencilElasticaExt2_5 = StencilElasticaExt2<5>;
 #elif PPCAT(Differentiable_,ModelName)
 #include "Experimental/Differentiable.h"
+using StencilIsotropicDiff2 = StencilIsotropicDiff<2>;
+using StencilIsotropicDiff3 = StencilIsotropicDiff<3>;
+using StencilIsotropicDiff4 = StencilIsotropicDiff<4>;
 #elif PPCAT(AsymmetricQuadratic_,ModelName)
 #include "Experimental/AsymmetricQuadratic.h"
+using StencilAsymmetricQuadratic2 = StencilAsymmetricQuadratic<2>;
+using StencilAsymmetricQuadratic3 = StencilAsymmetricQuadratic<3>;
+using StencilAsymmetricQuadratic4 = StencilAsymmetricQuadratic<4>;
 #elif PPCAT(RiemannLifted_,ModelName)
 #include "Experimental/RiemannLifted.h"
+using StencilRiemannLifted2_Closed = StencilRiemannLifted2<Boundary::Closed>;
+using StencilRiemannLifted2_Periodic = StencilRiemannLifted2<Boundary::Periodic>;
 #elif PPCAT(RollingBall_,ModelName)
 #include "Experimental/RollingBall.h"
-
+#elif PPCAT(Seismic2_,ModelName)
+#include "Experimental/Seismic2.h"
+#elif PPCAT(Seismic3_,ModelName)
+#include "Experimental/Seismic3.h"
+#elif PPCAT(AlignedBillard_,AlignedBillard)
+#include "Experimental/AlignedBillard.h"
 // Very experimental specializations
 #else
 /*
@@ -106,55 +142,25 @@
 // Saving the model name as a string for future reference
 const std::string ModelNameString=STRING(ModelName);
 
-// Key redefinitions for templated classes
-#define Isotropic1 Isotropic<1>
-#define Isotropic2 Isotropic<2>
-#define Isotropic3 Isotropic<3>
-#define Isotropic4 Isotropic<4>
-#define Isotropic5 Isotropic<5>
-#define Diagonal2 Diagonal<2>
-#define Diagonal3 Diagonal<3>
-#define Diagonal4 Diagonal<4>
-#define Diagonal5 Diagonal<5>
-
-#define Riemann2 Riemann<2>
-#define Riemann3 Riemann<3>
-#define Riemann4 Riemann<4>
-#define Riemann5 Riemann<5>
-
-#define IsotropicDiff2 IsotropicDiff<2>
-#define IsotropicDiff3 IsotropicDiff<3>
-#define IsotropicDiff4 IsotropicDiff<4>
-
-#define AsymmetricQuadratic2 AsymmetricQuadratic<2>
-#define AsymmetricQuadratic3 AsymmetricQuadratic<3>
-#define AsymmetricQuadratic4 AsymmetricQuadratic<4>
-
-#define Elastica2 Elastica2<5>
-#define Elastica2_9 Elastica2<9>
-#define RiemannLifted2_Closed RiemannLifted2<Boundary::Closed>
-#define RiemannLifted2_Periodic RiemannLifted2<Boundary::Periodic>
-
 
 // ------- Custom invocation, with multiple models.  ---------
 
 #define HFMSpecializationMacro(modelName) \
-{typedef HFMInterface<Traits ## modelName> HFMI; typedef Stencil ## modelName StencilDataType;\
+{ \
+using StencilDataType = Stencil ## modelName ;\
+using HFMI = StencilDataType::HFMI; \
 if(model== #modelName){ \
     io.currentSetter=IO::SetterTag::Compute;\
     StencilDataType stencil; \
     HFMI(io, stencil).Run();\
-    io.currentSetter=IO::SetterTag::User; return;} }
+    io.currentSetter=IO::SetterTag::User; return;} \
+}
 
 #ifdef Custom
 //#include "Experimental/Differentiable.h"
 //#include "Experimental/RiemannLifted.h"
 
 #include "Experimental/AlignedBillard.h"
-#include "Specializations/QuadLinLag2.h"
-#include "Base/Lagrangian3Stencil.h"
-#include "Experimental/Seismic2.h"
-#include "Experimental/Seismic3.h"
 
 #endif
 /*
@@ -195,8 +201,9 @@ void Run(IO & io){
             ExceptionMacro("Executable applies to " << ModelNameString
                            << ", not to " << io.GetString("model") << ".");
     }
-    typedef HFMInterface<PPCAT(Traits,ModelName)> HFMI;
+//    typedef HFMInterface<PPCAT(Traits,ModelName)> HFMI;
     typedef PPCAT(Stencil,ModelName) StencilDataType;
+	using HFMI = StencilDataType::HFMI;
     
     io.currentSetter=IO::SetterTag::Compute;
     StencilDataType stencil;
@@ -214,11 +221,7 @@ void Run(IO & io){
 //    HFMSpecializationMacro(IsotropicDiff<2>)
 //    HFMSpecializationMacro(RiemannLifted2<Boundary::Closed>)
 	
-    HFMSpecializationMacro(RanderLag2)
 	/*
-    HFMSpecializationMacro(AsymmetricQuadraticLag2)
-	HFMSpecializationMacro(Seismic2)
-	HFMSpecializationMacro(Seismic3)
 	 HFMSpecializationMacro(AlignedBillard)
 	 */
 /*
@@ -283,12 +286,7 @@ void Run(IO & io){
     HFMSpecializationMacro(ElasticaExt2<5>)
 #endif
     
-#ifdef RiemannExtra
-    // HalfDisk models
-    HFMSpecializationMacro(HalfDisk2)
-    HFMSpecializationMacro(HalfDisk3)
-    HFMSpecializationMacro(HalfDisk3p1)
-    
+#ifdef RiemannExtra    
     // Differentiation with riemannian metrics
     HFMSpecializationMacro(RiemannDiff2)
     

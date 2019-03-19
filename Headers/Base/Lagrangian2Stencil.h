@@ -8,8 +8,7 @@
 #ifndef Lagrangian2Stencil_h
 #define Lagrangian2Stencil_h
 
-#include <forward_list>
-
+#include "CommonStencil.h"
 // ----------- Semi-Lagrangian scheme ------------
 
 template<typename TOff, typename TScalar, typename TDiscrete>

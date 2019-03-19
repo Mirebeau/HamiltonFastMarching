@@ -3,7 +3,7 @@ SET(TestCompilationModelNames "Isotropic2;Riemann2" CACHE STRING "TestCompilatio
 
 SET(StandardModelNames "Isotropic2;Isotropic3;Diagonal2;Diagonal3;Riemann2;Riemann3;ReedsShepp2;ReedsSheppForward2;Elastica2;Dubins2;ReedsShepp3;ReedsSheppForward3;IsotropicDiff2;DubinsExt2" CACHE STRING "ModelNames")
 
-Set(ExperimentalModelNames "Riemann4;Riemann5;Elastica2_9;ElasticaExt2_5;ReedsSheppExt2;ReedsSheppForwardExt2;RiemannDiff2;RiemannLifted2_Periodic;AsymmetricQuadratic3;AsymmetricQuadratic3p1;HalfDisk2" CACHE STRING "ExperimentalModelNames")
+Set(ExperimentalModelNames "Seismic2;Seismic3;AlignedBillard;Riemann4;Riemann5;Elastica2_9;ElasticaExt2_5;ReedsSheppExt2;ReedsSheppForwardExt2;RiemannDiff2;RiemannLifted2_Periodic;Rander2;AsymmetricQuadratic2;AsymmetricQuadratic3;AsymmetricQuadratic3p1" CACHE STRING "ExperimentalModelNames")
 Set(CustomModelNames "" CACHE STRING "CustomModelNames")
 
 option(IncludeStandardModels "IncludeStandardModels" TRUE)
