@@ -92,8 +92,7 @@ protected:
     std::vector<std::pair<IndexDiff,ScalarType> > edges;
     bool OnBoundary(IndexCRef,const DomainType &) const;
 	
-	
-	struct PoincareExact; mutable bool useExact=false;// DEBUG
+//	struct PoincareExact; mutable bool useExact=false;// DEBUG
 };
 
 template<typename T>
@@ -104,33 +103,7 @@ struct Factoring<T>::ElementaryGuess {
 	PrintSelfMacro(ElementaryGuess)
 };
 
-/*
-template<typename T>
-struct Factoring<T>::ElementaryGuess {
-    DistanceGuess guess;
-    DomainTransformType transform;
-    OffsetType base;
-    ScalarType weight;
 
-    VectorType Pull(OffsetType offset) const {
-        transform.PullVector(offset); return VectorType::CastCoordinates(offset);}
-    ScalarType Value(const OffsetType & offset) const {
-		return base==offset ? ScalarType(0.) : weight*guess.Norm(Pull(base-offset) );}
-    ScalarType Deriv(const OffsetType & offset) const {
-        return -weight*guess.Gradient(Pull(base)).ScalarProduct(Pull(offset));}
-    ScalarType Correction(const OffsetType & offset, int ord) const {
-        const OffsetType zero = OffsetType::Constant(0);
-		switch (ord) {
-			case 1: return Deriv(offset) + (Value(zero)-Value(offset));
-			case 2: return Deriv(offset) + (1.5*Value(zero) - 2.*Value(offset) + 0.5*Value(2*offset));
-			case 3: assert(false);
-				return Deriv(offset) + ((11./6.)*Value(zero)-3.*Value(offset)+1.5*Value(2*offset)-(1./3.)*Value(3*offset));
-			default: assert(false); return -Traits::Infinity();
-		}
-    }
-    PrintSelfMacro(ElementaryGuess)
-};
-*/
 
 #include "Implementation/DynamicFactoring.hxx"
 
