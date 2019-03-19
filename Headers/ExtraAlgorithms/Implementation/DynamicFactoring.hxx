@@ -76,7 +76,8 @@ Correction(const OffsetType & offset, int ord) const -> ScalarType {
 	};
 	
 	if(method==FactoringMethod::Static && data_static.centerIndex != -1){
-		return Correct(data_static);
+//		useExact=false;
+//		return Correct(data_static);
 
 		//DEBUG
 		useExact=false;
@@ -92,7 +93,7 @@ Correction(const OffsetType & offset, int ord) const -> ScalarType {
 		ExportVarArrow(offset)
 		ExportVarArrow(ord)
 		<< std::endl << std::endl;
-		return correction_exact;
+		return correction_inexact;
 		
 		return Correct(data_static);
 	} else if(method==FactoringMethod::Dynamic && !data_dynamic.guesses.empty() ){
@@ -108,7 +109,14 @@ Correction(const OffsetType & offset, int ord) const -> ScalarType {
 template<typename T>
 struct Factoring<T>::PoincareExact {
 	const PointType seed = PointType(0.,1.5);
-	const ScalarType h = 0.1;
+	const ScalarType h = 0.01;
+	
+	PointType Pos(const VectorType &base) const {
+		return seed-h*base;
+	}
+	
+	/*
+	// Exact values
 	ScalarType Value(const PointType & q) const {
 		const VectorType v = q-seed;
 		const VectorType w (q[0]-seed[0],q[1]+seed[1]);
@@ -121,9 +129,25 @@ struct Factoring<T>::PoincareExact {
 		const VectorType wU = w/wN, vU = v/vN;
 		return h*((wU+vU)/(wN+vN) - (wU-vU)/(wN-vN));
 	};
-	PointType Pos(const VectorType &base) const {
-		return seed-h*base;
+	*/
+	// Two point approximation
+	ScalarType Value(const PointType & q) const {
+		const VectorType v = q-seed;
+		return v.Norm() * 0.5 * (1/q[1]+1/seed[1]);
 	}
+	VectorType Gradient(const PointType & q) const {
+		const VectorType v = q-seed;
+		const ScalarType vN = v.Norm();
+		return h * (
+				   (v/vN) * 0.5 * (1/q[1]+1/seed[1])
+				   + vN * 0.5 * VectorType(0.,-1/(q[1]*q[1]))
+				   );
+	}
+	VectorType SpatialGradient(const PointType & q) const {
+		const VectorType v = q-seed;
+		return h*v.Norm()*0.5*VectorType(0.,-1/(q[1]*q[1]));
+	}
+	
 };
 
 
@@ -168,19 +192,76 @@ CorrectionCurrent(const OffsetType & offset,
 		}
 	} 	// End DEBUG
 	
+	PoincareExact exact;
+	const VectorType offset_v = VectorType::CastCoordinates(offset);
+	// A last shot at third order...
+	const IndexDiff	offset_d = IndexDiff::CastCoordinates(offset);
+	const IndexType
+	neigh1 = currentIndex+offset_d,
+	neigh2 = currentIndex+2*offset_d,
+	neigh3 = currentIndex+3*offset_d;
 	
-	
+	const DistanceGuess
+	dist1 = pFM->stencilData.GetGuess(neigh1),
+	dist2 = pFM->stencilData.GetGuess(neigh2),
+	dist3 = pFM->stencilData.GetGuess(neigh3);
+
+
 	switch(order){
-		case 1: return deriv+(valueZero-Value(offset));
-		case 2: return deriv+(1.5*valueZero - 2.*Value(offset) + 0.5*Value(2*offset));
+		case 1: return // deriv +(valueZero-Value(offset));
+			deriv
+//			+2*exact.SpatialGradient(exact.Pos(base)).ScalarProduct(offset_v)
+			-(dist.Norm(base)-dist1.Norm(base))
+			+(valueZero-dist1.Norm(base-offset_v));
+		case 2: return // deriv +(1.5*valueZero - 2.*Value(offset) + 0.5*Value(2*offset));
+			deriv
+//			+2*exact.SpatialGradient(exact.Pos(base)).ScalarProduct(offset_v)
+			-(1.5*dist.Norm(base) - 2.*dist1.Norm(base) + 0.5*dist2.Norm(base))
+			+(1.5*valueZero - 2.*dist1.Norm(base-offset_v) + 0.5*dist2.Norm(base-2*offset_v));
 		case 3: {
+//			return deriv
+//			+ ((11./6.)*valueZero-3.*Value(offset)+1.5*Value(2*offset)-(1./3.)*Value(3*offset));
+			
+			
+			
+			
+			const DistanceGuess distSeed = factoringCenters.back().second;
+			std::cout << "In correction current : "
+			ExportVarArrow(dist1)
+			ExportVarArrow(dist1.Norm(base-offset_v))
+			ExportVarArrow(exact.Value(exact.Pos(base-offset_v)))
+			ExportVarArrow(distSeed.Norm(base-offset_v))
+			<< std::endl
+			ExportVarArrow(deriv)
+			ExportVarArrow(exact.SpatialGradient(exact.Pos(base)).ScalarProduct(offset_v))
+			ExportVarArrow(-distSeed.Gradient(base).ScalarProduct(offset_v))
+			ExportVarArrow(exact.Gradient(exact.Pos(base)).ScalarProduct(offset_v))
+			<< std::endl;
+			
+			
+						   
+			
+			return
+			deriv
+//			+2*exact.SpatialGradient(exact.Pos(base)).ScalarProduct(offset_v)
+			- ((11./6.)*dist.Norm(base)-3.*dist1.Norm(base)
+			   +1.5*dist2.Norm(base)-(1./3.)*dist3.Norm(base))
+			+ ((11./6.)*dist.Norm(base)-3.*dist1.Norm(base-offset_v)
+			   +1.5*dist2.Norm(base-2*offset_v)-(1./3.)*dist3.Norm(base-3*offset_v));
+			
 			return deriv
-			+ ((11./6.)*valueZero-3.*Value(offset)+1.5*Value(2*offset)-(1./3.)*Value(3*offset));
+			+ ((11./6.)*dist.Norm(base)-3.*dist1.Norm(base-offset_v)
+			   +1.5*dist2.Norm(base-2*offset_v)-(1./3.)*dist3.Norm(base-3*offset_v))
+			- ((11./6.)*dist.Norm(base)-3.*dist1.Norm(base)
+			   +1.5*dist2.Norm(base)-(1./3.)*dist3.Norm(base));
+
+
+			
 			
 			// Below is old, erroneous implem
 			// According to further calculations, the spatial derivative of the metric should not be added, since we do not change the base point in the Value lambda function.
 			
-			
+			/*
 			IndexType neigh = currentIndex+IndexDiff::CastCoordinates(offset);
 			const DomainTransformType transform = pFM->dom.Periodize(neigh, currentIndex);
 			assert(transform.IsValid());
@@ -213,6 +294,7 @@ CorrectionCurrent(const OffsetType & offset,
 			return deriv
 			+ ((11./6.)*valueZero-3.*Value(offset)+1.5*Value(2*offset)-(1./3.)*Value(3*offset))
 			+ (neighGuess.Norm(pulledBase) - valueZero);
+			 */
 		}
 		default: assert(false); return -Traits::Infinity();
 	}
