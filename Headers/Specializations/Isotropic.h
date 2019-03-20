@@ -40,10 +40,13 @@ HamiltonFastMarching<TraitsIsotropic<VDimension> >::StencilDataType {
     }
     virtual const ParamInterface & Param() const override {return param;}
     virtual void Setup(HFMI *that) override {Superclass::Setup(that); param.Setup(that);}
-    virtual DistanceGuess GetGuess(const PointType & p) const override final {
+    virtual DistanceGuess GetGuess(const PointType & p) const override {
 		const ScalarType s = MapWeightedSum<ScalarType>(*this->pMultSource,this->pFM->dom.Neighbors(p));
         const ScalarType h = param.gridScale;
         return DistanceGuess::Identity() * square(h/s);}
+	virtual DistanceGuess GetGuess(const IndexType & index) const override {
+		return DistanceGuess::Identity() * square(param.gridScale/(*this->pMultSource)(index));}
+	
 };
 
 // ----------- Diagonal metrics ------------
@@ -82,10 +85,17 @@ struct StencilDiagonal final
     virtual const ParamInterface & Param() const override {return param;}
     virtual void Setup(HFMI *that) override {Superclass::Setup(that); param.Setup(that);}
     virtual DistanceGuess GetGuess(IndexCRef index) const override {
-        const PointType h = param.gridScales;
-        const PointType s=(*this->pMultSource)(index);
-        VectorType diag; for(int i=0; i<Dimension; ++i) diag[i] = square(h[i]/s[i]);
-        return DistanceGuess::Diagonal(diag);}
+		return GuessFromSpeeds((*this->pMultSource)(index));}
+	virtual DistanceGuess GetGuess(const PointType & p) const override {
+		auto vecSpeeds = [this](const IndexType & index)->VectorType {
+			return VectorType::FromOrigin((*this->pMultSource)(index));};
+		return GuessFromSpeeds(PointType::FromOrigin(
+			MapWeightedSum<VectorType>(vecSpeeds,this->pFM->dom.Neighbors(p))));}
+protected:
+	DistanceGuess GuessFromSpeeds(const PointType & s) const {
+		const PointType h = param.gridScales;
+		VectorType diag; for(int i=0; i<Dimension; ++i) diag[i] = square(h[i]/s[i]);
+		return DistanceGuess::Diagonal(diag);}
 };
 
 #endif /* Isotropic_h */

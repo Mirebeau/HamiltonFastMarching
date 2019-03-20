@@ -50,6 +50,7 @@ struct StencilSeismic3 final
 	virtual const ParamInterface & Param() const override {return param;}
 	virtual void Setup(HFMI *) override;
 	virtual DistanceGuess GetGuess(const PointType &) const override;
+	virtual DistanceGuess GetGuess(const IndexType & index) const override {return GetNorm(index);}
 private:
 	NormType GetNorm(IndexCRef index) const; // Includes rescaling by h
 };

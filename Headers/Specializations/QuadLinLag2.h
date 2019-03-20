@@ -66,11 +66,12 @@ struct StencilQuadLinLag2 final
 	virtual const ParamInterface & Param() const override {return param;}
 	virtual void Setup(HFMI *) override;
 	virtual DistanceGuess GetGuess(const PointType &) const override;
-	
+	virtual DistanceGuess GetGuess(const IndexType & index) const override {return GetNorm(index);}
+
 	ScalarType cosAngleMin=0.5;
 private:
 	std::vector<OffsetType> tmp_stencil;
-	NormType GetNorm(IndexCRef index) const;
+	NormType GetNorm(IndexCRef) const;
 	// Refinement near walls
 	ScalarType wallBoundaryAngularResolution = 0.2;
 	typename Traits::template Array<bool,Dimension> walls;

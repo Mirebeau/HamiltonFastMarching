@@ -37,10 +37,9 @@ struct StencilRiemann final
     std::unique_ptr<MetricType> pMetric;
     
     virtual void SetStencil(IndexCRef index, StencilType & stencil) override {
-        Voronoi1Mat<ReductionType>(&stencil.symmetric[0][0],
-                                   pDualMetric ? (*pDualMetric)(index) : (*pMetric)(index).Inverse() );
-        const ScalarType hm2 = 1/square(param.gridScale);
-        for(auto & diff : stencil.symmetric[0]) diff.baseWeight*=hm2;
+		const SymmetricMatrixType diff = (1./square(param.gridScale)) *
+		(pDualMetric ? (*pDualMetric)(index) : (*pMetric)(index).Inverse() );
+        Voronoi1Mat<ReductionType>(&stencil.symmetric[0][0], diff);
     }
     virtual const ParamInterface & Param() const override {return param;}
     virtual void Setup(HFMI *that) override {
@@ -50,10 +49,13 @@ struct StencilRiemann final
         else pMetric = that->template GetField<MetricElementType>("metric");
     }
     virtual DistanceGuess GetGuess(const PointType & p) const override {
-        const SymmetricMatrixType m = pDualMetric ?
+		return square(param.gridScale) * (pDualMetric ?
 		MapWeightedSum<SymmetricMatrixType>(*pDualMetric,this->pFM->dom.Neighbors(p)).Inverse() :
-		MapWeightedSum<SymmetricMatrixType>(*pMetric,this->pFM->dom.Neighbors(p));
-        return m*square(param.gridScale);
+		MapWeightedSum<SymmetricMatrixType>(*pMetric,this->pFM->dom.Neighbors(p)) );
+	}
+	virtual DistanceGuess GetGuess(const IndexType & index) const override {
+		return square(param.gridScale) *
+		(pDualMetric ? (*pDualMetric)(index).Inverse() : (*pMetric)(index));
 	}
 };
 
