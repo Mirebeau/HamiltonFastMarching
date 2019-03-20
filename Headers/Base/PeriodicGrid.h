@@ -27,7 +27,17 @@ enum class Boundary {
 };
 
 struct Boundary_AllClosed {
-    Boundary operator[](size_t) const {return Boundary::Closed;}
+    constexpr Boundary operator[](int) const {return Boundary::Closed;}
+};
+
+template<int VDim, Boundary VLast>
+struct Boundary_ClosedButLast {
+	constexpr static const int Dimension = VDim;
+	constexpr static const Boundary lastBoundary = VLast;
+	constexpr Boundary operator[](int i) const {
+		assert(0<=i && i<Dimension);
+		return i<Dimension-1 ? Boundary::Closed : lastBoundary;
+	}
 };
 
 /* 2D sphere boundary conditions

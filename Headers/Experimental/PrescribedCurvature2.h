@@ -49,7 +49,7 @@ struct StencilReedsSheppExt2 final
     HFM::ParamDefault param;
     ScalarType eps=0.1;
     typedef Traits::DataSource<ScalarType> ScalarFieldType;
-    std::unique_ptr<ScalarFieldType> pSpeed, pXi, pKappa;
+    std::unique_ptr<ScalarFieldType> pSpeed, pXi, pKappa, pTheta;
 	typedef Traits::BasisReduction<3> ReductionType;
 	Voronoi1Vec<ReductionType> reduc;
 	
@@ -58,7 +58,7 @@ struct StencilReedsSheppExt2 final
         const ScalarType
         speed=(*pSpeed)(index), xi=(*pXi)(index), kappa=(*pKappa)(index),
         gS=param.gridScale,tS=param.dependScale;
-        const ScalarType theta = index[2]*tS;
+		const ScalarType theta = pTheta ? (*pTheta)(index) : index[2]*tS;
         const ScalarType c = cos(theta), s=sin(theta);
         const VectorType v{c/gS,s/gS,kappa/tS};
         
@@ -77,6 +77,7 @@ struct StencilReedsSheppExt2 final
         else pSpeed = std::unique_ptr<SourceInvType>(new SourceInvType(that->template GetField<ScalarType>("cost",false) ) );
         pXi = that->GetField<ScalarType>("xi",false);
         pKappa = that->GetField<ScalarType>("kappa",false);
+		if(io.HasField("theta")) pTheta = that->GetField("theta",false);
         param.Setup(that->io,2*mathPi/dims.back());}
 };
 

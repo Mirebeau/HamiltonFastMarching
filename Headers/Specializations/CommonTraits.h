@@ -158,42 +158,4 @@ template<typename ReductionType, int VDimShift=0> struct Voronoi1Vec {
     }
 };
 
-/*
-template<typename ReductionType, int VDimShift=0, typename DiffType,
-typename VectorType = typename ReductionType::VectorType,
-typename ScalarType = typename ReductionType::ScalarType
->
-DiffType * Voronoi1Vec(DiffType * pDiff,
-                       const VectorType & v, ScalarType eps,
-                       ScalarType tol=1000*std::numeric_limits<ScalarType>::epsilon()){
-    const ScalarType atol = v.SquaredNorm()*tol; // Absolute tolerance
-    
-    // Build tensor
-    typedef typename ReductionType::SymmetricMatrixType SymmetricMatrixType;
-    const SymmetricMatrixType exact = SymmetricMatrixType::RankOneTensor(v);
-    const SymmetricMatrixType relaxed =
-    exact*(1.-square(eps))
-    +v.SquaredNorm()*SymmetricMatrixType::Identity()*square(eps);
-    // Get decomposition
-    const auto & decomp = ReductionType::TensorDecomposition(relaxed);
-    
-    auto offsetIt = decomp.offsets.begin();
-    auto weightIt = decomp.weights.begin();
-    // Fill in the scheme, omitting excessively low values, with reorientation
-    for(; weightIt!=decomp.weights.end(); ++weightIt, ++offsetIt){
-        const ScalarType weight = *weightIt;
-        const auto & offset = *offsetIt;
-
-        const ScalarType scal = v.ScalarProduct(VectorType::CastCoordinates(offset));
-        pDiff->baseWeight = (weight<atol || std::abs(scal)<atol) ? 0. : weight;
-        
-        pDiff->offset.fill(0);
-        for(int i=0; i<offset.size(); ++i) {
-            pDiff->offset[VDimShift+i]= scal<=0 ? offset[i] : -offset[i];} // Note : <v,e_i> <= 0
-        ++pDiff;
-    }
-    return pDiff;
-};
-*/
-
 #endif /* CommonTraits_h */

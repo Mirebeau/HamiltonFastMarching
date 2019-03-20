@@ -32,8 +32,9 @@
 
 #define Riemannian_Riemann2             1
 #define Riemannian_Riemann3             1
-#define Riemannian_Riemann4        1
-#define Riemannian_Riemann5        1
+#define Riemannian_Riemann4        		1
+#define Riemannian_Riemann5        		1
+#define Riemannian_Riemann3_Periodic	1
 
 #define Curvature2_ReedsShepp2          1
 #define Curvature2_ReedsSheppForward2   1
@@ -91,6 +92,7 @@ using StencilRiemann2 = StencilRiemann<2>;
 using StencilRiemann3 = StencilRiemann<3>;
 using StencilRiemann4 = StencilRiemann<4>;
 using StencilRiemann5 = StencilRiemann<5>;
+using StencilRiemann3_Periodic = StencilRiemann<3,Boundary::Periodic>;
 #elif PPCAT(Curvature2_,ModelName)
 #include "Specializations/Curvature2.h"
 using StencilElastica2_9 = StencilElastica2<9>;

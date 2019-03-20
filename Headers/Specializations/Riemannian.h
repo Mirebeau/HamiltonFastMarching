@@ -5,7 +5,8 @@
 #include "CommonTraits.h"
 
 // ------------- 2D - 3D Riemannian metrics ------------
-template<size_t VDimension>
+// Bounded box in all dimensions, except possibly the last one.
+template<size_t VDimension, Boundary lastBoundary>
 struct TraitsRiemann : TraitsBase<VDimension> {
     typedef TraitsBase<VDimension> Superclass;
     Redeclare2Types(Superclass,OffsetType,ScalarType)
@@ -14,13 +15,14 @@ struct TraitsRiemann : TraitsBase<VDimension> {
     typedef EulerianDifference<OffsetType,ScalarType,0> DifferenceType;
     typedef EulerianStencil<DifferenceType,(Dimension*(Dimension+1))/2> StencilType;
 
+	constexpr static const Boundary_ClosedButLast<Dimension, lastBoundary> boundaryConditions{};
     typedef PeriodicGrid<TraitsRiemann> DomainType;
 };
 
-template<size_t VDimension>
+template<size_t VDimension, Boundary lastBoundary = Boundary::Closed>
 struct StencilRiemann final
-: HamiltonFastMarching<TraitsRiemann<VDimension> >::StencilDataType {
-    typedef HamiltonFastMarching<TraitsRiemann<VDimension> > HFM;
+: HamiltonFastMarching<TraitsRiemann<VDimension,lastBoundary> >::StencilDataType {
+    typedef HamiltonFastMarching<TraitsRiemann<VDimension,lastBoundary> > HFM;
     typedef typename HFM::StencilDataType Superclass;
     Redeclare10Types(HFM,ParamDefault,IndexType,StencilType,ParamInterface,HFMI,Traits,
 					ScalarType,IndexCRef,DistanceGuess,PointType)
