@@ -71,14 +71,15 @@ struct StencilReedsSheppExt2 final
     virtual const ParamInterface & Param() const override {return param;}
     virtual void Setup(HFMI *that) override {
         Superclass::Setup(that);
-        reduc.eps=that->io.template Get<ScalarType>("eps",reduc.eps);
+		auto & io = that->io;
+        reduc.eps=io.template Get<ScalarType>("eps",reduc.eps);
         typedef typename HFMI::template DataSource_Inverse<ScalarType> SourceInvType;
-        if(that->io.HasField("speed")) pSpeed = that->template GetField<ScalarType>("speed",false);
+        if(io.HasField("speed")) pSpeed = that->template GetField<ScalarType>("speed",false);
         else pSpeed = std::unique_ptr<SourceInvType>(new SourceInvType(that->template GetField<ScalarType>("cost",false) ) );
         pXi = that->GetField<ScalarType>("xi",false);
         pKappa = that->GetField<ScalarType>("kappa",false);
-		if(io.HasField("theta")) pTheta = that->GetField("theta",false);
-        param.Setup(that->io,2*mathPi/dims.back());}
+		if(io.HasField("theta")) pTheta = that->GetField<ScalarType>("theta",false);
+        param.Setup(io,2*mathPi/dims.back());}
 };
 
 // ----------- 2D Reeds-Shepp Forward Extended model ---------
@@ -94,7 +95,7 @@ struct StencilReedsSheppForwardExt2 final
     HFM::ParamDefault param;
     ScalarType eps=0.1;
     typedef Traits::DataSource<ScalarType> ScalarFieldType;
-    std::unique_ptr<ScalarFieldType> pSpeed, pXi, pKappa;
+    std::unique_ptr<ScalarFieldType> pSpeed, pXi, pKappa, pTheta;
 	typedef Traits::BasisReduction<3> ReductionType;
 	Voronoi1Vec<ReductionType> reduc;
     virtual void SetStencil(IndexCRef index, StencilType & stencil) override {
@@ -102,7 +103,7 @@ struct StencilReedsSheppForwardExt2 final
         const ScalarType
         speed=(*pSpeed)(index), xi=(*pXi)(index), kappa=(*pKappa)(index),
         gS=param.gridScale,tS=param.dependScale;
-        const ScalarType theta = index[2]*tS;
+		const ScalarType theta = pTheta ? (*pTheta)(index) : index[2]*tS;
         const ScalarType c = cos(theta), s=sin(theta);
         const VectorType v{c/gS,s/gS,kappa/tS};
         
@@ -116,13 +117,15 @@ struct StencilReedsSheppForwardExt2 final
     virtual const ParamInterface & Param() const override {return param;}
     virtual void Setup(HFMI *that) override {
         Superclass::Setup(that);
-        reduc.eps=that->io.template Get<ScalarType>("eps",reduc.eps);
+		auto & io = that->io;
+        reduc.eps=io.template Get<ScalarType>("eps",reduc.eps);
         typedef typename HFMI::template DataSource_Inverse<ScalarType> SourceInvType;
-        if(that->io.HasField("speed")) pSpeed = that->template GetField<ScalarType>("speed",false);
+        if(io.HasField("speed")) pSpeed = that->template GetField<ScalarType>("speed",false);
         else pSpeed = std::unique_ptr<SourceInvType>(new SourceInvType(that->template GetField<ScalarType>("cost",false) ) );
         pXi = that->GetField<ScalarType>("xi");
         pKappa = that->GetField<ScalarType>("kappa");
-        param.Setup(that->io,2*mathPi/dims.back());}
+		if(io.HasField("theta")) pTheta = that->GetField<ScalarType>("theta",false);
+        param.Setup(io,2*mathPi/dims.back());}
 };
 
 
@@ -139,7 +142,7 @@ struct StencilDubinsExt2 final
     HFM::ParamDefault param;
     ScalarType eps=0.1;
     typedef Traits::DataSource<ScalarType> ScalarFieldType;
-    std::unique_ptr<ScalarFieldType> pSpeed, pXi, pKappa;
+    std::unique_ptr<ScalarFieldType> pSpeed, pXi, pKappa, pTheta;
 	typedef Traits::BasisReduction<3> ReductionType;
 	Voronoi1Vec<ReductionType> reduc;
 	
@@ -148,7 +151,7 @@ struct StencilDubinsExt2 final
         const ScalarType
         speed=(*pSpeed)(index), xi=(*pXi)(index), kappa=(*pKappa)(index),
         gS=param.gridScale,tS=param.dependScale;
-        const ScalarType theta = index[2]*tS;
+		const ScalarType theta = pTheta ? (*pTheta)(index) : index[2]*tS;
         const ScalarType c = cos(theta), s=sin(theta);
         const VectorType
         vL{c/gS,s/gS,(kappa+1./xi)/tS},
@@ -160,13 +163,15 @@ struct StencilDubinsExt2 final
     virtual const ParamInterface & Param() const override {return param;}
     virtual void Setup(HFMI *that) override {
         Superclass::Setup(that);
-		reduc.eps=that->io.template Get<ScalarType>("eps",reduc.eps);
+		auto & io = that->io;
+		reduc.eps=io.template Get<ScalarType>("eps",reduc.eps);
         typedef typename HFMI::template DataSource_Inverse<ScalarType> SourceInvType;
-        if(that->io.HasField("speed")) pSpeed = that->template GetField<ScalarType>("speed",false);
+        if(io.HasField("speed")) pSpeed = that->template GetField<ScalarType>("speed",false);
         else pSpeed = std::unique_ptr<SourceInvType>(new SourceInvType(that->template GetField<ScalarType>("cost",false) ) );
         pXi = that->GetField<ScalarType>("xi");
         pKappa = that->GetField<ScalarType>("kappa");
-        param.Setup(that->io,2*mathPi/dims.back());}
+		if(io.HasField("theta")) pTheta = that->GetField<ScalarType>("theta",false);
+        param.Setup(io,2*mathPi/dims.back());}
 };
 
 
@@ -189,7 +194,7 @@ struct StencilElasticaExt2 final
     typename HFM::ParamDefault param;
     ScalarType eps=0.1;
     typedef typename Traits::template DataSource<ScalarType> ScalarFieldType;
-    std::unique_ptr<ScalarFieldType> pSpeed, pXi, pKappa;
+    std::unique_ptr<ScalarFieldType> pSpeed, pXi, pKappa, pTheta;
 	typedef typename Traits::template BasisReduction<3> ReductionType;
 	Voronoi1Vec<ReductionType> reduc;
 	
@@ -198,7 +203,7 @@ struct StencilElasticaExt2 final
         const ScalarType
         speed=(*pSpeed)(index), xi=(*pXi)(index), kappa=(*pKappa)(index),
         gS=param.gridScale,tS=param.dependScale;
-        const ScalarType theta = index[2]*tS;
+		const ScalarType theta = pTheta ? (*pTheta)(index) : index[2]*tS;
         const ScalarType cT = cos(theta), sT=sin(theta);
         
         auto & forward = stencil.forward[0];
@@ -214,13 +219,15 @@ struct StencilElasticaExt2 final
     virtual const ParamInterface & Param() const override {return param;}
     virtual void Setup(HFMI *that) override {
         Superclass::Setup(that);
-        reduc.eps=that->io.template Get<ScalarType>("eps",reduc.eps);
+		auto & io = that->io;
+        reduc.eps=io.template Get<ScalarType>("eps",reduc.eps);
         typedef typename HFMI::template DataSource_Inverse<ScalarType> SourceInvType;
-        if(that->io.HasField("speed")) pSpeed = that->template GetField<ScalarType>("speed",false);
+        if(io.HasField("speed")) pSpeed = that->template GetField<ScalarType>("speed",false);
         else pSpeed = std::unique_ptr<SourceInvType>(new SourceInvType(that->template GetField<ScalarType>("cost",false) ) );
         pXi = that->template GetField<ScalarType>("xi");
         pKappa = that->template GetField<ScalarType>("kappa");
-        param.Setup(that->io,2*mathPi/this->dims.back());}
+		if(io.HasField("theta")) pTheta = that->template GetField<ScalarType>("theta",false);
+        param.Setup(io,2*mathPi/this->dims.back());}
 };
 
 #endif /* PrescribedCurvature2_h */
