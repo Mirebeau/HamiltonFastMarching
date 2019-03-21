@@ -27,13 +27,14 @@ HamiltonFastMarching<TraitsIsotropic<VDimension> >::StencilDataType {
     Redeclare9Types(HFM,ParamDefault,IndexType,StencilType,ParamInterface,
 					HFMI,DistanceGuess,ScalarType,IndexCRef,PointType)
     Redeclare1Constant(HFM,Dimension)
-    ParamDefault param;
-    
+	using ParamType = typename HFM::template _ParamDefault<2,void>; // Distinct scale on each axis
+	ParamType param;
+
     virtual void SetStencil(IndexCRef index, StencilType & stencil) override {
         auto & differences = stencil.symmetric[0];
         for(int i=0; i<Dimension; ++i){
             auto & diff = differences[i];
-            diff.baseWeight=1./square(param.gridScale);
+            diff.baseWeight=1./square(param.gridScales[i]);
             diff.offset.fill(0);
             diff.offset[i]=1;
         }
@@ -41,11 +42,15 @@ HamiltonFastMarching<TraitsIsotropic<VDimension> >::StencilDataType {
     virtual const ParamInterface & Param() const override {return param;}
     virtual void Setup(HFMI *that) override {Superclass::Setup(that); param.Setup(that);}
     virtual DistanceGuess GetGuess(const PointType & p) const override {
-		const ScalarType s = MapWeightedSum<ScalarType>(*this->pMultSource,this->pFM->dom.Neighbors(p));
-        const ScalarType h = param.gridScale;
-        return DistanceGuess::Identity() * square(h/s);}
+		return Rescale(MapWeightedSum<ScalarType>(*this->pMultSource,this->pFM->dom.Neighbors(p)));
 	virtual DistanceGuess GetGuess(const IndexType & index) const override {
-		return DistanceGuess::Identity() * square(param.gridScale/(*this->pMultSource)(index));}
+		return Rescale((*this->pMultSource)(index));}
+protected:
+	DistanceGuess Rescale(ScalarType s) const {
+		VectorType diag;
+		for(int i=0; i<Dimension; ++i) diag[i]=square(param.gridScales[i]/s);
+		return DistanceGuess::Diagonal(diag);
+	}
 	
 };
 
@@ -95,7 +100,8 @@ struct StencilDiagonal final
 protected:
 	DistanceGuess GuessFromSpeeds(const PointType & s) const {
 		const PointType h = param.gridScales;
-		VectorType diag; for(int i=0; i<Dimension; ++i) diag[i] = square(h[i]/s[i]);
+		VectorType diag;
+		for(int i=0; i<Dimension; ++i) diag[i] = square(h[i]/s[i]);
 		return DistanceGuess::Diagonal(diag);}
 };
 

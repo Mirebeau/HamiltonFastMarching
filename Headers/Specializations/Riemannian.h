@@ -24,8 +24,8 @@ struct StencilRiemann final
 : HamiltonFastMarching<TraitsRiemann<VDimension,lastBoundary> >::StencilDataType {
     using HFM = HamiltonFastMarching<TraitsRiemann<VDimension,lastBoundary> >;
     using Superclass = typename HFM::StencilDataType ;
-    Redeclare10Types(HFM,ParamDefault,IndexType,StencilType,ParamInterface,HFMI,Traits,
-					ScalarType,IndexCRef,DistanceGuess,PointType)
+    Redeclare11Types(HFM,ParamDefault,IndexType,StencilType,ParamInterface,HFMI,Traits,
+					ScalarType,IndexCRef,DistanceGuess,PointType,VectorType)
     Redeclare1Constant(HFM,Dimension)
 	using ParamType = typename HFM::template _ParamDefault<2,void>; // Distinct scale on each axis
     ParamType param;
@@ -44,14 +44,14 @@ struct StencilRiemann final
     virtual const ParamInterface & Param() const override {return param;}
     virtual void Setup(HFMI *that) override {
         Superclass::Setup(that);
+		
         param.Setup(that);
-		for(int i=0; i<Dimension; ++i) for(int j=0;j<=i;++j) {
-			auto & h = param.gridScales;
-			gridScales(i,j)=h[i]*h[j];
-			invGridScales(i,j)=1/gridScales(i,j);
-		}
-		if(io.HasField("dualMetric")) {
-			if(io.HasField("metric")) ExceptionMacro("Error: both primal and dual metric provided");
+		gridScales = SymmetricMatrixType::RankOneTensor(VectorType::FromOrigin(param.gridScales));
+		for(int i=0; i<SymmetricMatrixType::InternalDimension; ++i) {
+			invGridScales.data[i]=1./gridScales.data[i];}
+		
+		if(that->io.HasField("dualMetric")) {
+			if(that->io.HasField("metric")) ExceptionMacro("Error: both primal and dual metric provided");
 			pMetric = that->template GetField<MetricElementType>("dualMetric",false);
 			dualizeMetric=true;
 		} else {
@@ -66,7 +66,7 @@ protected:
 	SymmetricMatrixType gridScales, invGridScales; // Stores h[i]*h[j] where h is the gridscale
 	template<bool dual> SymmetricMatrixType Rescale(SymmetricMatrixType m) const {
 		if(dual!=dualizeMetric) m=m.Inverse();
-		for(int i=0;i<Dimension;++i) for(int j=0;j<=i;++j) m(i,j)*=(dual ? invGridScales(i,j) : gridScales(i,j));
+		m = m.ComponentWiseProduct(dual ? invGridScales : gridScales);
 		return m;}
 };
 

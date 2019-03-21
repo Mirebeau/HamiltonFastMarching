@@ -11,7 +11,10 @@
 
 template<typename T> void StencilQuadLinLag2<T>::
 Setup(HFMI * that){
-	Superclass::Setup(that); param.Setup(that);
+	Superclass::Setup(that);
+	param.Setup(that);
+	gridScales = SymmetricMatrixType::RankOneTensor(VectorType::FromOrigin(param.gridScales));
+	
 	auto & io = that->io;
 	if(io.HasField("dualMetric")) {
 		if(io.HasField("metric")) ExceptionMacro("Error: both primal and dual metric provided");
@@ -52,9 +55,8 @@ const -> NormType {
 	NormType norm{m,v};
 	if(dualizeMetric) {norm = norm.DualNorm();}
 	
-	const ScalarType h = param.gridScale;
-	norm.m *= square(h);
-	norm.w *= h;
+	norm.m = norm.m.ComponentWiseProduct(gridScales);
+	norm.w = norm.w.ComponentWiseProduct(VectorType::FromOrigin(param.gridScales));
 	return norm;
 }
 

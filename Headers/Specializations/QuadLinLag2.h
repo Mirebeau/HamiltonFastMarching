@@ -61,8 +61,9 @@ struct StencilQuadLinLag2 final
 	typedef typename Traits::template DataSource<MetricElementType> MetricType;
 	std::unique_ptr<MetricType> pMetric;
 	bool dualizeMetric = false;
-	ParamDefault param;
-	
+	using ParamType = typename HFM::template _ParamDefault<2,void>; // Distinct scale on each axis
+	ParamType param;
+
 	virtual void SetNeighbors(IndexCRef index, std::vector<OffsetType> & stencil) override;
 	virtual const ParamInterface & Param() const override {return param;}
 	virtual void Setup(HFMI *) override;
@@ -78,6 +79,8 @@ private:
 	typename Traits::template Array<bool,Dimension> walls;
 	const DomainType * pDom = nullptr;
 	bool OnWallBoundary(IndexCRef) const;
+	
+	SymmetricMatrixType gridScales;
 	NormType Rescale(const MetricElementType &) const;
 };
 
