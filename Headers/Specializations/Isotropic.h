@@ -10,20 +10,20 @@
 // ------------- Isotropic metrics ------------
 template<size_t VDimension>
 struct TraitsIsotropic : TraitsBase<VDimension> {
-    typedef TraitsBase<VDimension> Superclass;
+    using Superclass = TraitsBase<VDimension>;
     Redeclare3Types(Superclass,DiscreteType,OffsetType,ScalarType)
     Redeclare1Constant(Superclass,Dimension)
 
-    typedef EulerianDifference<OffsetType,ScalarType,1> DifferenceType;
-    typedef EulerianStencil<DifferenceType,Dimension> StencilType;
-    typedef PeriodicGrid<TraitsIsotropic> DomainType;
+    using DifferenceType = EulerianDifference<OffsetType,ScalarType,1>;
+    using StencilType = EulerianStencil<DifferenceType,Dimension>;
+    using DomainType = PeriodicGrid<TraitsIsotropic>;
 };
 
 template<size_t VDimension>
 struct StencilIsotropic final :
 HamiltonFastMarching<TraitsIsotropic<VDimension> >::StencilDataType {
-    typedef HamiltonFastMarching<TraitsIsotropic<VDimension> > HFM;
-    typedef typename HFM::StencilDataType Superclass;
+    using HFM = HamiltonFastMarching<TraitsIsotropic<VDimension> >;
+    using Superclass = typename HFM::StencilDataType;
     Redeclare9Types(HFM,ParamDefault,IndexType,StencilType,ParamInterface,
 					HFMI,DistanceGuess,ScalarType,IndexCRef,PointType)
     Redeclare1Constant(HFM,Dimension)
@@ -53,25 +53,26 @@ HamiltonFastMarching<TraitsIsotropic<VDimension> >::StencilDataType {
 
 template<size_t VDimension>
 struct TraitsDiagonal : TraitsBase<VDimension> {
-    typedef TraitsBase<VDimension> Superclass;
+    using Superclass = TraitsBase<VDimension>;
     Redeclare3Types(Superclass,DiscreteType,OffsetType,ScalarType)
     Redeclare1Constant(Superclass,Dimension)
 
-    typedef EulerianDifference<OffsetType,ScalarType,Dimension> DifferenceType;
-    typedef EulerianStencil<DifferenceType,Dimension> StencilType;
+    using DifferenceType = EulerianDifference<OffsetType,ScalarType,Dimension>;
+    using StencilType = EulerianStencil<DifferenceType,Dimension>;
     
-    typedef PeriodicGrid<TraitsDiagonal> DomainType;
+    using DomainType = PeriodicGrid<TraitsDiagonal>;
 };
 
 template<size_t VDimension>
 struct StencilDiagonal final
 : HamiltonFastMarching<TraitsDiagonal<VDimension> >::StencilDataType {
-    typedef HamiltonFastMarching<TraitsDiagonal<VDimension> > HFM;
-    typedef typename HFM::StencilDataType Superclass;
+    using HFM = HamiltonFastMarching<TraitsDiagonal<VDimension> >;
+    using Superclass = typename HFM::StencilDataType;
     Redeclare4Types(HFM,IndexType,StencilType,ParamInterface,HFMI)
     Redeclare5Types(HFM,DistanceGuess,ScalarType,IndexCRef,VectorType,PointType)
     Redeclare1Constant(HFM,Dimension)
-    typename HFM::template _ParamDefault<2,void> param;
+	using ParamType = typename HFM::template _ParamDefault<2,void>; // Distinct scale on each axis
+    ParamType param;
     
     virtual void SetStencil(const IndexType & index, StencilType & stencil) override {
         for(int i=0; i<Dimension; ++i){

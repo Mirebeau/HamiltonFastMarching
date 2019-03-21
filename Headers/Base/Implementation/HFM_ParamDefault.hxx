@@ -25,6 +25,8 @@ HamiltonFastMarching<TTraits>::_ParamDefault<1,Dummy> : HFM::ParamInterface {
     void Setup(IO & io, ScalarType _dependScale){
         // Setting the scale and origin. This is really specialized for R^n x S^d structures.
         gridScale = io.template Get<ScalarType>("gridScale");
+		if(gridScale<=0){ExceptionMacro("Parametrization error : gridscale "
+										<< gridScale << " should be positive");}
         dependScale = _dependScale;
         origin.back() = -dependScale/2.;
         
@@ -58,6 +60,8 @@ HamiltonFastMarching<TTraits>::_ParamDefault<0,Dummy> : HFM::ParamInterface {
     void Setup(HFMI * that) {
         origin=that->io.template Get<PointType>("origin",origin);
         gridScale = that->io.template Get<ScalarType>("gridScale");
+		if(gridScale<=0){ExceptionMacro("Parametrization error : gridscale "
+										<< gridScale << " should be positive");}
     }
 };
 
@@ -88,8 +92,12 @@ HamiltonFastMarching<TTraits>::_ParamDefault<2,Dummy> : HFM::ParamInterface {
         for(int i=0; i<Dimension; ++i) result[i]=v[i]*gridScales[i];
         return result;}
     void Setup(HFMI * that) {
-        origin=that->io.template Get<PointType>("origin",origin);
-        gridScales = that->io.template Get<PointType>("gridScales");
+		auto & io = that->io;
+        origin=io.template Get<PointType>("origin",origin);
+		if(io.HasField("gridScales")){gridScales = io.template Get<PointType>("gridScales");}
+		else {gridScales = PointType::Constant(io.template Get<ScalarType>("gridScale"));}
+		if(!gridScales.IsPositive()){ExceptionMacro("Parametrization error : gridscales "
+													<< gridScales << " should be positive");}
     }
 };
 
