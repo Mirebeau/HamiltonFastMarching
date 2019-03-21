@@ -60,6 +60,7 @@ struct StencilQuadLinLag2 final
 	// Generic
 	typedef typename Traits::template DataSource<MetricElementType> MetricType;
 	std::unique_ptr<MetricType> pMetric;
+	bool dualizeMetric = false;
 	ParamDefault param;
 	
 	virtual void SetNeighbors(IndexCRef index, std::vector<OffsetType> & stencil) override;

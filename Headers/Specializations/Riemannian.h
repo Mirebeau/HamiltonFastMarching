@@ -34,12 +34,11 @@ struct StencilRiemann final
     using SymmetricMatrixType = typename ReductionType::SymmetricMatrixType;
     using MetricElementType = SymmetricMatrixType;
     using MetricType = typename Traits::template DataSource<MetricElementType>;
-    std::unique_ptr<MetricType> pDualMetric;
     std::unique_ptr<MetricType> pMetric;
-    
+	bool dualizeMetric=false;
+	
     virtual void SetStencil(IndexCRef index, StencilType & stencil) override {
-		const SymmetricMatrixType diff =
-		Rescale<true>(pDualMetric ? (*pDualMetric)(index) : (*pMetric)(index).Inverse() );
+		const SymmetricMatrixType diff = Rescale<true>((*pMetric)(index));
         Voronoi1Mat<ReductionType>(&stencil.symmetric[0][0], diff);
     }
     virtual const ParamInterface & Param() const override {return param;}
@@ -51,20 +50,22 @@ struct StencilRiemann final
 			gridScales(i,j)=h[i]*h[j];
 			invGridScales(i,j)=1/gridScales(i,j);
 		}
-        if(that->io.HasField("dualMetric")) pDualMetric = that->template GetField<MetricElementType>("dualMetric");
-        else pMetric = that->template GetField<MetricElementType>("metric");
+		if(io.HasField("dualMetric")) {
+			if(io.HasField("metric")) ExceptionMacro("Error: both primal and dual metric provided");
+			pMetric = that->template GetField<MetricElementType>("dualMetric",false);
+			dualizeMetric=true;
+		} else {
+			pMetric = that->template GetField<MetricElementType>("metric",false);
+		}
     }
     virtual DistanceGuess GetGuess(const PointType & p) const override {
-		return Rescale<false>(pDualMetric ?
-		MapWeightedSum<SymmetricMatrixType>(*pDualMetric,this->pFM->dom.Neighbors(p)).Inverse() :
-		MapWeightedSum<SymmetricMatrixType>(*pMetric,this->pFM->dom.Neighbors(p)) );
-	}
+		return Rescale<false>( MapWeightedSum<SymmetricMatrixType>(*pMetric,this->pFM->dom.Neighbors(p)) );}
 	virtual DistanceGuess GetGuess(const IndexType & index) const override {
-		return Rescale<false>(pDualMetric ? (*pDualMetric)(index).Inverse() : (*pMetric)(index));
-	}
+		return Rescale<false>((*pMetric)(index));}
 protected:
 	SymmetricMatrixType gridScales, invGridScales; // Stores h[i]*h[j] where h is the gridscale
 	template<bool dual> SymmetricMatrixType Rescale(SymmetricMatrixType m) const {
+		if(dual!=dualizeMetric) m=m.Inverse();
 		for(int i=0;i<Dimension;++i) for(int j=0;j<=i;++j) m(i,j)*=(dual ? invGridScales(i,j) : gridScales(i,j));
 		return m;}
 };

@@ -192,15 +192,9 @@ HopfLaxRecompute(const F & f, IndexCRef index, ActiveNeighFlagType active, Discr
 	const OffsetType offset1 = stencil.Sector(active.sectorIndex,1);
 	const ScalarType val1 = f(offset1,ord1);
 	
-	/*
-	std::cout << "In HL recompute "
-	ExportVarArrow(index)
-	ExportVarArrow(offset0)
-	ExportVarArrow(offset1)
-	<< std::endl;
-	*/
 	
-	if(ord1<ord0){
+	// Semi-Lagrangian scheme requires same scheme order for all neighbor values
+	if(0<ord1 && ord1<ord0){
 		ord0=ord1;
 		val0 = f(offset0,ord0);
 		assert(ord0==ord1);

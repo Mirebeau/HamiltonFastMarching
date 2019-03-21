@@ -12,8 +12,14 @@
 template<typename T> void StencilQuadLinLag2<T>::
 Setup(HFMI * that){
 	Superclass::Setup(that); param.Setup(that);
-	pMetric = that->template GetField<MetricElementType>("metric",false);
 	auto & io = that->io;
+	if(io.HasField("dualMetric")) {
+		if(io.HasField("metric")) ExceptionMacro("Error: both primal and dual metric provided");
+		pMetric = that->template GetField<MetricElementType>("dualMetric",false);
+		dualizeMetric=true;
+	} else {
+		pMetric = that->template GetField<MetricElementType>("metric",false);
+	}
 	cosAngleMin = io.template Get<ScalarType>("cosAngleMin",cosAngleMin);
 	if(io.template Get<ScalarType>("refineStencilAtWallBoundary",0.) && io.HasField("walls")){
 		wallBoundaryAngularResolution = io.template Get<ScalarType>("wallBoundaryAngularResolution",wallBoundaryAngularResolution,2);
@@ -42,8 +48,14 @@ template<typename T> auto StencilQuadLinLag2<T>::
 Rescale(const MetricElementType & data)
 const -> NormType {
 	const auto & [m,v] = data;
+	
+	NormType norm{m,v};
+	if(dualizeMetric) {norm = norm.DualNorm();}
+	
 	const ScalarType h = param.gridScale;
-	return NormType{square(h)*m,h*v};
+	norm.m *= square(h);
+	norm.w *= h;
+	return norm;
 }
 
 
