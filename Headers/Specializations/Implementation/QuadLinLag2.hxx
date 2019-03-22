@@ -172,8 +172,9 @@ HopfLaxRecompute(IndexCRef index, DiscreteFlowType & flow) -> RecomputeType {
 	assert(!flow.empty());
 	if(flow.size()==1){
 		const VectorType off = VectorType::CastCoordinates(flow[0].offset);
-		const ScalarType value = flow[0].weight+ base.Norm(off); // Flow[0].weight initially stores the value at neighbor
-		flow[0].weight = 1;
+		const ScalarType offsetNorm = base.Norm(off);
+		const ScalarType value = flow[0].weight+ offsetNorm; // Flow[0].weight initially stores the value at neighbor
+		flow[0].weight = 1/offsetNorm;
 		return {value,0.};
 	}
 	
@@ -200,22 +201,27 @@ HopfLaxRecompute(IndexCRef index, DiscreteFlowType & flow) -> RecomputeType {
 			width += g[i]*std::fabs(value-d[i]);
 			flow[i].weight = g[i];
 		}
-		return RecomputeType{value,width};
+		assert(g.Sum()>0);
+		return RecomputeType{value,width/g.Sum()};
 	}
 	
 	// Otherwise test the two endpoints
 	const ScalarType
-	val0 = norm.Norm(VectorType{1.,0.}) + d[0],
-	val1 = norm.Norm(VectorType{0.,1.}) + d[1];
+	norm0 = norm.Norm(VectorType{1.,0.}),
+	norm1 = norm.Norm(VectorType{0.,1.});
+	const ScalarType
+	val0 = norm0 + d[0],
+	val1 = norm1 + d[1];
 	if(val0<=val1){
 		value=val0;
+		flow[0].weight = 1./norm0;
 	} else {
 		value=val1;
 		flow[0].offset = flow[1].offset;
+		flow[0].weight = 1./norm1;
 	}
 	flow.resize(1);
-	flow[0].weight = 1.;
-	
+
 	return RecomputeType{value,0.};
 }
 

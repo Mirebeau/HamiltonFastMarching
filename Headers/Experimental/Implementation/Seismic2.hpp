@@ -83,9 +83,9 @@ auto StencilSeismic2::HopfLaxRecompute(IndexCRef index, DiscreteFlowType & flow)
 		assert(flow.size()==2);
 		const auto & [value,weights] = norm.HopfLax({neigh(0),neigh(1)},{w(0),w(1)});
 		const ScalarType width = weights[0]*abs(value-w(0))+weights[1]*abs(value-w(1));
-		assert((weights.Sum()-1.)<1e-6);
 		w(0)=weights[0]; w(1)=weights[1];
-		return {value,width};
+		assert(weights.Sum()>0);
+		return {value,width/weights.Sum()};
 	}
 }
 
