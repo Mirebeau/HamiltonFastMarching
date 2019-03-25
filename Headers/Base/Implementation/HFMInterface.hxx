@@ -367,12 +367,12 @@ Run_SetupSolver() {
             else seedValues.resize(seedPoints.size(),0.);
 			
 			// If desired, with exact given position get to be spreaded over a few pixels
-			const DiscreteType spreadSeeds = (DiscreteType) io.Get<ScalarType>("spreadSeeds",0);
-			if(!(0<=spreadSeeds && spreadSeeds<=2))
-			   ExceptionMacro("Error : spreadSeeds parameter should be 0, 1 or 2, but  has value "
+			const DiscreteType spreadSeeds = (DiscreteType) io.Get<ScalarType>("spreadSeeds",-1);
+			if(!(-1<=spreadSeeds && spreadSeeds<=1))
+			   ExceptionMacro("Error : spreadSeeds parameter should be -1,0, 1, but  has value "
 							  << spreadSeeds << ".\n");
 
-			if(spreadSeeds>=1){
+			if(spreadSeeds>=0){
 				std::vector<PointType> newPoints;
 				std::vector<ScalarType> newValues;
 				std::set<IndexType> indices; // Avoid repetition of spreaded points for a given seed point
@@ -396,7 +396,7 @@ Run_SetupSolver() {
 							newValues.push_back(value+ 0.5*( distp.Norm(v) + distq.Norm(v) ) );
 						}
 						
-						if(spreadSeeds>=2){
+						if(spreadSeeds>=1){
 							auto rev = stencil.ReversedOffsets({index,pFM->values.Convert(index)});
 							for(const auto & offset : rev){
 								Redeclare1Type(Traits,IndexDiff);
