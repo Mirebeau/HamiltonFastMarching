@@ -88,5 +88,8 @@ private:
 	std::vector<ScalarType> tmp_stencil_scal;
 };
 
+using StencilRander2 = StencilQuadLinLag2<TraitsRanderLag2>;
+using StencilAsymmetricQuadratic2 = StencilQuadLinLag2<TraitsAsymmetricQuadraticLag2>;
+
 #include "Implementation/QuadLinLag2.hxx"
 #endif /* QuadLinLag2_h */

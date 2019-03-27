@@ -70,6 +70,7 @@
 #define QuadLinLag2_AsymmetricQuadratic2 1
 
 #define Seismic2_Seismic2 1
+#define Seismic2_SeismicTopographic2 1
 #define Seismic3_Seismic3 1
 #define AlignedBillard_AlignedBillard 1
 
@@ -102,9 +103,6 @@ using StencilElastica2_5 = StencilElastica2<5>;
 #include "Specializations/Curvature3.h"
 #elif PPCAT(QuadLinLag2_,ModelName)
 #include "Specializations/QuadLinLag2.h"
-using StencilRander2 = StencilQuadLinLag2<TraitsRanderLag2>;
-using StencilAsymmetricQuadratic2 = StencilQuadLinLag2<TraitsAsymmetricQuadraticLag2>;
-
 
 // Experimental specializations
 #elif PPCAT(PrescribedCurvature2_,ModelName)
