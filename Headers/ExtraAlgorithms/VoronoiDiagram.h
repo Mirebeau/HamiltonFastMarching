@@ -44,7 +44,7 @@ Setup(HFMI * that){
         if(seedFlags.size()!=seeds.size()){
             ExceptionMacro("Error : Number of seeds (" <<seeds.size()<<
                            ") is distinct from the number of seedFlags(" <<seedFlags.size() << ").\n");}
-        for(int i=0; i<seeds.size(); ++i){
+        for(size_t i=0; i<seeds.size(); ++i){
             IndexType index = that->pFM->dom.IndexFromPoint(that->stencil.Param().ADim(seeds[i]));
             if(!that->pFM->dom.Periodize(index,index).IsValid()) ExceptionMacro("Error : seed " << seeds[i] << " is out of range.\n");
             voronoiFlags(index) = (VoronoiFlagType)seedFlags[i];

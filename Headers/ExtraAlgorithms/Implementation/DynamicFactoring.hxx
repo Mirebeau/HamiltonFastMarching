@@ -32,6 +32,8 @@ Correction(const OffsetType & offset, int ord) const -> ScalarType {
 				return 0.5*(CorrectionCurrent(offset, ord, data.base)
 							+CorrectionKey(offset,ord, data));
 		} // Switch point
+		assert(false);
+		return std::numeric_limits<ScalarType>::quiet_NaN();
 	};
 	
 	if(method==FactoringMethod::Static && data_static.centerIndex != -1){

@@ -204,7 +204,7 @@ HopfLaxRecompute(const F & getVal, const MultiplierType & mult,
         quad.minVal=std::min(quad.minVal, offsetValue.weight);}
 	
 	// TODO : third order
-    for(int i=0; i<discreteFlow.size(); ++i){
+    for(size_t i=0; i<discreteFlow.size(); ++i){
 		const int ord = orderNeigh[i];
 		assert(ord!=0);
 		const std::array<ScalarType,4> mult2 = {0.,1.,9./4.,121./36.};
@@ -215,7 +215,7 @@ HopfLaxRecompute(const F & getVal, const MultiplierType & mult,
     result.value = quad.Solve().first;
     result.width = 0.; 
     
-    for(int i=0; i<discreteFlow.size(); ++i){
+    for(size_t i=0; i<discreteFlow.size(); ++i){
         // Difference should already be non-negative, by construction, without sndOrder.
         const ScalarType weightPosDiff = weights[i]*std::max(0.,result.value-discreteFlow[i].weight);
         discreteFlow[i].weight = weightPosDiff;
