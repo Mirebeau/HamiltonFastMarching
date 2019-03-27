@@ -51,8 +51,11 @@ struct StencilSeismic2 final
 	virtual DistanceGuess GetGuess(const PointType & p) const override;
 	virtual DistanceGuess GetGuess(const IndexType & index) const override {return GetNorm(index);}
 private:
-	std::vector<OffsetType> tmp_stencil;
 	NormType GetNorm(IndexCRef index) const; // Includes rescaling by h
+	
+	std::vector<OffsetType> tmp_stencil;
+	std::vector<VectorType> tmp_stencil_vec;
+	std::vector<ScalarType> tmp_stencil_scal;
 };
 
 #include "Implementation/Seismic2.hpp"

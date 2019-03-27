@@ -72,7 +72,6 @@ struct StencilQuadLinLag2 final
 
 	ScalarType cosAngleMin=0.5;
 private:
-	std::vector<OffsetType> tmp_stencil;
 	NormType GetNorm(IndexCRef) const;
 	// Refinement near walls
 	ScalarType wallBoundaryAngularResolution = 0.2;
@@ -82,6 +81,11 @@ private:
 	
 	SymmetricMatrixType gridScales;
 	NormType Rescale(const MetricElementType &) const;
+	
+	// Used by optimized Stern-Brocot algorithm.
+	std::vector<OffsetType> tmp_stencil;
+	std::vector<VectorType> tmp_stencil_vec;
+	std::vector<ScalarType> tmp_stencil_scal;
 };
 
 #include "Implementation/QuadLinLag2.hxx"

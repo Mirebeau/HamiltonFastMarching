@@ -94,11 +94,16 @@ void StencilSeismic2::SetNeighbors(IndexCRef index, std::vector<OffsetType> & st
 	assert(tmp_stencil.empty());
 	tmp_stencil.insert(tmp_stencil.end(),{OffsetType(1,0),OffsetType(0,-1),OffsetType(-1,0),OffsetType(0,1)});
 	
+	/*
+	// Predicate based version, uses two to three gradient evaluations per point.
 	auto pred = [&norm,this](OffsetCRef u, OffsetCRef v) -> bool {
 		return CosAngle(norm,VectorType::CastCoordinates(u),
 						VectorType::CastCoordinates(v)) >= this->cosAngleMin;};
 	
 	SternBrocotRefine(pred, stencil, tmp_stencil);
+	*/
+	
+	SternBrocotRefine_AcuteBound(norm, cosAngleMin, stencil, tmp_stencil, tmp_stencil_vec, tmp_stencil_scal);
 }
 
 void StencilSeismic2::Setup(HFMI * that){

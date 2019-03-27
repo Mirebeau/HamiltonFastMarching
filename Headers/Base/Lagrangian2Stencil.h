@@ -75,10 +75,83 @@ void SternBrocotRefine(const Predicate & stop,
 	refined.pop_back();
 }
 
+// An optimized implementation, avoiding costly gradient recomputations,
+// when the predicate is known to be cosAngleMin
+
+template<typename NormType,
+typename ScalarType,
+typename OffsetType,
+typename VectorType
+> void
+SternBrocotRefine_AcuteBound(const NormType & norm,
+							 const ScalarType & cosAngleMin,
+							 std::vector<OffsetType> & refined,
+							 std::vector<OffsetType> & orig,
+							 std::vector<VectorType> & grads,
+							 std::vector<ScalarType> & norms) {
+	assert(!orig.empty());
+	assert(grads.empty());
+	assert(norms.empty());
+	
+	auto grad = [&norm](const OffsetType & u) -> VectorType {
+		return norm.Gradient(VectorType::CastCoordinates(u));};
+	auto scal = [](const VectorType & u, const OffsetType & v) -> ScalarType {
+		return u.ScalarProduct(VectorType::CastCoordinates(v));};
+	
+	grads.reserve(orig.size());
+	for(const OffsetType & offset : orig){
+		const VectorType g = grad(offset);
+		grads.push_back(g);
+		norms.push_back(scal(g,offset));
+	}
+	
+	refined.push_back(orig.front());
+	VectorType grad_u = grads.front();
+	ScalarType norm_u = norms.front();
+	
+	// Refinement
+	int size=orig.size();
+	while(!orig.empty()){
+		const OffsetType & u = refined.back(), & v = orig.back();
+		const VectorType & grad_v = grads.back();
+		const ScalarType & norm_v = norms.back();
+		
+		// CosAngleMin predicate
+		const bool stop =
+		scal(grad_u,v) >= cosAngleMin*norm_v &&
+		scal(grad_v,u) >= cosAngleMin*norm_u;
+		
+		if(stop){
+			refined.push_back(v);
+			grad_u = grad_v;
+			norm_u = norm_v;
+			
+			orig.pop_back();
+			grads.pop_back();
+			norms.pop_back();
+		} else {
+			const OffsetType w = u+v; // Inserted offset
+			const VectorType grad_w = grad(w);
+			const ScalarType norm_w = scal(grad_w,w);
+
+			orig.push_back(w);
+			grads.push_back(grad_w);
+			norms.push_back(norm_w);
+			
+			++size;
+			if(size>=127){ExceptionMacro("Stern-Brocot refine error : excessive stencil size. "
+										 "Metric is either non-definite or too anisotropic.");}
+		}
+	}
+	refined.pop_back();
+
+	grads.clear();
+	norms.clear();
+}
 
 // -----
 /*
- // Alternative version usig a forward list, slightly less efficient.
+ // Alternative version using a forward list, slightly less efficient.
  template<typename TPred, typename TVec>
  void SternBrocotRefine(const TPred & stop, std::forward_list<TVec> & l){
  typedef TVec VectorType;

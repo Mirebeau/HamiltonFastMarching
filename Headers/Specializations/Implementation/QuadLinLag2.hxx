@@ -80,11 +80,16 @@ SetNeighbors(IndexCRef index, std::vector<OffsetType> & stencil) {
 		
 		SternBrocotRefine(pred, stencil, tmp_stencil);
 	} else {
+		/* // Predicate based version. Uses two or three gradient evaluations per point.
 		auto pred = [&norm,this](OffsetCRef u, OffsetCRef v) -> bool {
 			return CosAngle(norm, VectorType::CastCoordinates(u),
 							VectorType::CastCoordinates(v))>=this->cosAngleMin;};
 		
 		SternBrocotRefine(pred, stencil, tmp_stencil);
+		 */
+		SternBrocotRefine_AcuteBound(norm, cosAngleMin, stencil,
+									 tmp_stencil, tmp_stencil_vec, tmp_stencil_scal);
+
 	}
 	
 	// TODO : add criterion for walls, etc.
