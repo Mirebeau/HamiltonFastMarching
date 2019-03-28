@@ -367,7 +367,8 @@ Run_SetupSolver() {
             else seedValues.resize(seedPoints.size(),0.);
 			
 			// If desired, with exact given position get to be spreaded over a few pixels
-			const DiscreteType spreadSeeds = (DiscreteType) io.Get<ScalarType>("spreadSeeds",-1);
+			DiscreteType spreadSeeds = (pFM->factoring.method == FactoringMethod::None) ? -1 : 0;
+			spreadSeeds = (DiscreteType) io.Get<ScalarType>("spreadSeeds",spreadSeeds);
 			if(!(-1<=spreadSeeds && spreadSeeds<=1))
 			   ExceptionMacro("Error : spreadSeeds parameter should be -1,0, 1, but  has value "
 							  << spreadSeeds << ".\n");
