@@ -93,6 +93,10 @@ SternBrocotRefine_AcuteBound(const NormType & norm,
 	assert(grads.empty());
 	assert(norms.empty());
 	
+	std::cout << "In sb "
+	ExportVarArrow(norm)
+	<< std::endl;
+	
 	auto grad = [&norm](const OffsetType & u) -> VectorType {
 		return norm.Gradient(VectorType::CastCoordinates(u));};
 	auto scal = [](const VectorType & u, const OffsetType & v) -> ScalarType {
@@ -121,6 +125,12 @@ SternBrocotRefine_AcuteBound(const NormType & norm,
 		scal(grad_u,v) >= cosAngleMin*norm_v &&
 		scal(grad_v,u) >= cosAngleMin*norm_u;
 		
+		std::cout << "In stern Brocot "
+		ExportVarArrow(u)
+		ExportVarArrow(v)
+		ExportVarArrow(grad_u)
+		ExportVarArrow(grad_v)
+		<< std::endl;
 		if(stop){
 			refined.push_back(v);
 			grad_u = grad_v;
