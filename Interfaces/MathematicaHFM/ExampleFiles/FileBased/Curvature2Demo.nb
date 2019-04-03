@@ -10,10 +10,10 @@
 NotebookFileLineBreakTest
 NotebookFileLineBreakTest
 NotebookDataPosition[       157,          7]
-NotebookDataLength[     23734,        591]
-NotebookOptionsPosition[     23012,        562]
-NotebookOutlinePosition[     23372,        578]
-CellTagsIndexPosition[     23329,        575]
+NotebookDataLength[     23095,        576]
+NotebookOptionsPosition[     22373,        547]
+NotebookOutlinePosition[     22733,        563]
+CellTagsIndexPosition[     22690,        560]
 WindowFrame->Normal*)
 
 (* Beginning of Notebook Content *)
@@ -273,39 +273,23 @@ Cell[BoxData[
            RowBox[{"\"\<forward\>\"", "\[Rule]", 
             RowBox[{"{", "}"}]}], ",", 
            RowBox[{"\"\<symmetric\>\"", "\[Rule]", 
-            RowBox[{"{", "}"}]}], ",", 
-           RowBox[{"\"\<maxForward\>\"", "\[Rule]", 
-            RowBox[{"{", 
-             RowBox[{"{", "}"}], "}"}]}], ",", 
-           RowBox[{"\"\<maxSymmetric\>\"", "\[Rule]", 
-            RowBox[{"{", 
-             RowBox[{"{", "}"}], "}"}]}]}], "}"}]}], "]"}]}], ";", 
+            RowBox[{"{", "}"}]}]}], "}"}]}], "]"}]}], ";", 
       "\[IndentingNewLine]", 
       RowBox[{"stencil", "=", 
        RowBox[{"{", 
         RowBox[{
          RowBox[{"\"\<forward\>\"", "/.", "stencil"}], ",", 
-         RowBox[{"\"\<symmetric\>\"", "/.", "stencil"}], ",", 
-         RowBox[{"\"\<maxForward\>\"", "/.", "stencil"}], ",", 
-         RowBox[{"\"\<maxSymmetric\>\"", "/.", "stencil"}]}], "}"}]}], ";", 
+         RowBox[{"\"\<symmetric\>\"", "/.", "stencil"}]}], "}"}]}], ";", 
       "\[IndentingNewLine]", 
       RowBox[{"stencil", "=", 
        RowBox[{"{", 
         RowBox[{
-         RowBox[{"Join", "[", 
-          RowBox[{
-           RowBox[{"stencil", "[", 
-            RowBox[{"[", "1", "]"}], "]"}], ",", 
-           RowBox[{"Join", "@@", 
-            RowBox[{"stencil", "[", 
-             RowBox[{"[", "3", "]"}], "]"}]}]}], "]"}], ",", 
-         RowBox[{"Join", "[", 
-          RowBox[{
-           RowBox[{"stencil", "[", 
-            RowBox[{"[", "2", "]"}], "]"}], ",", 
-           RowBox[{"Join", "@@", 
-            RowBox[{"stencil", "[", 
-             RowBox[{"[", "4", "]"}], "]"}]}]}], "]"}]}], "}"}]}], ";", 
+         RowBox[{"Join", "@@", 
+          RowBox[{"stencil", "[", 
+           RowBox[{"[", "1", "]"}], "]"}]}], ",", 
+         RowBox[{"Join", "@@", 
+          RowBox[{"stencil", "[", 
+           RowBox[{"[", "2", "]"}], "]"}]}]}], "}"}]}], ";", 
       "\[IndentingNewLine]", 
       RowBox[{"stencil", "=", 
        RowBox[{"Join", "[", 
@@ -472,7 +456,8 @@ Cell[BoxData[
    3.7017731008402023`*^9}, {3.7049914897222443`*^9, 3.704991499344905*^9}, {
    3.7201874159796352`*^9, 3.720187431155006*^9}, {3.722758013011786*^9, 
    3.722758020830415*^9}, {3.729539463034257*^9, 3.72953951558571*^9}, {
-   3.7295396246247663`*^9, 3.729539627390719*^9}}],
+   3.7295396246247663`*^9, 3.729539627390719*^9}, {3.76323114843081*^9, 
+   3.763231176547152*^9}}],
 
 Cell["\<\
 Available models:
@@ -579,18 +564,18 @@ CellTagsIndex->{}
 Notebook[{
 Cell[CellGroupData[{
 Cell[579, 22, 117, 1, 92, "Title"],
-Cell[699, 25, 18909, 449, 1482, "Input"],
-Cell[19611, 476, 506, 11, 106, "Text"],
-Cell[20120, 489, 1145, 21, 125, "Text"],
+Cell[699, 25, 18270, 434, 1474, "Input"],
+Cell[18972, 461, 506, 11, 106, "Text"],
+Cell[19481, 474, 1145, 21, 125, "Text"],
 Cell[CellGroupData[{
-Cell[21290, 514, 162, 2, 44, "Subsection"],
-Cell[21455, 518, 158, 3, 30, "Text"],
-Cell[21616, 523, 489, 11, 125, "Text"]
+Cell[20651, 499, 162, 2, 44, "Subsection"],
+Cell[20816, 503, 158, 3, 30, "Text"],
+Cell[20977, 508, 489, 11, 125, "Text"]
 }, Open  ]],
 Cell[CellGroupData[{
-Cell[22142, 539, 174, 2, 44, "Subsection"],
-Cell[22319, 543, 188, 2, 30, "Text"],
-Cell[22510, 547, 474, 11, 125, "Text"]
+Cell[21503, 524, 174, 2, 44, "Subsection"],
+Cell[21680, 528, 188, 2, 30, "Text"],
+Cell[21871, 532, 474, 11, 125, "Text"]
 }, Open  ]]
 }, Open  ]]
 }
