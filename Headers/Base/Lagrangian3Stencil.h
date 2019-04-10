@@ -8,14 +8,15 @@
 #ifndef Lagrangian3Stencil_h
 #define Lagrangian3Stencil_h
 
-#include "Specializations/CommonTraits.h"
+#include "JMM_CPPLibs/LinearAlgebra/VectorType.h"
 #include "JMM_CPPLibs/Output/EnumToString.h"
 
+#include "CommonStencil.h"
 
 // Possible additions : VoronoiRefined, or CubeRefined (several ways)
-enum class Lagrangian3StencilGeometry {Diamond,CutCube,Cube,SpikyCube,Voronoi};
+enum class Lagrangian3StencilGeometry {Diamond,CutCube,Cube,SpikyCube,Voronoi,None};
 template<> char const * enumStrings<Lagrangian3StencilGeometry>::data[] =
-{"Diamond","CutCube","Cube","SpikyCube","Voronoi"};
+{"Diamond","CutCube","Cube","SpikyCube","Voronoi","None"};
 
 template<typename TOff, typename TScalar, typename TDiscrete>
 struct Lagrangian3Stencil {
@@ -35,8 +36,8 @@ struct Lagrangian3Stencil {
 	
 	PrintSelfMacro(Lagrangian3Stencil);
 	// Three main orientations of the stencil
-	std::array<OffsetType,3> offsets;
 	Lagrangian3StencilGeometry geom;
+	std::array<OffsetType,3> offsets;
 	
 	struct ActiveNeighFlagType {
 		// Indices to be used with NeighborsAround
@@ -53,6 +54,12 @@ struct Lagrangian3Stencil {
 	static const int nActiveNeigh = Dimension;
 	using CommonStencilType = CommonStencil<OffsetType,ScalarType,nActiveNeigh>;
 	Redeclare3Types(CommonStencilType,DiscreteFlowElement,DiscreteFlowType,RecomputeType);
+	
+	bool IsValid() const;
+	
+	static Lagrangian3Stencil MakeStencil(Lagrangian3StencilGeometry geom,
+										  OffsetType u={1,0,0}, OffsetType v={0,1,0}, OffsetType w={0,0,1}){
+		return Lagrangian3Stencil{geom,{u,v,w}};}
 };
 
 template<typename TO, typename TS, typename TD> void
@@ -64,6 +71,13 @@ Lagrangian3Stencil<TO,TS,TD>::PrintSelf(std::ostream & os) const {
 	enumToString(geom) << "}";
 }
 
+template<typename TO, typename TS, typename TD> bool
+Lagrangian3Stencil<TO,TS,TD>::IsValid() const {
+	return geom!=Lagrangian3StencilGeometry::None
+	&& LinearAlgebra::Determinant(offsets[0],offsets[1],offsets[2])==1;
+}
+
+
 template<typename TO, typename TS, typename TD> void
 Lagrangian3Stencil<TO,TS,TD>::ActiveNeighFlagType::PrintSelf(std::ostream & os) const {
 	os << "{" << (int)neighborIndex << "," << (int)sectorIndex << "}";
@@ -72,6 +86,7 @@ Lagrangian3Stencil<TO,TS,TD>::ActiveNeighFlagType::PrintSelf(std::ostream & os) 
 template<typename TO, typename TS, typename TD> void
 Lagrangian3Stencil<TO,TS,TD>::Neighbors(
 	std::vector<OffsetType> & neigh) const {
+	assert(IsValid());
 	
 	// Voronoi class stencil
 	// TODO : Voronoi refined
@@ -139,67 +154,9 @@ Lagrangian3Stencil<TO,TS,TD>::Neighbors(
 		}
 		assert(geom == Lagrangian3StencilGeometry::SpikyCube); return;
 
-/*
-		const OffsetType &
-		u=offsets[0],
-		v=offsets[1],
-		w=offsets[2];
-
-		neigh.insert(neigh.end(),{
-			u,-u,v,-v,w,-w
-		});
-		if(geom == Lagrangian3StencilGeometry::Diamond) return;
-		
-		neigh.insert(neigh.end(),{
-			u+v,u-v,-u+v,-u-v,
-			v+w,v-w,-v+w,-v-w,
-			w+u,w-u,-w+u,-w-u
-		});
-		if(geom == Lagrangian3StencilGeometry::CutCube) return;
-
-		neigh.insert(neigh.end(),{
-			u+v+w,u+v-w,u-v+w,u-v-w,
-			-u+v+w,-u+v-w,-u-v+w,-u-v-w
-		});
-		if(geom == Lagrangian3StencilGeometry::Cube) return;
-
-		neigh.insert(neigh.end(),{
-			2*u+v+w,2*u
-		});
-		assert(geom == Lagrangian3StencilGeometry::SpikyCube);
- */
 		
 	}
-	
 	/*
-	switch (geom) {
-		case Lagrangian3StencilGeometry::Cube:{
-			const OffsetType &
-			u=offsets[0],
-			v=offsets[1],
-			w=offsets[2];
-			neigh.reserve(neigh.size()+6);
-			neigh.insert(neigh.end(),{
-				u,-u,v,-v,w,-w
-			});
-			return;
-		}
-		case Lagrangian3StencilGeometry::Cube:{
-			const OffsetType &
-			u=offsets[0],
-			v=offsets[1],
-			w=offsets[2];
-			neigh.reserve(neigh.size()+26);
-			neigh.insert(neigh.end(),{
-				u,-u,v,-v,w,-w,
-				u+v,u-v,-u+v,-u-v,
-				v+w,v-w,-v+w,-v-w,
-				w+u,w-u,-w+u,-w-u,
-				u+v+w,u+v-w,u-v+w,u-v-w,
-				-u+v+w,-u+v-w,-u-v+w,-u-v-w
-			});
-			return;
-		}
 			
 //		case Lagrangian3StencilGeometry::VoronoiRefined:
 //			neigh.reserve(neigh.size()+18);
@@ -232,11 +189,12 @@ Lagrangian3Stencil<TO,TS,TD>::Neighbors(
 template<typename TO, typename TS, typename TD> auto
 Lagrangian3Stencil<TO,TS,TD>::NeighborIndex(const OffsetType & offset)
 const -> ShortType {
+	assert(IsValid());
+	
 	const OffsetType &
 	u=offsets[0],
 	v=offsets[1],
 	w=offsets[2];
-	assert(LinearAlgebra::Determinant(u,v,w) == 1);
 	
 	const auto
 	a = LinearAlgebra::Determinant(offset,v,w),
@@ -274,6 +232,8 @@ template<typename TO, typename TS, typename TD> void
 Lagrangian3Stencil<TO,TS,TD>::NeighborsAround(
 	ShortType index, std::vector<OffsetType> & neigh) const {
 	assert(index>=0);
+	assert(IsValid());
+	
 	
 	
 #ifndef NDEBUG
@@ -426,68 +386,7 @@ Lagrangian3Stencil<TO,TS,TD>::NeighborsAround(
 		assert(geom==Lagrangian3StencilGeometry::SpikyCube);{
 			neigh.insert(neigh.end(), {u,u+v,u+v+w,u+w}); return;}
 	}
-
-	/*
-	switch (geom) {
-		case Lagrangian3StencilGeometry::Diamond:{
-			assert(index<6);
-			const int i = index/2;
-			const int j = (index+1)%3, k=(index+2)%3;
-			const OffsetType & v = offsets[j], w = offsets[k];
-			neigh.insert(neigh.end(),{v,w,-v,-w});
-			return;
-		}
-			
-		case Lagrangian3StencilGeometry::CutCube:
-		if(index<6) {
-			
-		}
-
-			
-		case Lagrangian3StencilGeometry::Cube:
-			// i,j,k permutation of 0,1,2
-			if(index<6){
-				// Around a face center
-				const int eps = index%2, i=index/2;
-				const OffsetType
-				u = (eps ? -1 : 1)*offsets[i];
-				const OffsetType &
-				v = offsets[(i+1)%3],
-				w = offsets[(i+2)%3];
-				neigh.insert(neigh.end(),
-							 {u+v,u+v+w,u+w,u-v+w,u-v,u-v-w,u-w,u+v-w});
-				return;
-			}
-			index-=6;
-			
-			if(index<12){
-				// Around an edge center
-				const int eps1=index%2; index/=2;
-				const int eps0=index%2; index/=2;
-				const int i=index;
-				const OffsetType u = (eps0 ? -1 : 1)*offsets[i];
-				const OffsetType v = (eps1 ? -1 : 1)*offsets[(i+1)%3];
-				const OffsetType & w = offsets[(i+2)%3];
-				neigh.insert(neigh.end(),
-						{u,u+v+w,v,u+v-w});
-				return;
-			}
-			index-=12;
-	
-			assert(index<8);
-			if(true){
-				// Around a cube vertex
-				const int eps2=index%2; index/=2;
-				const int eps1=index%2; index/=2;
-				const int eps0=index;
-				const OffsetType u = (eps0 ? -1 : 1)*offsets[0];
-				const OffsetType v = (eps1 ? -1 : 1)*offsets[1];
-				const OffsetType w = (eps2 ? -1 : 1)*offsets[2];
-				neigh.insert(neigh.end(),
-							 {u,u+v,v,v+w,w,w+u});
-				return;
-			}
-			assert(false);
+/*
 			
 		case Lagrangian3StencilGeometry::Voronoi:{
 			const OffsetType opp = -(offsets[0]+offsets[1]+offsets[2]);

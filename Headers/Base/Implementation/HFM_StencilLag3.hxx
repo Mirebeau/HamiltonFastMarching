@@ -8,6 +8,8 @@
 #ifndef HFM_StencilLag3_hxx
 #define HFM_StencilLag3_hxx
 
+#include "Base/Lagrangian3Stencil.h"
+
 // ********** Stencil data - Semi-Lagrangian3 *********
 
 template<typename T> template<typename Dummy>
@@ -15,17 +17,22 @@ struct HamiltonFastMarching<T>::_StencilDataType<SSP::Lag3,Dummy>
 : HamiltonFastMarching<T>::_StencilDataTypeBase {
 	using HFM = HamiltonFastMarching<T>;
 	using Superclass = HFM::_StencilDataTypeBase;
-	
+	Redeclare1Type(Superclass,  ConstOffsetRange)
+
 	virtual void Setup(HFMI *) override;
 	virtual void Initialize(const HFM *) override final;
+	
+	virtual ConstOffsetRange ReversedOffsets(FullIndexCRef) const override final;
 protected:
 	friend struct HamiltonFastMarching<Traits>;
 	virtual ScalarType HopfLaxUpdate(FullIndexCRef, OffsetCRef, ScalarType, ActiveNeighFlagType &) override final;
-	template<typename F> RecomputeType HopfLaxRecompute(const F &, IndexCRef, ActiveNeighFlagType, DiscreteFlowType &);
+	template<typename F> RecomputeType
+	HopfLaxRecompute(const F &, IndexCRef, ActiveNeighFlagType, DiscreteFlowType &);
 	
 	typedef CappedVector<std::pair<OffsetType,ScalarType>, 9> OffsetVals;
 	virtual std::pair<ScalarType,int> HopfLaxUpdate(IndexCRef,const OffsetVals &) = 0;
 	virtual RecomputeType HopfLaxRecompute(IndexCRef,DiscreteFlowType &) = 0;
+	Lagrangian3StencilGeometry geom = Lagrangian3StencilGeometry::None;
 private:
 	HFM::Array<StencilType,Dimension> stencils;
 	std::vector<OffsetType> tmpHLU;
@@ -40,6 +47,17 @@ HamiltonFastMarching<Traits>::_StencilDataType<SSP::Lag3, Dummy>::
 Setup(HFMI * that){
 	Superclass::Setup(that);
 	stencils.dims = this->dims;
+	
+	if(that->io.HasField("stencilGeometry")){
+		geom = enumFromString<Lagrangian3StencilGeometry>(that->io.GetString("stencilGeometry"));
+		if( (int)geom==-1 ) ExceptionMacro("Stencil Lagrangian 3 error : unrecognized stencil Geometry");
+	}
+}
+
+template<typename Traits> template<typename Dummy> auto
+HamiltonFastMarching<Traits>::_StencilDataType<SSP::Lag3, Dummy>::
+ReversedOffsets(FullIndexCRef full) const -> ConstOffsetRange {
+	return this->reversedOffsets[ (geom==Lagrangian3StencilGeometry::None) ? full.linear : 0];
 }
 
 // Compute the direct and reversed offsets
@@ -47,6 +65,17 @@ template<typename Traits> template<typename Dummy> void
 HamiltonFastMarching<Traits>::_StencilDataType<SSP::Lag3, Dummy>::
 Initialize(const HFM * pFM_){
 	Superclass::Initialize(pFM_);
+	
+	if(geom!=Lagrangian3StencilGeometry::None){
+		const auto stencil = StencilType::MakeStencil(geom);
+		stencils.push_back(stencil);
+		
+		auto & rev = this->reversedOffsets;
+		stencil.Neighbors(rev.values);
+		rev.splits.push_back(rev.values.size());
+		return;
+	}
+	
 	const DiscreteType size = this->dims.Product();
 	stencils.resize(size);
 	std::vector<std::pair<DiscreteType,OffsetType> > targets;
@@ -78,7 +107,8 @@ HopfLaxUpdate(FullIndexCRef full, OffsetCRef acceptedOffset, ScalarType accepted
 	const IndexType updatedIndex = full.index;
 	
 	// Get the index of the accepted offset
-	const StencilType & stencil = stencils[full.linear];
+	const StencilType & stencil =
+	geom==Lagrangian3StencilGeometry::None ? stencils[full.linear] : stencils.front();
 	const ShortType neighborIndex = stencil.NeighborIndex(acceptedOffset);
 	
 	// Iterate over neighbors, and fill relative data
@@ -100,38 +130,6 @@ HopfLaxUpdate(FullIndexCRef full, OffsetCRef acceptedOffset, ScalarType accepted
 				offsetVal.push_back({offset,
 					fm.template GetNeighborValue<true,false,1>(offset,ord)});
 				assert(ord==1);
-				
-				/*
-				 
-				 auto & fm = *(this->pFM);
-				 fm.template SetIndex<true,false>(updatedIndex); // useFactoring, smallCorrection
-				 int order=1;
-				 
-				 // Get accepted value, with factoring correction
-				 OffsetVal3 offsetVal;
-				 offsetVal.push_back({acceptedOffset,
-				 fm.template GetNeighborValue<true,false,1>(acceptedOffset,order)});
-				 assert(order==1);
-				 
-				 std::array<ShortType, 3> act;
-				 act[0] = sectors[0];
-				 
-				 // Get neighbor values
-				 for(int i=0; i<2; ++i){
-				 int ord=order;
-				 const ScalarType neighVal =
-				 fm.template GetNeighborValue<true,false,1>(neighOffsets[i],ord);
-				 if(ord==1){
-				 act[offsetVal.size()]=sectors[i];
-				 offsetVal.push_back({neighOffsets[i],neighVal});
-				 }
-				 }
-				 const auto [newValue,newActive] = HopfLaxUpdate(updatedIndex,offsetVal);
-				 const ScalarType oldValue = fm.values[full.linear];
-				 if(newValue>=oldValue) return oldValue;
-				 active.sectorIndex = act[newActive];
-				 return newValue;
-				 */
 				continue;
 			}
 		}
@@ -149,7 +147,7 @@ HopfLaxUpdate(FullIndexCRef full, OffsetCRef acceptedOffset, ScalarType accepted
 	const auto [value,sectorIndex] = HopfLaxUpdate(updatedIndex,offsetVal);
 	const ScalarType oldValue = fm.values[full.linear];
 	
-	
+	/*
 	if(full.index==IndexType{0,0,0}){
 	std::cout << "In HLU "
 	ExportVarArrow(full.index)
@@ -160,7 +158,7 @@ HopfLaxUpdate(FullIndexCRef full, OffsetCRef acceptedOffset, ScalarType accepted
 	ExportArrayArrow(offsetVal)
 		ExportVarArrow(this->pFM->values(updatedIndex+IndexDiff::CastCoordinates(acceptedOffset)))
 	<< std::endl;
-		}
+		}*/
 		
 	
 	if(value>=oldValue) return oldValue;
@@ -175,7 +173,8 @@ template<typename Traits> template<typename Dummy> template<typename F> auto
 HamiltonFastMarching<Traits>::_StencilDataType<SSP::Lag3, Dummy>::
 HopfLaxRecompute(const F & f, IndexCRef updatedIndex, ActiveNeighFlagType active, DiscreteFlowType & discreteFlow) -> RecomputeType {
 	assert(!active.none());
-	const StencilType & stencil = stencils(updatedIndex);
+	const StencilType & stencil =
+	geom==Lagrangian3StencilGeometry::None ? stencils(updatedIndex) : stencils.front();
 	
 	// Get the offsets toward the active neighbors
 	// TODO : check if these array allocations are perf limiting, and act if necessary.
@@ -213,6 +212,7 @@ HopfLaxRecompute(const F & f, IndexCRef updatedIndex, ActiveNeighFlagType active
 	const std::array<ScalarType,4> div = {0.,1.,2./3.,6./11.};
 	result.width*=div[ord]; result.value*=div[ord];
 	
+	/*
 	if(updatedIndex==IndexType{0,0,0}){
 	std::cout << "In HL recompute, stencil 3 "
 	ExportVarArrow(updatedIndex)
@@ -229,7 +229,7 @@ HopfLaxRecompute(const F & f, IndexCRef updatedIndex, ActiveNeighFlagType active
 	ExportVarArrow(this->pFM->values(updatedIndex+IndexDiff::CastCoordinates(offset1)))
 	ExportVarArrow(this->pFM->values(updatedIndex+IndexDiff::CastCoordinates(offset2)))
 	<< std::endl;
-		}
+		}*/
 	
 	return result;
 };

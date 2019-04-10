@@ -108,10 +108,8 @@ auto StencilSeismic3::HopfLaxRecompute(IndexCRef index, DiscreteFlowType & flow)
 
 
 void StencilSeismic3::SetStencil(IndexCRef index, StencilType & stencil){
-	// For now, we use the basic cubic stencil.
-	// We'll check if it is acute for the different media, in particular argileous ones
-	stencil.offsets = { OffsetType(1,0,0), OffsetType(0,1,0), OffsetType(0,0,1) };
-	stencil.geom = geom;
+	// We'll put metric dependent adaptive stencils here in time
+	assert(false);
 	assert(!checkAcuteness);
 }
 
@@ -120,10 +118,6 @@ void StencilSeismic3::Setup(HFMI * that){
 	auto & io=that->io;
 	pMetric = that->template GetField<MetricElementType>("metric",false);
 	checkAcuteness = (bool)io.Get<ScalarType>("checkAcuteness",checkAcuteness);
-	if(io.HasField("stencilGeometry")){
-		geom = enumFromString<Lagrangian3StencilGeometry>(io.GetString("stencilGeometry"));
-		if((int)geom<0) ExceptionMacro("Error : unrecognized stencil geometry");
-	}
 }
 
 #endif /* Seismic3_hpp */

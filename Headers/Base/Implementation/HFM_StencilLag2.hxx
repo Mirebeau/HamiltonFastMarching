@@ -8,6 +8,8 @@
 #ifndef HFM_StencilLag2_hxx
 #define HFM_StencilLag2_hxx
 
+#include "Base/Lagrangian2Stencil.h"
+
 // ********** Stencil data - Semi-Lagrangian2 *******
 
 template<typename T> template<typename Dummy>
@@ -15,21 +17,24 @@ struct HamiltonFastMarching<T>::_StencilDataType<SSP::Lag2,Dummy> :
 HamiltonFastMarching<T>::_StencilDataTypeBase {
 	using HFM=HamiltonFastMarching<T>;
 	using Superclass = HFM::_StencilDataTypeBase;
-	Redeclare6Types(HFM,IndexCRef,OffsetCRef,StencilType,DifferenceType,Traits,FullIndexCRef)
-	Redeclare5Types(HFM,ParamInterface,HFMI,MultiplierType,DomainType,DistanceGuess)
-	Redeclare6Types(Traits,DiscreteType,ScalarType,PointType,VectorType,IndexType,OffsetType)
+	Redeclare17Types(HFM,IndexCRef,OffsetCRef,StencilType,DifferenceType,Traits,FullIndexCRef,
+					ParamInterface,HFMI,MultiplierType,DomainType,DistanceGuess,
+					DiscreteType,ScalarType,PointType,VectorType,IndexType,OffsetType)
+	Redeclare1Type(Superclass,  ConstOffsetRange)
 	Redeclare1Constant(Traits,Dimension)
 	
-	virtual void SetStencil(IndexCRef, StencilType &) override final;
 	virtual void Setup(HFMI *) override;
 	virtual void Initialize(const HFM *) override final;
 	
+	virtual void SetStencil(IndexCRef, StencilType &) override final;
 	virtual void SetNeighbors(IndexCRef, std::vector<OffsetType> &) = 0;
+	virtual ConstOffsetRange ReversedOffsets(FullIndexCRef) const override final;
 protected:
 	friend struct HamiltonFastMarching<Traits>;
 	virtual ScalarType HopfLaxUpdate(FullIndexCRef, OffsetCRef, ScalarType, ActiveNeighFlagType &) override final;
 	template<typename F> RecomputeType HopfLaxRecompute(const F &, IndexCRef, ActiveNeighFlagType, DiscreteFlowType &);
 	
+	Lagrangian2StencilGeometry geom = Lagrangian2StencilGeometry::None;
 	typedef CappedVector<std::pair<OffsetType,ScalarType>, 3> OffsetVal3;
 	virtual std::pair<ScalarType,int> HopfLaxUpdate(IndexCRef,const OffsetVal3 &) = 0;
 	virtual RecomputeType HopfLaxRecompute(IndexCRef,DiscreteFlowType &) = 0;
@@ -41,11 +46,20 @@ private:
 // --------------- Semi-Lagrangian FM-ASR scheme --------------
 
 template<typename Traits> template<typename Dummy> void
-HamiltonFastMarching<Traits>::_StencilDataType<SSP::Lag2, Dummy>::SetStencil(IndexCRef index, StencilType & stencil){
-	const auto rg = directOffsets[indexConverter.Convert(index)];
+HamiltonFastMarching<Traits>::_StencilDataType<SSP::Lag2, Dummy>::
+SetStencil(IndexCRef index, StencilType & stencil){
+	const auto rg =
+	directOffsets[ (geom==Lagrangian2StencilGeometry::None) ? indexConverter.Convert(index) : 0];
 	stencil.pOffsets = &rg.front();
 	stencil.nOffsets = rg.size();
 }
+
+template<typename Traits> template<typename Dummy> auto
+HamiltonFastMarching<Traits>::_StencilDataType<SSP::Lag2, Dummy>::
+ReversedOffsets(FullIndexCRef full) const -> ConstOffsetRange {
+	return this->reversedOffsets[ (geom==Lagrangian2StencilGeometry::None) ? full.linear : 0];
+}
+
 
 // Setup and initialization
 template<typename Traits> template<typename Dummy> void
@@ -53,6 +67,11 @@ HamiltonFastMarching<Traits>::_StencilDataType<SSP::Lag2, Dummy>::
 Setup(HFMI * that){
 	Superclass::Setup(that);
 	indexConverter.dims = this->dims;
+
+	if(that->io.HasField("stencilGeometry")){
+		geom = enumFromString<Lagrangian2StencilGeometry>(that->io.GetString("stencilGeometry"));
+		if( (int)geom==-1 ) ExceptionMacro("Stencil Lagrangian 2 error : unrecognized stencil Geometry");
+	}
 }
 
 // Compute the direct and reversed offsets
@@ -60,6 +79,20 @@ template<typename Traits> template<typename Dummy> void
 HamiltonFastMarching<Traits>::_StencilDataType<SSP::Lag2, Dummy>::
 Initialize(const HFM * _pFM){
 	Superclass::Initialize(_pFM);
+	
+	if(geom!=Lagrangian2StencilGeometry::None){
+		const auto stencil = StencilType::MakeStencil(geom);
+		auto & dir = directOffsets, & rev = this->reversedOffsets;
+		const size_t size = stencil.size();
+		dir.values.reserve(size);
+		rev.values.reserve(size);
+		dir.values.insert(dir.values.end(),stencil.begin(),stencil.end());
+		rev.values.insert(rev.values.end(),stencil.begin(),stencil.end());
+		dir.splits.push_back(size);
+		rev.splits.push_back(size);
+		return;
+	}
+	
 	const DiscreteType size = this->dims.Product();
 	
 	assert(directOffsets.empty());

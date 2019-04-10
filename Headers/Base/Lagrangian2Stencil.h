@@ -9,6 +9,14 @@
 #define Lagrangian2Stencil_h
 
 #include "CommonStencil.h"
+#include "JMM_CPPLibs/LinearAlgebra/VectorType.h"
+
+// ------ Default stencils ------
+enum class Lagrangian2StencilGeometry {Diamond,Square,SpikySquare,Voronoi,None};
+template<> char const * enumStrings<Lagrangian2StencilGeometry>::data[] =
+{"Diamond","Square","SpikySquare","Voronoi","None"};
+
+
 // ----------- Semi-Lagrangian scheme ------------
 
 template<typename TOff, typename TScalar, typename TDiscrete>
@@ -42,6 +50,9 @@ struct Lagrangian2Stencil {
 	
     OffsetType * pOffsets;
     DiscreteType nOffsets;
+	
+	static std::vector<OffsetType>
+	MakeStencil(Lagrangian2StencilGeometry, OffsetType={1,0}, OffsetType v={0,1});
 };
 
 
@@ -50,6 +61,31 @@ Lagrangian2Stencil<TO,TS,TD>::PrintSelf(std::ostream & os) const {
     os << "{";
     for(int i=0; i<nOffsets; ++i) os << pOffsets[i] << ",";
     os << "}";
+}
+
+template<typename TO, typename TS, typename TD> auto
+Lagrangian2Stencil<TO,TS,TD>::MakeStencil(Lagrangian2StencilGeometry geom, OffsetType u, OffsetType v)
+-> std::vector<OffsetType> {
+	assert(std::abs(LinearAlgebra::Determinant(u,v) )==1);
+	switch(geom){
+		case Lagrangian2StencilGeometry::Diamond: return {u,v,-u,-v};
+		case Lagrangian2StencilGeometry::Square: return {
+			u,   u+v,  v,  v-u,
+			-u,-(u+v),-v,-(v-u)};
+		case Lagrangian2StencilGeometry::SpikySquare: return {
+			u, 2*u+v, u+v, u+2*v,
+			v, 2*v-u, v-u, v-2*u,
+			-u,-2*u-v,-u-v,-u-2*v,
+			-v,-2*v+u,-v+u,-v+2*u
+		};
+		case Lagrangian2StencilGeometry::Voronoi: return {
+			u,   u+v,  v,
+			-u,-(u+v),-v
+		};
+		default:
+			ExceptionMacro("Lagrangian2Stencil::GetStencil error : unsupported geometry"
+						   << enumToRealString(geom) << "\n")
+	}
 }
 
 // Refines the orig stencil, according to the stop predicate, and stores the result in refined
