@@ -39,21 +39,32 @@ auto StencilSeismic3::HopfLaxUpdate(IndexCRef index, const OffsetVals & offsetVa
 	auto val = [&offsetVal](int i) -> ScalarType {
 		return offsetVal[i].second;};
 	
-	// Evaluate the operator
-	int sectorIndex = -1;
-	ScalarType value = std::numeric_limits<ScalarType>::infinity();
-	
-	// TODO : optimizations, to avoid recomputing edge and vertex related data.
-	
+	// Update from accepted value
+	const auto hl = norm.HopfLax({acceptedOffset},{acceptedValue});
+	ScalarType value = hl.first;
+	int sectorIndex = 0;
+
+	// Updates from edges
 	for(int i=0; i<nNeigh; ++i){
-		const int j = (i+1)%nNeigh;
-		const auto hl = norm.HopfLax({acceptedOffset,offset(i),offset(j)}, {acceptedValue,val(i),val(j)});
-		if(hl.first<value){
-			value = hl.first;
-			sectorIndex = i;
-		}
+		if(val(i)==Traits::Infinity()) continue;
+		const auto hl = norm.HopfLax({acceptedOffset,offset(i)}, {acceptedValue,val(i)});
+		if(hl.first>=value) continue;
+		value = hl.first;
+		sectorIndex = i;
 	}
 	
+	// Updates from faces
+	for(int i=0; i<nNeigh; ++i){
+		const int j = (i+1)%nNeigh;
+		if(val(i)==Traits::Infinity() || val(j)==Traits::Infinity()) continue;
+		const auto hl = norm.HopfLax({acceptedOffset,offset(i),offset(j)}, {acceptedValue,val(i),val(j)});
+		if(hl.first>=value) continue;
+		value = hl.first;
+		sectorIndex = i;
+	}
+	
+	// ! TODO ! : optimizations, to avoid recomputing edge and vertex related data.
+
 	return {value,sectorIndex};
 }
 
@@ -79,15 +90,16 @@ auto StencilSeismic3::HopfLaxRecompute(IndexCRef index, DiscreteFlowType & flow)
 		return {value,0.};
 	} else if(flow.size()==2){
 		const auto & [value,weights] = norm.HopfLax({offset(0), offset(1)},{w(0),w(1)});
-		const ScalarType width = weights[0]*abs(value-w(0))+weights[1]*abs(value-w(1));
-		assert(std::abs(weights.Sum()-1) < 1e-6);
+		assert(weights.Sum()>0);
+		const ScalarType width = (weights[0]*abs(value-w(0))+weights[1]*abs(value-w(1)))/weights.Sum();
 		w(0)=weights[0]; w(1)=weights[1];
 		return {value,width};
 	} else {
 		assert(flow.size()==3);
 		const auto & [value,weights] = norm.HopfLax({offset(0), offset(1), offset(2)},{w(0),w(1),w(2)});
-		const ScalarType width = weights[0]*abs(value-w(0))+weights[1]*abs(value-w(1))+weights[2]*abs(value-w(2));
-		assert(std::abs(weights.Sum()-1) < 1e-6);
+		assert(weights.Sum()>0);
+		const ScalarType width =
+		(weights[0]*abs(value-w(0))+weights[1]*abs(value-w(1))+weights[2]*abs(value-w(2)))/weights.Sum();
 		w(0)=weights[0]; w(1)=weights[1]; w(2)=weights[2];
 		return {value,width};
 	}
@@ -99,14 +111,19 @@ void StencilSeismic3::SetStencil(IndexCRef index, StencilType & stencil){
 	// For now, we use the basic cubic stencil.
 	// We'll check if it is acute for the different media, in particular argileous ones
 	stencil.offsets = { OffsetType(1,0,0), OffsetType(0,1,0), OffsetType(0,0,1) };
-	stencil.geom = Lagrangian3StencilGeometry::Cube;
+	stencil.geom = geom;
 	assert(!checkAcuteness);
 }
 
 void StencilSeismic3::Setup(HFMI * that){
 	Superclass::Setup(that); param.Setup(that);
+	auto & io=that->io;
 	pMetric = that->template GetField<MetricElementType>("metric",false);
-	checkAcuteness = (bool)that->io.Get<ScalarType>("checkAcuteness",checkAcuteness);
+	checkAcuteness = (bool)io.Get<ScalarType>("checkAcuteness",checkAcuteness);
+	if(io.HasField("stencilGeometry")){
+		geom = enumFromString<Lagrangian3StencilGeometry>(io.GetString("stencilGeometry"));
+		if((int)geom<0) ExceptionMacro("Error : unrecognized stencil geometry");
+	}
 }
 
 #endif /* Seismic3_hpp */

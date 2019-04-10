@@ -86,15 +86,17 @@ void HamiltonFastMarching<T>::RunInit(){
 
 template<typename T>
 bool HamiltonFastMarching<T>::RunOnce(){
-    const QueueElement top = queue.top();
+    QueueElement top = queue.top();
     queue.pop();
     
     if(acceptedFlags[top.linearIndex]) return queue.empty();
+	
     const FullIndexType accepted = {values.Convert(top.linearIndex),top.linearIndex};
     int dec = PostProcess(accepted.index);
     if(dec & Decision::kRecompute){
         DiscreteFlowType flow;
         const RecomputeType rec = Recompute(accepted.index, flow);
+		top.value = rec.value;
         dec|=PostProcessWithRecompute(accepted.index, rec, flow);
     }
     if(dec & Decision::kTerminate) return true;
@@ -218,10 +220,14 @@ const -> RecomputeType {
 	(OffsetType offset, int & ord) -> ScalarType {
         //order code : 0 -> invalid, else requested/used order
 		
+		
         IndexType acceptedIndex = updatedIndex+IndexDiff::CastCoordinates(offset);
         const auto transform = dom.Periodize(acceptedIndex,updatedIndex);
         if(!transform.IsValid()) {ord=0; return -Traits::Infinity();}
-        const ScalarType acceptedValue = values(acceptedIndex);
+		const DiscreteType acceptedLinearIndex = values.Convert(acceptedIndex);
+		if(!acceptedFlags[acceptedLinearIndex]) {ord=0; return -Traits::Infinity();}
+		
+        const ScalarType acceptedValue = values[acceptedLinearIndex];
 		
 		ord=std::min(order,ord);
 		while(ord>=2){ // Single iteration

@@ -380,8 +380,8 @@ Setup(HFMI * that){
 	SetupRegion(that);
 
 	// Export some requested data
+	const auto & param = that->pFM->stencilData.Param();
 	if(io.template Get<ScalarType>("exportFactoringCenters",0.,2)!=0){
-		const auto & param = that->pFM->stencilData.Param();
 		std::vector<PointType> pts;
 		for(const auto & [p,d] : factoringCenters) {
 			pts.push_back(param.ReDim(p));}
@@ -391,7 +391,30 @@ Setup(HFMI * that){
 	if(io.template Get<ScalarType>("exportFactoringRegion",0.,2)!=0){
 		io.SetArray("factoringRegion",factoringRegion.template Cast<ScalarType>());}
 
-	
+	if(method==FactoringMethod::Static && io.HasField("factoringPoints")){
+		auto pts = io.template GetVector<PointType>("factoringPoints");
+		std::vector<ScalarType> vals;
+		vals.reserve(pts.size());
+		for(PointType q : pts){
+			q = param.ADim(q);
+			using Center = std::pair<PointType,DistanceGuess>;
+			const auto & [p,distp] =
+			*std::min_element(factoringCenters.begin(), factoringCenters.end(),
+							  [&q](const Center & a, const Center & b){
+								  return (q-a.first).SquaredNorm() < (q-b.first).SquaredNorm();}
+							  );
+			const VectorType v = p-q;
+			if(v.IsNull()) {vals.push_back(0.); continue;}
+			if(pointChoice==FactoringPointChoice::Key){vals.push_back(distp.Norm(v)); continue;}
+			
+			const auto & distq = that->pFM->stencilData.GetGuess(q);
+			if(pointChoice==FactoringPointChoice::Current) {vals.push_back(distq.Norm(v)); continue;}
+			
+			assert(pointChoice==FactoringPointChoice::Both);
+			vals.push_back(0.5*(distp.Norm(v)+distq.Norm(v)));
+		} // for q
+		io.SetVector("factoringValues",vals);
+	}
 	
     return true;
 }

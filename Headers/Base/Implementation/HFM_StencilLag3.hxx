@@ -16,7 +16,6 @@ struct HamiltonFastMarching<T>::_StencilDataType<SSP::Lag3,Dummy>
 	using HFM = HamiltonFastMarching<T>;
 	using Superclass = HFM::_StencilDataTypeBase;
 	
-	IndexType dims; // Needs value
 	virtual void Setup(HFMI *) override;
 	virtual void Initialize(const HFM *) override final;
 protected:
@@ -40,7 +39,7 @@ template<typename Traits> template<typename Dummy> void
 HamiltonFastMarching<Traits>::_StencilDataType<SSP::Lag3, Dummy>::
 Setup(HFMI * that){
 	Superclass::Setup(that);
-	stencils.dims = dims;
+	stencils.dims = this->dims;
 }
 
 // Compute the direct and reversed offsets
@@ -48,7 +47,7 @@ template<typename Traits> template<typename Dummy> void
 HamiltonFastMarching<Traits>::_StencilDataType<SSP::Lag3, Dummy>::
 Initialize(const HFM * pFM_){
 	Superclass::Initialize(pFM_);
-	const DiscreteType size = dims.Product();
+	const DiscreteType size = this->dims.Product();
 	stencils.resize(size);
 	std::vector<std::pair<DiscreteType,OffsetType> > targets;
 	std::vector<OffsetType> directOffsets;
@@ -85,24 +84,84 @@ HopfLaxUpdate(FullIndexCRef full, OffsetCRef acceptedOffset, ScalarType accepted
 	// Iterate over neighbors, and fill relative data
 	OffsetVals offsetVal;
 	const HFM & fm = *this->pFM;
+	fm.template SetIndex<true,false>(updatedIndex); // useFactoring, smallCorrection
 	
 	tmpHLU.clear();
 	stencil.NeighborsAround(neighborIndex, tmpHLU);
 	for(auto & offset : tmpHLU){
 		IndexType neigh = updatedIndex+IndexDiff::CastCoordinates(offset);
 		const auto transform = fm.dom.Periodize(neigh,updatedIndex);
-		const ScalarType value =
-		( transform.IsValid() && fm.acceptedFlags(neigh) ) ?
-		fm.values(neigh) : std::numeric_limits<ScalarType>::infinity();
-		offsetVal.push_back({offset,value});
+		if(transform.IsValid()){
+			const int neighLin = fm.values.Convert(neigh);
+			if(fm.acceptedFlags[neighLin]){
+				
+				//offsetVal.push_back({offset,fm.values[neighLin]}); // No factorization
+				int ord=1;
+				offsetVal.push_back({offset,
+					fm.template GetNeighborValue<true,false,1>(offset,ord)});
+				assert(ord==1);
+				
+				/*
+				 
+				 auto & fm = *(this->pFM);
+				 fm.template SetIndex<true,false>(updatedIndex); // useFactoring, smallCorrection
+				 int order=1;
+				 
+				 // Get accepted value, with factoring correction
+				 OffsetVal3 offsetVal;
+				 offsetVal.push_back({acceptedOffset,
+				 fm.template GetNeighborValue<true,false,1>(acceptedOffset,order)});
+				 assert(order==1);
+				 
+				 std::array<ShortType, 3> act;
+				 act[0] = sectors[0];
+				 
+				 // Get neighbor values
+				 for(int i=0; i<2; ++i){
+				 int ord=order;
+				 const ScalarType neighVal =
+				 fm.template GetNeighborValue<true,false,1>(neighOffsets[i],ord);
+				 if(ord==1){
+				 act[offsetVal.size()]=sectors[i];
+				 offsetVal.push_back({neighOffsets[i],neighVal});
+				 }
+				 }
+				 const auto [newValue,newActive] = HopfLaxUpdate(updatedIndex,offsetVal);
+				 const ScalarType oldValue = fm.values[full.linear];
+				 if(newValue>=oldValue) return oldValue;
+				 active.sectorIndex = act[newActive];
+				 return newValue;
+				 */
+				continue;
+			}
+		}
+		offsetVal.push_back({offset,Traits::Infinity()});
 	}
 	
 	// Put the data of the accepted value
-	offsetVal.push_back({acceptedOffset, acceptedValue});
+	int ord=1;
+	offsetVal.push_back({acceptedOffset,
+		fm.template GetNeighborValue<true,false,1>(acceptedOffset,ord)});
+	assert(ord==1);
+//	offsetVal.push_back({acceptedOffset, acceptedValue});
 	
 	// Evaluate the Hopf-Lax update, and compare
 	const auto [value,sectorIndex] = HopfLaxUpdate(updatedIndex,offsetVal);
 	const ScalarType oldValue = fm.values[full.linear];
+	
+	
+	if(full.index==IndexType{0,0,0}){
+	std::cout << "In HLU "
+	ExportVarArrow(full.index)
+	ExportVarArrow(acceptedOffset)
+	ExportVarArrow(value)
+	ExportVarArrow(oldValue)
+	ExportArrayArrow(tmpHLU)
+	ExportArrayArrow(offsetVal)
+		ExportVarArrow(this->pFM->values(updatedIndex+IndexDiff::CastCoordinates(acceptedOffset)))
+	<< std::endl;
+		}
+		
 	
 	if(value>=oldValue) return oldValue;
 	
@@ -153,6 +212,24 @@ HopfLaxRecompute(const F & f, IndexCRef updatedIndex, ActiveNeighFlagType active
 	RecomputeType result = HopfLaxRecompute(updatedIndex,discreteFlow);
 	const std::array<ScalarType,4> div = {0.,1.,2./3.,6./11.};
 	result.width*=div[ord]; result.value*=div[ord];
+	
+	if(updatedIndex==IndexType{0,0,0}){
+	std::cout << "In HL recompute, stencil 3 "
+	ExportVarArrow(updatedIndex)
+	ExportVarArrow(val0)
+	ExportVarArrow(val1)
+	ExportVarArrow(val2)
+	ExportVarArrow(offset0)
+	ExportVarArrow(offset1)
+	ExportVarArrow(offset2)
+	ExportVarArrow(result.value)
+	ExportVarArrow(active)
+	ExportArrayArrow(tmpHLU)
+	ExportVarArrow(this->pFM->values(updatedIndex+IndexDiff::CastCoordinates(offset0)))
+	ExportVarArrow(this->pFM->values(updatedIndex+IndexDiff::CastCoordinates(offset1)))
+	ExportVarArrow(this->pFM->values(updatedIndex+IndexDiff::CastCoordinates(offset2)))
+	<< std::endl;
+		}
 	
 	return result;
 };

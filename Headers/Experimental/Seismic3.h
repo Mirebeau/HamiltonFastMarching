@@ -46,6 +46,8 @@ struct StencilSeismic3 final
 	ParamDefault param;
 	bool checkAcuteness = false;
 	
+	Lagrangian3StencilGeometry geom = Lagrangian3StencilGeometry::CutCube;
+	
 	virtual void SetStencil(IndexCRef index, StencilType & stencil) override;
 	virtual const ParamInterface & Param() const override {return param;}
 	virtual void Setup(HFMI *) override;

@@ -56,7 +56,9 @@ struct StencilReedsSheppExt2 final
     virtual void SetStencil(IndexCRef index, StencilType & stencil) override {
         assert(pSpeed); assert(pXi); assert(pKappa);
         const ScalarType
-        speed=(*pSpeed)(index), xi=(*pXi)(index), kappa=(*pKappa)(index),
+        speed=(*pSpeed)(index),
+		xi=(*pXi)(index),
+		kappa= pKappa ? (*pKappa)(index) : 0,
         gS=param.gridScale,tS=param.dependScale;
 		const ScalarType theta = pTheta ? (*pTheta)(index) : index[2]*tS;
         const ScalarType c = cos(theta), s=sin(theta);
@@ -77,8 +79,8 @@ struct StencilReedsSheppExt2 final
         if(io.HasField("speed")) pSpeed = that->template GetField<ScalarType>("speed",false);
         else pSpeed = std::unique_ptr<SourceInvType>(new SourceInvType(that->template GetField<ScalarType>("cost",false) ) );
         pXi = that->GetField<ScalarType>("xi",false);
-        pKappa = that->GetField<ScalarType>("kappa",false);
-		if(io.HasField("theta")) pTheta = that->GetField<ScalarType>("theta",false);
+		if(io.HasField("kappa")) {pKappa = that->GetField<ScalarType>("kappa",false);}
+		if(io.HasField("theta")) {pTheta = that->GetField<ScalarType>("theta",false);}
         param.Setup(io,2*mathPi/dims.back());}
 };
 
@@ -101,7 +103,9 @@ struct StencilReedsSheppForwardExt2 final
     virtual void SetStencil(IndexCRef index, StencilType & stencil) override {
         assert(pSpeed); assert(pXi); assert(pKappa);
         const ScalarType
-        speed=(*pSpeed)(index), xi=(*pXi)(index), kappa=(*pKappa)(index),
+        speed=(*pSpeed)(index),
+		xi=(*pXi)(index),
+		kappa= pKappa ? (*pKappa)(index) : 0.,
         gS=param.gridScale,tS=param.dependScale;
 		const ScalarType theta = pTheta ? (*pTheta)(index) : index[2]*tS;
         const ScalarType c = cos(theta), s=sin(theta);
@@ -123,8 +127,8 @@ struct StencilReedsSheppForwardExt2 final
         if(io.HasField("speed")) pSpeed = that->template GetField<ScalarType>("speed",false);
         else pSpeed = std::unique_ptr<SourceInvType>(new SourceInvType(that->template GetField<ScalarType>("cost",false) ) );
         pXi = that->GetField<ScalarType>("xi");
-        pKappa = that->GetField<ScalarType>("kappa");
-		if(io.HasField("theta")) pTheta = that->GetField<ScalarType>("theta",false);
+		if(io.HasField("kappa")) {pKappa = that->GetField<ScalarType>("kappa",false);}
+		if(io.HasField("theta")) {pTheta = that->GetField<ScalarType>("theta",false);}
         param.Setup(io,2*mathPi/dims.back());}
 };
 
@@ -149,7 +153,9 @@ struct StencilDubinsExt2 final
     virtual void SetStencil(IndexCRef index, StencilType & stencil) override {
         assert(pSpeed); assert(pXi); assert(pKappa);
         const ScalarType
-        speed=(*pSpeed)(index), xi=(*pXi)(index), kappa=(*pKappa)(index),
+        speed=(*pSpeed)(index),
+		xi=(*pXi)(index),
+		kappa= pKappa ? (*pKappa)(index) : 0,
         gS=param.gridScale,tS=param.dependScale;
 		const ScalarType theta = pTheta ? (*pTheta)(index) : index[2]*tS;
         const ScalarType c = cos(theta), s=sin(theta);
@@ -169,8 +175,8 @@ struct StencilDubinsExt2 final
         if(io.HasField("speed")) pSpeed = that->template GetField<ScalarType>("speed",false);
         else pSpeed = std::unique_ptr<SourceInvType>(new SourceInvType(that->template GetField<ScalarType>("cost",false) ) );
         pXi = that->GetField<ScalarType>("xi");
-        pKappa = that->GetField<ScalarType>("kappa");
-		if(io.HasField("theta")) pTheta = that->GetField<ScalarType>("theta",false);
+		if(io.HasField("kappa")) {pKappa = that->GetField<ScalarType>("kappa",false);}
+		if(io.HasField("theta")) {pTheta = that->GetField<ScalarType>("theta",false);}
         param.Setup(io,2*mathPi/dims.back());}
 };
 
@@ -201,7 +207,9 @@ struct StencilElasticaExt2 final
     virtual void SetStencil(IndexCRef index, StencilType & stencil) override {
         assert(pSpeed); assert(pXi); assert(pKappa);
         const ScalarType
-        speed=(*pSpeed)(index), xi=(*pXi)(index), kappa=(*pKappa)(index),
+        speed=(*pSpeed)(index),
+		xi=(*pXi)(index),
+		kappa= pKappa ? (*pKappa)(index) : 0,
         gS=param.gridScale,tS=param.dependScale;
 		const ScalarType theta = pTheta ? (*pTheta)(index) : index[2]*tS;
         const ScalarType cT = cos(theta), sT=sin(theta);
@@ -225,8 +233,8 @@ struct StencilElasticaExt2 final
         if(io.HasField("speed")) pSpeed = that->template GetField<ScalarType>("speed",false);
         else pSpeed = std::unique_ptr<SourceInvType>(new SourceInvType(that->template GetField<ScalarType>("cost",false) ) );
         pXi = that->template GetField<ScalarType>("xi");
-        pKappa = that->template GetField<ScalarType>("kappa");
-		if(io.HasField("theta")) pTheta = that->template GetField<ScalarType>("theta",false);
+		if(io.HasField("kappa")) {pKappa = that->template GetField<ScalarType>("kappa",false);}
+		if(io.HasField("theta")) {pTheta = that->template GetField<ScalarType>("theta",false);}
         param.Setup(io,2*mathPi/this->dims.back());}
 };
 
