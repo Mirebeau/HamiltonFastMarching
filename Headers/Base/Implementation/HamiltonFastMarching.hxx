@@ -349,8 +349,10 @@ const -> ScalarType {
 	IndexType acceptedIndex = index+IndexDiff::CastCoordinates(offset);
 	const auto transform = dom.Periodize(acceptedIndex,index);
 	if(!transform.IsValid()) {ord=0; return -Traits::Infinity();}
-	const ScalarType acceptedValue = values(acceptedIndex);
-	
+	const DiscreteType acceptedLinearIndex = values.Convert(acceptedIndex);
+	if(!acceptedFlags[acceptedLinearIndex]) {ord=0; return -Traits::Infinity();}
+	const ScalarType acceptedValue = values[acceptedLinearIndex];
+
 	ord=std::min(order,ord);
 	while(maxOrder>=2 && ord>=2){ // Single iteration
 		OffsetType offset2 = offset;

@@ -38,8 +38,8 @@ protected:
 	typedef CappedVector<std::pair<OffsetType,ScalarType>, 3> OffsetVal3;
 	virtual std::pair<ScalarType,int> HopfLaxUpdate(IndexCRef,const OffsetVal3 &) = 0;
 	virtual RecomputeType HopfLaxRecompute(IndexCRef,DiscreteFlowType &) = 0;
-private:
 	HFM::Array<ScalarType,Dimension> indexConverter;
+private:
 	MultiVector<OffsetType,DiscreteType> directOffsets;
 };
 

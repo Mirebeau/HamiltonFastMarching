@@ -83,7 +83,13 @@ private:
 	std::vector<VectorType> tmp_stencil_vec;
 	std::vector<ScalarType> tmp_stencil_scal;
 	template<size_t n> using Vec = typename NormType::template Vec<n>;
-
+	
+	// Optimization : avoid recomputing gradients.
+	// Significant gain overall, although storage using a dynamic map is fairly expensive.
+	const bool useHopfLaxCache = true;
+	std::map<long,VectorType> hopfLaxCache;
+	virtual void EraseCache(DiscreteType index) override final;
+	static long hash(DiscreteType,OffsetType);
 };
 
 using StencilSeismic2 = StencilGenericLag2<TraitsSeismic2>;

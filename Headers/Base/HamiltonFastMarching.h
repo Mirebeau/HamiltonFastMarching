@@ -74,9 +74,6 @@ struct HamiltonFastMarching {
 					DiscreteFlowType,RecomputeType)
     Array<ActiveNeighFlagType,Dimension> activeNeighs;
     
-//    struct DiscreteFlowElement {OffsetType offset; ScalarType weight;};
-//    typedef CappedVector<DiscreteFlowElement, nActiveNeigh> DiscreteFlowType;
-//    struct RecomputeType {ScalarType value,width;};
     RecomputeType Recompute(IndexCRef, DiscreteFlowType &) const;
 
     typedef ParamInterface_<PointType,VectorType> ParamInterface;
