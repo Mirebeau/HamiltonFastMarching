@@ -125,7 +125,7 @@ HopfLaxUpdate(IndexCRef index, const OffsetVals & offsetVal)
 		
 	} if(true) { // Recomputation based variant, with a bit of purely local caching.
 	
-#ifdef XSIMD_HPP
+#ifndef XSIMD_HPP
 		// Update from accepted value
 		int sectorIndex = 0;
 		VectorType cache0;
@@ -202,16 +202,53 @@ HopfLaxUpdate(IndexCRef index, const OffsetVals & offsetVal)
 			const VectorType offseti = offset(i);
 			for(int j=0; j<Dimension; ++j){simd_vector[j][n]=offseti[j];}
 			if(simd_ind.size()==simd_size || i==nNeigh){
-				simd_vector = simd_norm.GradNorm(simd_vector);
-				for(int k=0; k<simd_ind.size(); ++k){
-					for(int j=0; j<Dimension; ++j) {
-						_vertexCache[simd_ind[k]][j]=simd_vector[j][k];}
+				if (simd_ind.size()==0) {
+				} else if(simd_ind.size()==1){
+					_vertexCache[simd_ind[0]] = norm.GradNorm(offset(simd_ind[0]));
+				} else {
+					simd_vector = simd_norm.GradNorm(simd_vector);
+					for(int k=0; k<simd_ind.size(); ++k){
+						for(int j=0; j<Dimension; ++j) {
+							_vertexCache[simd_ind[k]][j]=simd_vector[j][k];}
+					}
+					simd_ind.clear();
 				}
-				simd_ind.clear();
 			}
-			
 		}
 		
+		// Diagostic of optimization opportunities
+		/*{
+			static int n_vert_simd = 0;
+			static int n_vert_tot = 0;
+			static int n_edge_simd = 0;
+			static int n_edge_tot = 0;
+			
+			int n_vert=1, n_edge=0;
+			for(int i=0; i<offsetVal.size(); ++i){
+				if(val(i)==Traits::Infinity()) continue;
+				++n_vert;
+				++n_edge;
+				if(val((i+1)%nNeigh)==Traits::Infinity()) continue;
+				++n_edge;
+			}
+			
+			n_vert_simd += (n_vert+3)/4;
+			n_vert_tot += n_vert;
+			n_edge_simd += (n_edge+3)/4;
+			n_edge_tot += n_edge;
+			
+			static int oldCounter=10;
+			static int counter=0;
+			++counter;
+			if(counter==2*oldCounter){
+				oldCounter=counter;
+				std::cout << "Simd reduction ratio "
+				ExportVarArrow(n_vert_simd/double(n_vert_tot))
+				ExportVarArrow(n_edge_simd/double(n_edge_tot))
+				<< std::endl;
+				}
+		}*/
+			
 		// Update from accepted value
 		int sectorIndex = 0;
 		const VectorType & cache0 = _vertexCache[nNeigh];
