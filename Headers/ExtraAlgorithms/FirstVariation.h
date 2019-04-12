@@ -52,8 +52,7 @@ protected:
 template<typename T> void FirstVariation<T>::Setup(HFMI*that){
 	auto & io = that->io;
 	if(io.HasField("inspectSensitivity") || io.HasField("costVariation") || io.HasField("seedValueVariation")){
-		const int spreadSeeds = (int) that->io.template Get<ScalarType>("spreadSeeds",0.);
-		if(spreadSeeds>0)
+		if(that->spreadSeeds>=0)
 			WarnMsg() << "First variation error : spread seeds are not supported.";
 	}
 }

@@ -122,10 +122,10 @@ GeodesicFlow(const PointType & p, const Array<ShortType,Dimension> & target, Flo
     }
     
     FlowAvgType result{ VectorType::Constant(0.),maxStat,minTol};
-    if(minVal==Traits::Infinity()) return result; // In Wall
+	if(minVal==Traits::Infinity()) return result; // In Wall
     
     const ScalarType minValWidth = flows[iMinVal].it->second.first.width;
-    if(minValWidth==0) return result; // At seed
+//	if(minValWidth==0)  return result; // Not necessarily at seed. Continue
     
     const ScalarType valThreshold =
     minVal+causalityTolerance*minValWidth;
@@ -145,7 +145,7 @@ GeodesicFlow(const PointType & p, const Array<ShortType,Dimension> & target, Flo
     
     if(HFM::DomainType::periodizeUsesBase){
         pIndexTransform.PullVector(result.flow);}
-    
+	
     return result;
 }
 
@@ -169,13 +169,13 @@ GeodesicODESolver<Traits>::Run(std::vector<PointType> & geodesic) const {
         const DiscreteType oldTargetTolerance = targetHistory.front();
         targetHistory.pop();
         targetHistory.push(flowData.targetTolerance);
-        if(oldTargetTolerance < flowData.targetTolerance) return false; // Getting away from target.
+		if(oldTargetTolerance < flowData.targetTolerance) return false; // Getting away from target.
         
-        if(flowData.nStationarity > nStationarityMax) return true; // Stall
+		if(flowData.nStationarity > nStationarityMax) return true; // Stall
 
 		VectorType flow=flowData.flow;
         ScalarType flowNorm = flow.Norm();
-        if(flowNorm==0) return false; // At seed
+		if(flowNorm==0) return false; // At seed
         
         // Do a half step and recompute flow at this point.
         PointType q = p+0.5*geodesicStep*flow/flowNorm;
@@ -193,7 +193,7 @@ GeodesicODESolver<Traits>::Run(std::vector<PointType> & geodesic) const {
             qTransform.PullVector(flow);}
         
         flowNorm = flow.Norm();
-        if(flowNorm==0) return false;
+		if(flowNorm==0) return false;
         
         PointType r = p+geodesicStep*flow/flowNorm;
         

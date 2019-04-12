@@ -22,7 +22,8 @@ GeodesicDiscreteSolver<Traits>::Run(HFMI * that, const std::vector<PointType> & 
         std::vector<PointType> geodesic;
         geodesic.push_back(tip);
         const bool failed = Run(geodesic);
-        if(failed) Msg() << "Geodesic extraction failed for tip " << that->stencil.Param().ReDim( tip ) << "\n";
+        if(failed) Msg() << "Geodesic extraction failed for tip "
+			<< that->stencil.Param().ReDim( tip ) << "\n";
         else if(nRestarts>nRestartsBeforeVolumeIncrease){
             Msg() << "Tip " << that->stencil.Param().ReDim( tip )
             << " yields " << nRestarts << " restarts, "
@@ -78,7 +79,7 @@ GeodesicDiscrete(std::vector<PointType> & geodesic) const {
     ScalarType stepNorm=0;
     PointType indexBase;
     
-    {
+    { 	// Set a unit weight, split among the neighbors on the grid
         assert(!geodesic.empty());
         const PointType tip = geodesic.back();
         const IndexType indexRef = dom.IndexFromPoint(tip);
@@ -102,38 +103,33 @@ GeodesicDiscrete(std::vector<PointType> & geodesic) const {
             geo[{fm.values(indexPer),index}] = weight;
             UpdateSums(weight,index);
         }
-        if(weightSum==0) return false;
+		if(weightSum==0)  return false;
         indexAvg = PointType::FromOrigin(indexSum/weightSum);
         indexBase= indexAvg;
     }
-    
-    while(!geo.empty() && weightSum>0){
+	
+	// Weight sum should remain approximately one. Some loss can happen, but
+	// vey small values are irrelevant. (Encountered with some cycling due to loss
+	// of causality when using factoring without spreadSeeds)
+	const ScalarType weightSumLowerBound = 1e-5;
+	
+    while(!geo.empty() && weightSum>weightSumLowerBound){
         // Extract and erase point with largest value.
         const auto it = --geo.end(); // point with largest value
 		const auto [value,index] = it->first;
         const ScalarType weight = it->second;
         geo.erase(it);
-        
+		
         if(weight==0) continue;
         UpdateSums(-weight,index);
-        
+		
         // Insert children points.
         IndexType perIndex = index;
         const auto transform = dom.Periodize(perIndex,perIndex);
         assert(transform.IsValid());
         DiscreteFlowType flow;
         fm.Recompute(perIndex, flow);
-        
-        /*
-         std::cout << "\n"
-         ExportVarArrow(value)
-         ExportVarArrow(index)
-         ExportVarArrow(weight)
-         ExportArrayArrow(flow)
-         ExportVarArrow(weightSum)
-         ExportArrayArrow(geo)
-         << "\n";*/
-        
+		
         ScalarType wSum=0;
         for(const auto & offsetWeight : flow){
             wSum+=offsetWeight.weight;}
@@ -169,19 +165,13 @@ GeodesicDiscrete(std::vector<PointType> & geodesic) const {
         const VectorType step = indexAvg-oldIndexAvg;
         steps.push_back({value,step});
         stepNorm+=step.Norm();
-        
-        /*       std::cout
-         ExportVarArrow(weightSum)
-         ExportVarArrow(indexSum)
-         ExportVarArrow(indexBase)
-         ExportArrayArrow(geo)
-         << "\n";*/
-        
+		
         if(geo.size()==1){ // If geodesic concentrates at a seed or around a wall corner.
+			if(flow.empty()) break; // At seed
             geodesic.push_back(indexAvg+HalfVec);
             indexBase=indexAvg;
             stepNorm=0;
-            steps.clear();
+            steps.clear();			
             continue;
         }
         
@@ -194,7 +184,7 @@ GeodesicDiscrete(std::vector<PointType> & geodesic) const {
         for(const auto & valStep : steps){
             p+=valStep.second * (valStep.first-value+delta)/(valInc+delta);}
         geodesic.push_back(p+HalfVec);
-        
+		
         indexBase = indexAvg;
         stepNorm=0;
         steps.clear();
@@ -226,18 +216,8 @@ GeodesicDiscrete(std::vector<PointType> & geodesic) const {
                 w=0;
             }
             indexAvg=PointType::FromOrigin(indexSum/weightSum);
-            
-            //   const ScalarType sqNorm = invVar.SquaredNorm(PointType::CastCoordinates(ind)-indexAvg);
-            /*std::cout
-             ExportVarArrow(ind)
-             ExportVarArrow(indexAvg)
-             ExportVarArrow(detVar)
-             ExportVarArrow(invVar) << "\n"
-             ExportVarArrow(sqNorm)
-             << "\n\n";*/
-            
+			
         }
-        
     }
     return false;
 }

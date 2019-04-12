@@ -180,7 +180,6 @@ HopfLaxRecompute(IndexCRef index, DiscreteFlowType & flow)
 		w(0)=weights[0];
 		return {value,0.};
 	} else {
-		// TODO : reuse cached data
 		assert(flow.size()==2);
 		const auto & [value,weights] = norm.HopfLax({neigh(0),neigh(1)},Vec<2>{w(0),w(1)});
 		const ScalarType width = weights[0]*abs(value-w(0))+weights[1]*abs(value-w(1));

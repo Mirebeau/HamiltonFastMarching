@@ -124,29 +124,32 @@ CorrectionCurrent(const OffsetType & offset,
 	
 	const IndexDiff	offset_d = IndexDiff::CastCoordinates(offset);
 	const VectorType offset_v = VectorType::CastCoordinates(offset);
-
-	const DistanceGuess dist1 = pFM->stencilData.GetGuess(currentIndex+offset_d);
 	
+	const DistanceGuess dist1 = pFM->stencilData.GetGuess(currentIndex+offset_d);
+	const VectorType b1 = base-offset_v;
+
 	if(order==1)
 		return deriv
 		-(/*dist.Norm(base)*/-dist1.Norm(base)) // Spatial derivative of the metric
-		+(/*dist.Norm(base)*/-dist1.Norm(base-offset_v)); // Cancels finite differences
+		+(/*dist.Norm(base)*/- dist1.Norm(b1)); // Cancels finite differences
 	
 	const DistanceGuess dist2 = pFM->stencilData.GetGuess(currentIndex+2*offset_d);
-
+	const VectorType b2 = base-2*offset_v;
+	
 	if(order==2)
 		return deriv
 		-(/*1.5*dist.Norm(base)*/ - 2.*dist1.Norm(base) + 0.5*dist2.Norm(base))
-		+(/*1.5*dist.Norm(base)*/ - 2.*dist1.Norm(base-offset_v) + 0.5*dist2.Norm(base-2*offset_v));
+		+(/*1.5*dist.Norm(base)*/ - 2.*dist1.Norm(b1) + 0.5*dist2.Norm(b2));
 	
 	assert(order==3);
 	const DistanceGuess dist3 = pFM->stencilData.GetGuess(currentIndex+3*offset_d);
-
+	const VectorType b3 = base-3*offset_v;
+	
 	return deriv
 	- (/*(11./6.)*dist.Norm(base)*/-3.*dist1.Norm(base)
 	   +1.5*dist2.Norm(base)-(1./3.)*dist3.Norm(base))
-	+ (/*(11./6.)*dist.Norm(base)*/-3.*dist1.Norm(base-offset_v)
-	   +1.5*dist2.Norm(base-2*offset_v)-(1./3.)*dist3.Norm(base-3*offset_v));
+	+ (/*(11./6.)*dist.Norm(base)*/-3.*dist1.Norm(b1)
+	   +1.5*dist2.Norm(b2)-(1./3.)*dist3.Norm(b3));
 }
 
 template<typename T> auto Factoring<T>::
@@ -161,7 +164,7 @@ const -> ScalarType {
 	
 	auto Value = [&pulledBase,&dist](const VectorType & off) -> ScalarType {
 		const VectorType v=pulledBase-off;
-		return v.IsNull() ? 0. : dist.Norm(v);
+		return dist.Norm(v);
 	};
 	const ScalarType valueZero = dist.Norm(pulledBase);
 	const ScalarType deriv = -dist.Gradient(pulledBase).ScalarProduct(pulledOffset);
@@ -404,7 +407,6 @@ Setup(HFMI * that){
 								  return (q-a.first).SquaredNorm() < (q-b.first).SquaredNorm();}
 							  );
 			const VectorType v = p-q;
-			if(v.IsNull()) {vals.push_back(0.); continue;}
 			if(pointChoice==FactoringPointChoice::Key){vals.push_back(distp.Norm(v)); continue;}
 			
 			const auto & distq = that->pFM->stencilData.GetGuess(q);

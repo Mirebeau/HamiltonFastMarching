@@ -367,7 +367,12 @@ Run_SetupSolver() {
             else seedValues.resize(seedPoints.size(),0.);
 			
 			// If desired, with exact given position get to be spreaded over a few pixels
-			DiscreteType spreadSeeds = (pFM->factoring.method == FactoringMethod::None) ? -1 : 0;
+			
+			// Setting default issue : factoring is not yet set.
+			// Cannot test pFM->factoring.method == FactoringMethod::None
+			spreadSeeds =
+			(!io.HasField("factoringMethod") || io.GetString("factoringMethod")=="None") ? -1 : 0;
+			
 			spreadSeeds = (DiscreteType) io.Get<ScalarType>("spreadSeeds",spreadSeeds);
 			if(!(-1<=spreadSeeds && spreadSeeds<=1))
 			   ExceptionMacro("Error : spreadSeeds parameter should be -1,0, 1, but  has value "
