@@ -8,22 +8,24 @@
 #ifndef Seismic3_hpp
 #define Seismic3_hpp
 
-
-auto StencilSeismic3::GetNorm(IndexCRef index) const -> NormType {
-	const ScalarType invh2 = 1./square(param.gridScale);
+template<typename T> auto
+StencilGenericLag3<T>::
+GetNorm(IndexCRef index) const -> NormType {
 	assert(pMetric!=nullptr);
-	return NormType{invh2*(*pMetric)(index)};
+	return Traits::MakeNorm((*pMetric)(index),param.gridScale);
 }
 
-auto StencilSeismic3::GetGuess(const PointType & p) const -> NormType {
-	const ScalarType invh2 = 1./square(param.gridScale);
+template<typename T> auto
+StencilGenericLag3<T>::
+GetGuess(const PointType & p) const -> DistanceGuess {
 	assert(pMetric!=nullptr);
-	return NormType{invh2*MapWeightedSum<MetricElementType>(*pMetric,pFM->dom.Neighbors(p))};
+	return Traits::MakeNorm(MapWeightedSum<MetricElementType>(*pMetric,this->pFM->dom.Neighbors(p)),param.gridScale);
 }
 
 
-
-auto StencilSeismic3::HopfLaxUpdate(IndexCRef index, const OffsetVals & offsetVal)
+template<typename T> auto
+StencilGenericLag3<T>::
+HopfLaxUpdate(IndexCRef index, const OffsetVals & offsetVal)
 -> std::pair<ScalarType,int> {
 	/*
 	if(index==IndexType{0,4,2}){
@@ -64,16 +66,6 @@ auto StencilSeismic3::HopfLaxUpdate(IndexCRef index, const OffsetVals & offsetVa
 		ScalarType value = norm.HopfLax({acceptedOffset},{acceptedValue},cache0).first;
 		vertexCache.insert({vertexHash(nNeigh),cache0});
 		
-		/*
-		if(index==IndexType{5,1,2}){
-//			const OffsetType o = offsetVal[nNeigh].first;
-			const long h = ((long)linearIndex) << (1+8*3);
-			std::cout << "hi "
-			ExportVarArrow(offsetVal.back().first)
-			ExportVarArrow(vertexHash(nNeigh))
-			ExportVarArrow(linearIndex)
-			ExportVarArrow(h)
-			<< std::endl;}*/
 		
 		const int max_size = OffsetVals::max_size();
 		CappedVector<VectorType,max_size> _vertexCache;
@@ -90,18 +82,6 @@ auto StencilSeismic3::HopfLaxUpdate(IndexCRef index, const OffsetVals & offsetVa
 			
 			// Get cached data
 
-			/*
-			if(vertexCache.count(vertexHash(i))==0){
-			 const IndexType neigh = index+IndexDiff::CastCoordinates(offsetVal[i].first);
-			std::cout << "In Seismic3 HL "
-			ExportVarArrow(val(i))
-			ExportVarArrow(this->pFM->values(neigh))
-			ExportVarArrow(this->pFM->acceptedFlags(neigh))
-			ExportVarArrow(index)
-			ExportVarArrow(IndexDiff::CastCoordinates(offsetVal[i].first))
-			ExportVarArrow(vertexHash(i))
-			<< std::endl;
-			}*/
 			assert(vertexCache.count(vertexHash(i))==1);
 			_vertexCache[i] = vertexCache.find(vertexHash(i))->second;
 			
@@ -199,15 +179,17 @@ auto StencilSeismic3::HopfLaxUpdate(IndexCRef index, const OffsetVals & offsetVa
 		
 	
 	} else { // Never enabled // Straightforward recomputation based variant (costly)
-		// Update from accepted value
-		const auto hl = norm.HopfLax({acceptedOffset},{acceptedValue});
+		
+		// Update from accepted offset
+		const auto hl = norm.HopfLax({acceptedOffset},Vec<1>{acceptedValue});
 		ScalarType value = hl.first;
 		int sectorIndex = 0;
 		
 		// Updates from edges
 		for(int i=0; i<nNeigh; ++i){
 			if(val(i)==Traits::Infinity()) continue;
-			const auto hl = norm.HopfLax({acceptedOffset,offset(i)}, {acceptedValue,val(i)});
+			const auto hl = norm.HopfLax({acceptedOffset,offset(i)}, Vec<2>{acceptedValue,val(i)});
+			
 			if(hl.first>=value) continue;
 			value = hl.first;
 			sectorIndex = i;
@@ -217,7 +199,8 @@ auto StencilSeismic3::HopfLaxUpdate(IndexCRef index, const OffsetVals & offsetVa
 		for(int i=0; i<nNeigh; ++i){
 			const int j = (i+1)%nNeigh;
 			if(val(i)==Traits::Infinity() || val(j)==Traits::Infinity()) continue;
-			const auto hl = norm.HopfLax({acceptedOffset,offset(i),offset(j)}, {acceptedValue,val(i),val(j)});
+			const auto hl = norm.HopfLax({acceptedOffset,offset(i),offset(j)},
+										 Vec<3>{acceptedValue,val(i),val(j)});
 			if(hl.first>=value) continue;
 			value = hl.first;
 			sectorIndex = i;
@@ -228,7 +211,9 @@ auto StencilSeismic3::HopfLaxUpdate(IndexCRef index, const OffsetVals & offsetVa
 
 }
 
-auto StencilSeismic3::HopfLaxRecompute(IndexCRef index, DiscreteFlowType & flow)
+template<typename T> auto
+StencilGenericLag3<T>::
+HopfLaxRecompute(IndexCRef index, DiscreteFlowType & flow)
 -> RecomputeType {
 	assert(!flow.empty());
 	const NormType & norm = GetNorm(index);
@@ -245,18 +230,18 @@ auto StencilSeismic3::HopfLaxRecompute(IndexCRef index, DiscreteFlowType & flow)
 	};
 	
 	if(flow.size()==1){
-		const auto & [value,weights] = norm.HopfLax({offset(0)},{w(0)});
+		const auto & [value,weights] = norm.HopfLax({offset(0)},Vec<1>{w(0)});
 		w(0)=weights[0];
 		return {value,0.};
 	} else if(flow.size()==2){
-		const auto & [value,weights] = norm.HopfLax({offset(0), offset(1)},{w(0),w(1)});
+		const auto & [value,weights] = norm.HopfLax({offset(0), offset(1)},Vec<2>{w(0),w(1)});
 		assert(weights.Sum()>0);
 		const ScalarType width = (weights[0]*abs(value-w(0))+weights[1]*abs(value-w(1)))/weights.Sum();
 		w(0)=weights[0]; w(1)=weights[1];
 		return {value,width};
 	} else {
 		assert(flow.size()==3);
-		const auto & [value,weights] = norm.HopfLax({offset(0), offset(1), offset(2)},{w(0),w(1),w(2)});
+		const auto & [value,weights] = norm.HopfLax({offset(0), offset(1), offset(2)},Vec<3>{w(0),w(1),w(2)});
 		assert(weights.Sum()>0);
 		const ScalarType width =
 		(weights[0]*abs(value-w(0))+weights[1]*abs(value-w(1))+weights[2]*abs(value-w(2)))/weights.Sum();
@@ -267,22 +252,27 @@ auto StencilSeismic3::HopfLaxRecompute(IndexCRef index, DiscreteFlowType & flow)
 }
 
 
-void StencilSeismic3::SetStencil(IndexCRef index, StencilType & stencil){
+template<typename T> void
+StencilGenericLag3<T>::
+SetStencil(IndexCRef index, StencilType & stencil){
 	// We'll put metric dependent adaptive stencils here in time
 	assert(false);
 	assert(!checkAcuteness);
 }
 
-void StencilSeismic3::Setup(HFMI * that){
+template<typename T> void
+StencilGenericLag3<T>::
+Setup(HFMI * that){
 	Superclass::Setup(that); param.Setup(that);
 	auto & io=that->io;
 	pMetric = that->template GetField<MetricElementType>("metric",false);
-	checkAcuteness = (bool)io.Get<ScalarType>("checkAcuteness",checkAcuteness);
+	checkAcuteness = (bool)io.template Get<ScalarType>("checkAcuteness",checkAcuteness);
 }
 
 // ----- Cache management ------
 
-long StencilSeismic3::
+template<typename T> long
+StencilGenericLag3<T>::
 hash(DiscreteType index,OffsetType offset){
 	long result=index;
 	result = (result<<1) +1;
@@ -291,10 +281,12 @@ hash(DiscreteType index,OffsetType offset){
 	return result;
 }
 
-std::pair<long,bool>
-StencilSeismic3::
+
+template<typename T> std::pair<long,bool>
+StencilGenericLag3<T>::
 hash(DiscreteType index,OffsetType offset1, OffsetType offset2){
-	bool ordered = OffsetType::LexicographicCompare()(offset1,offset2);
+	using Comp = typename OffsetType::LexicographicCompare;
+	bool ordered = Comp()(offset1,offset2);
 	if(!ordered) std::swap(offset1,offset2);
 	
 	long result=index;
@@ -306,8 +298,8 @@ hash(DiscreteType index,OffsetType offset1, OffsetType offset2){
 	return {result,ordered};
 }
 
-void
-StencilSeismic3::
+template<typename T> void
+StencilGenericLag3<T>::
 EraseCache(DiscreteType index) {
 	if(!useHopfLaxCache) return;
 	
@@ -316,11 +308,12 @@ EraseCache(DiscreteType index) {
 		lbound = (long(index)<<1) << (8*Dimension),
 		ubound = ((long(index)<<1)+2) << (8*Dimension);
 		
+		/*
 		if(lbound<= 8539603201 && 8539603201 <= ubound){
 			std::cout << "Erased "
 			ExportVarArrow(index)
 			<< std::endl;
-		}
+		}*/
 		
 		auto & hlCache = vertexCache;
 		hlCache.erase(hlCache.lower_bound(lbound),hlCache.lower_bound(ubound));

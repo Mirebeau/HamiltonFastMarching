@@ -34,7 +34,7 @@ struct TraitsSeismic2 : TraitsBase<2> {
 struct TraitsSeismicTopographic2 : TraitsBase<2> {
 	
 	using StencilType = Lagrangian2Stencil<OffsetType,ScalarType,DiscreteType>;
-	using DomainType = PeriodicGrid<TraitsSeismic2>;
+	using DomainType = PeriodicGrid<TraitsSeismicTopographic2>;
 	struct DifferenceType {static const int multSize = -1; struct MultiplierType {};};
 
 	using BaseNormType = LinearAlgebra::SeismicNorm<ScalarType,2>;

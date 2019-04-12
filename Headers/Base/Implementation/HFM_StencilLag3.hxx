@@ -142,7 +142,7 @@ HopfLaxUpdate(FullIndexCRef full, OffsetCRef acceptedOffset, ScalarType accepted
 		fm.template GetNeighborValue<true,false,1>(acceptedOffset,ord)});
 	assert(ord==1);
 //	offsetVal.push_back({acceptedOffset, acceptedValue});
-	
+		
 	// Evaluate the Hopf-Lax update, and compare
 	const auto [value,sectorIndex] = HopfLaxUpdate(updatedIndex,offsetVal);
 	const ScalarType oldValue = fm.values[full.linear];

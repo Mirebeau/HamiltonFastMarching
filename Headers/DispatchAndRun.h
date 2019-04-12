@@ -72,6 +72,7 @@
 #define Seismic2_Seismic2 1
 #define Seismic2_SeismicTopographic2 1
 #define Seismic3_Seismic3 1
+#define Seismic3_SeismicTopographic3 1
 #define AlignedBillard_AlignedBillard 1
 
 // **** Include the correct header ****
