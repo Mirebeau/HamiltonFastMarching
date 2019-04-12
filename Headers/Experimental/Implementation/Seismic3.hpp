@@ -143,12 +143,62 @@ auto StencilSeismic3::HopfLaxUpdate(IndexCRef index, const OffsetVals & offsetVa
 		return {value,sectorIndex};
 		
 		
-	} if(true) { // Recomputation based variant, with a bit of caching though.
+	} if(true) { // Recomputation based variant, with a bit of purely local caching.
 	
+		// Update from accepted value
+		int sectorIndex = 0;
+		VectorType cache0;
+		ScalarType value = norm.HopfLax({acceptedOffset},{acceptedValue},cache0).first;
 		
 		
+		const int max_size = OffsetVals::max_size();
+		std::array<VectorType,max_size> _vertexCache;
+		std::array<VectorType,max_size> _edgeCache;
+		std::array<ScalarType,max_size> _posCache;
+		
+		// Updates from edges
+		for(int i=0; i<nNeigh; ++i){
+			if(val(i)==Traits::Infinity()) continue;
+			
+			// Recompute update for vertex i to set cache
+			norm.HopfLax({offset(i)},{val(i)},_vertexCache[i]);
+			
+			const auto hl = norm.HopfLax({acceptedOffset,offset(i)}, {acceptedValue,val(i)},
+										 {cache0,_vertexCache[i]},_edgeCache[i]);
+			// Save edge cache
+			_posCache[i] = hl.second[1]/hl.second.Sum();
+			
+			if(hl.first>=value) continue;
+			value = hl.first;
+			sectorIndex = i;
+		}
+		
+		
+		// Updates from faces
+		for(int i=0; i<nNeigh; ++i){
+			const int j = (i+1)%nNeigh;
+			if(val(i)==Traits::Infinity() || val(j)==Traits::Infinity()) continue;
+			
+			// Recompute update for edge (i,j) to set cache
+			VectorType g_ij;
+			const auto hl_ij = norm.HopfLax({offset(i),offset(j)}, {val(i),val(j)},
+										 {_vertexCache[i],_vertexCache[j]},g_ij);
+			const ScalarType pos_ij = hl_ij.second[1]/hl_ij.second.Sum();
+			
+			const auto hl = norm.HopfLax({acceptedOffset,offset(i),offset(j)},
+										 {acceptedValue,val(i),val(j)},
+										 {cache0,_vertexCache[i],_vertexCache[j]},
+										 {_edgeCache[i],g_ij,_edgeCache[j]},
+										 {_posCache[i], pos_ij, 1-_posCache[j]});
+			if(hl.first>=value) continue;
+			value = hl.first;
+			sectorIndex = i;
+		}
+		
+		return {value,sectorIndex};
+		
 	
-	} else { // Recomputation based variant
+	} else { // Never enabled // Straightforward recomputation based variant (costly)
 		// Update from accepted value
 		const auto hl = norm.HopfLax({acceptedOffset},{acceptedValue});
 		ScalarType value = hl.first;

@@ -87,7 +87,7 @@ private:
 	template<size_t n> using Vec = typename NormType::template Vec<n>;
 	
 	// Tentative optimization : avoid recomputing gradients.
-	// No significant gain overall : cost of memory allocations exceeds gains.
+	// Actually counter productive : 50% more cpu time, cost of memory allocations exceeds gains.
 	const bool useCache = false;
 	std::unordered_map<long,VectorType> vertexCache;
 	std::unordered_multimap<DiscreteType,long> vertexCacheKeys;

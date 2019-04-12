@@ -56,7 +56,9 @@ private:
 	
 	
 	// Tentative optimization : Caching data for faster computations
-	const bool useHopfLaxCache = true;
+	// Gets about 30 performance gain on small test case, for a much increase memory usage.
+	// Not sure if worth it.
+	const bool useHopfLaxCache = false;
 	std::map<long,VectorType> vertexCache;
 	std::map<long,std::pair<VectorType,ScalarType> > edgeCache;
 	virtual void EraseCache(DiscreteType index) override final;

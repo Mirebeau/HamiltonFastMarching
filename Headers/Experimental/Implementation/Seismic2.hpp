@@ -92,8 +92,46 @@ HopfLaxUpdate(IndexCRef index, const OffsetVal3 & offsetVal)
 			}
 		}
 		
-	} else {
-		// --- Version with gradient recomputation ---
+	} else if(true) { // --- Recomputation based variant with a bit of local caching ---
+		
+		// Compute and save gradient at new vertex
+		const VectorType neigh0 = neigh(0);
+		const ScalarType val0 = val(0);
+		
+		// Test from accepted vertex
+		VectorType cache0;
+		value = norm.HopfLax({neigh0},Vec<1>{val0},cache0).first;
+		active = 0;
+		
+		// Cache computed data
+		VectorType dummyCache;
+		
+		if(offsetVal.size()>=2){
+			// Recompute from neighbor, to set cache
+			VectorType cache1;
+			norm.HopfLax({neigh(1)},Vec<1>{val(1)},cache1);
+			
+			value = norm.HopfLax({neigh0,neigh(1)},Vec<2>{val0,val(1)},
+								 {cache0,cache1},dummyCache).first;
+			active = 1;
+		}
+		
+		if(offsetVal.size()==3){
+			// Recompute from neighbor, to set cache
+			VectorType cache2;
+			norm.HopfLax({neigh(2)},Vec<1>{val(2)},cache2);
+
+			const ScalarType newValue =
+			norm.HopfLax({neigh0,neigh(2)},Vec<2>{val0,val(2)},
+						 {cache0,cache2},dummyCache).first;
+			if(newValue<value){
+				value=newValue;
+				active = 2;
+			}
+		}
+		
+	} else { // Never enabled
+		// --- Version with full gradient recomputation --- (most costly)
 		if(offsetVal.size()==1) {
 			value = norm.HopfLax({neigh(0)},Vec<1>{val(0)}).first;
 			active = 0;
