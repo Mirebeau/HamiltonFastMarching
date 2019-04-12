@@ -40,7 +40,7 @@ HopfLaxUpdate(IndexCRef index, const OffsetVal3 & offsetVal)
 	int active;
 	ScalarType value;
 	
-	if(useHopfLaxCache){
+	if(useCache){
 		// --- Version caching the gradients (faster) ---
 		const DiscreteType linearIndex = this->indexConverter.Convert(index);
 		
@@ -59,17 +59,19 @@ HopfLaxUpdate(IndexCRef index, const OffsetVal3 & offsetVal)
 		active = 0;
 
 		// Cache computed data
-		auto & hlCache = hopfLaxCache;
-		assert(hlCache.find(hash(0)) == hlCache.end());
-		[[maybe_unused]] const auto insertion_result = hlCache.insert({hash(0),cache0});
+		auto & vCache = vertexCache;
+		const long hash0 = hash(0);
+		assert(vCache.count(hash0)==0);
+		[[maybe_unused]] const auto insertion_result = vCache.insert({hash0,cache0});
 		assert(insertion_result.second);
+		vertexCacheKeys.insert({linearIndex,hash0});
 		
 		VectorType dummyCache;
 		
 		if(offsetVal.size()>=2){
 			// Neighbor has been accepted before, relevant data is cached
-			const auto cache1_it = hlCache.find(hash(1));
-			assert(cache1_it != hlCache.end());
+			const auto cache1_it = vCache.find(hash(1));
+			assert(cache1_it != vCache.end());
 			
 			value = norm.HopfLax({neigh0,neigh(1)},Vec<2>{val0,val(1)},
 			{cache0,cache1_it->second},dummyCache).first;
@@ -78,8 +80,8 @@ HopfLaxUpdate(IndexCRef index, const OffsetVal3 & offsetVal)
 		
 		if(offsetVal.size()==3){
 			// Neighbor has been accepted before
-			const auto cache2_it = hlCache.find(hash(2));
-			assert(cache2_it != hlCache.end());
+			const auto cache2_it = vCache.find(hash(2));
+			assert(cache2_it != vCache.end());
 			
 			const ScalarType newValue =
 			norm.HopfLax({neigh0,neigh(2)},Vec<2>{val0,val(2)},
@@ -173,6 +175,13 @@ Setup(HFMI * that){
 	Superclass::Setup(that); param.Setup(that);
 	pMetric = that->template GetField<MetricElementType>("metric",false);
 	cosAngleMin = that->io.Get("cosAngleMin", cosAngleMin);
+	if(useCache){
+		const IndexType dims = this->indexConverter.dims;
+		const size_t front_size_estim = dims.Product()/(*std::max_element(dims.begin(),dims.end()));
+		const size_t active_neighbors_estim = 5*front_size_estim;
+		vertexCacheKeys.reserve(active_neighbors_estim);
+		vertexCache.reserve(active_neighbors_estim);
+	}
 }
 
 // ----- Cache data ----
@@ -190,11 +199,25 @@ hash(DiscreteType index,OffsetType offset){
 template<typename T> void
 StencilGenericLag2<T>::
 EraseCache(DiscreteType index) {
+	if(!useCache) return;
+	const auto rg = vertexCacheKeys.equal_range(index);
+	for(auto [ind,key] : RangeAccessor{rg.first,rg.second}) {vertexCache.erase(key);}
+	vertexCacheKeys.erase(rg.first,rg.second);
+	
+	/*
+	static int iter = 0;
+	++iter;
+	const int size = this->indexConverter.dims.Product();
+	if(iter%(size/10) == 0) {
+		std::cout  ExportVarArrow(vertexCache.size()/double(size)) << std::endl;}
+	 */
+		/* // Slow map based version
 	const long
 	lbound = (index<<1) << (8*Dimension),
 	ubound = ((index<<1)+2) << (8*Dimension);
 	
 	auto & hlCache = hopfLaxCache;
 	hlCache.erase(hlCache.lower_bound(lbound),hlCache.lower_bound(ubound));
+		 */
 }
 #endif /* Seismic2_h */

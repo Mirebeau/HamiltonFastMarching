@@ -8,6 +8,8 @@
 #ifndef Seismic2_h
 #define Seismic2_h
 
+#include <unordered_map>
+
 #include "Base/Lagrangian2Stencil.h"
 #include "Specializations/CommonTraits.h"
 
@@ -84,10 +86,11 @@ private:
 	std::vector<ScalarType> tmp_stencil_scal;
 	template<size_t n> using Vec = typename NormType::template Vec<n>;
 	
-	// Optimization : avoid recomputing gradients.
-	// Significant gain overall, although storage using a dynamic map is fairly expensive.
-	const bool useHopfLaxCache = true;
-	std::map<long,VectorType> hopfLaxCache;
+	// Tentative optimization : avoid recomputing gradients.
+	// No significant gain overall : cost of memory allocations exceeds gains.
+	const bool useCache = false;
+	std::unordered_map<long,VectorType> vertexCache;
+	std::unordered_multimap<DiscreteType,long> vertexCacheKeys;
 	virtual void EraseCache(DiscreteType index) override final;
 	static long hash(DiscreteType,OffsetType);
 };

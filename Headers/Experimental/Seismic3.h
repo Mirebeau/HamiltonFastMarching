@@ -53,6 +53,15 @@ struct StencilSeismic3 final
 	virtual DistanceGuess GetGuess(const IndexType & index) const override {return GetNorm(index);}
 private:
 	NormType GetNorm(IndexCRef index) const; // Includes rescaling by h
+	
+	
+	// Tentative optimization : Caching data for faster computations
+	const bool useHopfLaxCache = true;
+	std::map<long,VectorType> vertexCache;
+	std::map<long,std::pair<VectorType,ScalarType> > edgeCache;
+	virtual void EraseCache(DiscreteType index) override final;
+	static long hash(DiscreteType,OffsetType);
+	static std::pair<long,bool> hash(DiscreteType,OffsetType,OffsetType);
 };
 
 #include "Implementation/Seismic3.hpp"

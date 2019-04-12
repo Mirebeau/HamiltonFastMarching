@@ -111,7 +111,7 @@ struct HamiltonFastMarching {
 	void SetIndex(IndexCRef) const;
 	template<bool useFactoring, bool smallCorrection, int maxOrder>
 	ScalarType GetNeighborValue(OffsetType,int&) const;
-protected:
+//protected:
     struct QueueElement;
     std::priority_queue<QueueElement> queue;
     
