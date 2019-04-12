@@ -1,6 +1,7 @@
 cmake_minimum_required(VERSION 3.1)
 set (CMAKE_CXX_STANDARD 17)
 
+
 project(FileHFM)
 
 # Include headers (JMM_CPPLibs and ../../Headers)
@@ -8,6 +9,13 @@ set(JMM_CPPLibs_dir "${CMAKE_CURRENT_SOURCE_DIR}/../../../JMM_CPPLibs" CACHE FIL
 set(DummyBinDir "${CMAKE_CURRENT_BINARY_DIR}/Dummy")
 add_subdirectory("${JMM_CPPLibs_dir}/include_NoConda" "${DummyBinDir}/JMM_CPPLibs")
 add_subdirectory("../../Headers" "${DummyBinDir}/HFMHeaders")
+
+
+# Testing for xsimd
+include_directories("/Users/mirebeau/Dropbox/Programmes/2019/4_Avril/SimdTest/xsimd-master/include")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -march=native")
+
+
 
 include(${CMAKE_CURRENT_SOURCE_DIR}/../common.cmake)
 include(ide_headers_layout.cmake)

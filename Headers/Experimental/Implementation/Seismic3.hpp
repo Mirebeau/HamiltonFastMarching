@@ -125,6 +125,7 @@ HopfLaxUpdate(IndexCRef index, const OffsetVals & offsetVal)
 		
 	} if(true) { // Recomputation based variant, with a bit of purely local caching.
 	
+#ifdef XSIMD_HPP
 		// Update from accepted value
 		int sectorIndex = 0;
 		VectorType cache0;
@@ -176,7 +177,90 @@ HopfLaxUpdate(IndexCRef index, const OffsetVals & offsetVal)
 		}
 		
 		return {value,sectorIndex};
+#else
+		const int max_size = OffsetVals::max_size();
+		std::array<VectorType,max_size> _vertexCache;
+		std::array<VectorType,max_size> _edgeCache;
+		std::array<ScalarType,max_size> _posCache;
+
+		using SimdNormType = typename Traits::SimdNormType;
+		using SimdVectorType = typename SimdNormType::VectorType;
+		using SimdScalarType = typename SimdNormType::ComponentType;
+		constexpr const int simd_size = SimdScalarType::size;
+
+		SimdNormType simd_norm;
+		for(int i=0; i<norm.hookeTensor.data.size(); ++i){
+			simd_norm.hookeTensor.data[i] = SimdScalarType(norm.hookeTensor.data[i]);}
+
+		SimdVectorType simd_vector;
+		CappedVector<int,simd_size> simd_ind;
 		
+		for(int i=0; i<offsetVal.size(); ++i){
+			if(val(i)==Traits::Infinity()) continue;
+			const int n = simd_ind.size();
+			simd_ind.push_back(i);
+			const VectorType offseti = offset(i);
+			for(int j=0; j<Dimension; ++j){simd_vector[j][n]=offseti[j];}
+			if(simd_ind.size()==simd_size || i==nNeigh){
+				simd_vector = simd_norm.GradNorm(simd_vector);
+				for(int k=0; k<simd_ind.size(); ++k){
+					for(int j=0; j<Dimension; ++j) {
+						_vertexCache[simd_ind[k]][j]=simd_vector[j][k];}
+				}
+				simd_ind.clear();
+			}
+			
+		}
+		
+		// Update from accepted value
+		int sectorIndex = 0;
+		const VectorType & cache0 = _vertexCache[nNeigh];
+//		ScalarType value = norm.HopfLax({acceptedOffset},{acceptedValue},cache0).first;
+		ScalarType value = acceptedValue+acceptedOffset.ScalarProduct(_vertexCache[nNeigh]);
+		
+		
+		// Updates from edges
+		for(int i=0; i<nNeigh; ++i){
+			if(val(i)==Traits::Infinity()) continue;
+			
+			// Recompute update for vertex i to set cache
+//			norm.HopfLax({offset(i)},{val(i)},_vertexCache[i]);
+			
+			const auto hl = norm.HopfLax({acceptedOffset,offset(i)}, {acceptedValue,val(i)},
+										 {cache0,_vertexCache[i]},_edgeCache[i]);
+			// Save edge cache
+			_posCache[i] = hl.second[1]/hl.second.Sum();
+			
+			if(hl.first>=value) continue;
+			value = hl.first;
+			sectorIndex = i;
+		}
+		
+		
+		// Updates from faces
+		for(int i=0; i<nNeigh; ++i){
+			const int j = (i+1)%nNeigh;
+			if(val(i)==Traits::Infinity() || val(j)==Traits::Infinity()) continue;
+			
+			// Recompute update for edge (i,j) to set cache
+			VectorType g_ij;
+			const auto hl_ij = norm.HopfLax({offset(i),offset(j)}, {val(i),val(j)},
+											{_vertexCache[i],_vertexCache[j]},g_ij);
+			const ScalarType pos_ij = hl_ij.second[1]/hl_ij.second.Sum();
+			
+			const auto hl = norm.HopfLax({acceptedOffset,offset(i),offset(j)},
+										 {acceptedValue,val(i),val(j)},
+										 {cache0,_vertexCache[i],_vertexCache[j]},
+										 {_edgeCache[i],g_ij,_edgeCache[j]},
+										 {_posCache[i], pos_ij, 1-_posCache[j]});
+			if(hl.first>=value) continue;
+			value = hl.first;
+			sectorIndex = i;
+		}
+		
+		return {value,sectorIndex};
+		
+#endif
 	
 	} else { // Never enabled // Straightforward recomputation based variant (costly)
 		
