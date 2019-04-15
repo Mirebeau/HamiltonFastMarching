@@ -12,8 +12,6 @@
 #include "Base/Lagrangian3Stencil.h"
 #include "Specializations/CommonTraits.h"
 
-#include "xsimd/xsimd.hpp"
-
 #include "JMM_CPPLibs/LinearAlgebra/SeismicNorm.h"
 #include "JMM_CPPLibs/LinearAlgebra/ComposedNorm.h"
 #include "JMM_CPPLibs/LinearAlgebra/VectorPairType.h"
@@ -26,12 +24,15 @@ struct TraitsSeismic3 : TraitsBase<3> {
 	struct DifferenceType {static const int multSize = -1; struct MultiplierType {};};
 	
 	using NormType = LinearAlgebra::SeismicNorm<ScalarType,3>;
-	using SimdNormType = LinearAlgebra::SeismicNorm<xsimd::simd_type<ScalarType>, 3>;
 	using DistanceGuess = NormType;
 	
 	using MetricElementType = NormType::HookeTensorType;
 	static NormType MakeNorm(const MetricElementType & m, ScalarType h){
 		return NormType{(1./square(h))*m};}
+	
+#ifdef XSIMD_HPP
+	using SimdNormType = LinearAlgebra::SeismicNorm<xsimd::simd_type<ScalarType>, 3>;
+#endif
 };
 
 struct TraitsSeismicTopographic3 : TraitsBase<3> {

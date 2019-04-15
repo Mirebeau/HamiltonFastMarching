@@ -11,16 +11,15 @@ add_subdirectory("${JMM_CPPLibs_dir}/include_NoConda" "${DummyBinDir}/JMM_CPPLib
 add_subdirectory("../../Headers" "${DummyBinDir}/HFMHeaders")
 
 
-# Testing for xsimd
-include_directories("/Users/mirebeau/Dropbox/Programmes/2019/4_Avril/SimdTest/xsimd-master/include")
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -march=native")
-
-
-
 include(${CMAKE_CURRENT_SOURCE_DIR}/../common.cmake)
 include(ide_headers_layout.cmake)
 include_directories(${PROJECT_DIR} ${CMAKE_CURRENT_SOURCE_DIR})
 
+cmake_policy(SET CMP0057 NEW)
+if("Seismic3SIMD" IN_LIST ModelNames)
+	set(XSIMD_dir "/Users/mirebeau/Dropbox/Programmes/2019/4_Avril/SimdTest/xsimd-master/include" CACHE FILEPATH "xsimd directory")
+	include_directories(${XSIMD_dir})
+endif()
 
 # Single model executables
 

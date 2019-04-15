@@ -73,6 +73,8 @@
 #define Seismic2_SeismicTopographic2 1
 #define Seismic3_Seismic3 1
 #define Seismic3_SeismicTopographic3 1
+#define Seismic3SIMD_Seismic3SIMD 1
+
 #define AlignedBillard_AlignedBillard 1
 
 // **** Include the correct header ****
@@ -129,6 +131,10 @@ using StencilRiemannLifted2_Periodic = StencilRiemannLifted2<Boundary::Periodic>
 #include "Experimental/Seismic2.h"
 #elif PPCAT(Seismic3_,ModelName)
 #include "Experimental/Seismic3.h"
+#elif PPCAT(Seismic3SIMD_,ModelName)
+#include "xsimd/xsimd.hpp"
+#include "Experimental/Seismic3.h"
+using StencilSeismic3SIMD = StencilSeismic3;
 #elif PPCAT(AlignedBillard_,AlignedBillard)
 #include "Experimental/AlignedBillard.h"
 // Very experimental specializations
