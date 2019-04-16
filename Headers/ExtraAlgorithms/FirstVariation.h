@@ -175,16 +175,16 @@ FirstVariation<T>::ValueVariationHelper<true,Dummy> {
         assert(neighbors.empty());
         DiscreteFlowType flow;
         const RecomputeType rec = pFM->Recompute(index, flow);
-        
-        [[maybe_unused]] typedef typename DiscreteFlowType::value_type FlowElementType;
-        assert(std::fabs(std::accumulate(flow.begin(), flow.end(), 0.,[](ScalarType a, const FlowElementType & b){return a+b.weight;})-1.)<0.001);
-        
+		
+		typedef typename DiscreteFlowType::value_type FlowElementType;
+		const ScalarType weightSum = std::accumulate(flow.begin(), flow.end(), 0.,[](ScalarType a, const FlowElementType & b){return a+b.weight;});
+		
         ScalarType valueDiff = rec.value; // equivalently pFM->values(index)
-        // valueDiff accounts for f(xMin) in the semi-Lagrangian optimization inf f(xMin) + u(x)
+        // valueDiff accounts for f(xMin) in the semi-Lagrangian optimization inf_x f(x) + u(x)
         // over the neighborhood boundary
         
         for(const auto & flowElem : flow){
-            const ScalarType weight = flowElem.weight;
+            const ScalarType weight = flowElem.weight / weightSum;
             IndexType neigh = index+IndexDiff::CastCoordinates(flowElem.offset);
             [[maybe_unused]] const auto transform = pFM->dom.Periodize(neigh, index);
             assert(transform.IsValid());
@@ -341,7 +341,8 @@ ValueVariation(IndexCRef index, ActiveNeighborsType & neighbors) const ->MultTyp
 // ---------- Reverse auto diff ------------
 
 template<typename T> auto FirstVariation<T>::
-BackwardVariation(const std::vector<std::pair<IndexType,ScalarType> > & base, Array<MultType, Dimension> & result) const
+BackwardVariation(const std::vector<std::pair<IndexType,ScalarType> > & base,
+				  Array<MultType, Dimension> & result) const
 -> std::vector<std::pair<IndexType,ScalarType> > {
     std::vector<std::pair<IndexType,ScalarType> > sensitiveSeeds;
     const Array<ScalarType, Dimension> & values = pFM->values;
@@ -353,16 +354,14 @@ BackwardVariation(const std::vector<std::pair<IndexType,ScalarType> > & base, Ar
     // (value,index) -> weight
     typedef std::map<std::pair<ScalarType,IndexType>,ScalarType> GeoType;
     GeoType geo;
-    for(const auto & indexWeight : base){
-        IndexType index = indexWeight.first;
-        if(!pFM->dom.Periodize(index,index).IsValid()) continue;
-        geo.insert({{values(index),index},indexWeight.second});}
+    for(auto [index,weight] : base){
+        if(!pFM->dom.PeriodizeNoBase(index).IsValid()) continue;
+        geo.insert({{values(index),index},weight});}
 
     
     while(!geo.empty()){
         const auto it = --geo.end(); // point with largest value
-        const ScalarType value = it->first.first;
-        const IndexType index = it->first.second;
+		const auto [value,index] = it->first;
         const ScalarType weight = it->second;
         geo.erase(it);
         
