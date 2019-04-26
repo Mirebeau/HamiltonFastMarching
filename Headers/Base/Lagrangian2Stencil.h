@@ -10,6 +10,7 @@
 
 #include "CommonStencil.h"
 #include "JMM_CPPLibs/LinearAlgebra/VectorType.h"
+#include "JMM_CPPLibs/Output/EnumToString.h"
 
 // ------ Default stencils ------
 enum class Lagrangian2StencilGeometry {Diamond,Square,SpikySquare,Voronoi,None};

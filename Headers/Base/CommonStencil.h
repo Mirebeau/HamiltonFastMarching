@@ -8,6 +8,8 @@
 #ifndef CommonStencil_h
 #define CommonStencil_h
 #include "JMM_CPPLibs/DataStructures/CappedVector.h"
+#include "JMM_CPPLibs/Macros/ExportArrow.h"
+
 
 template<typename TOffset, typename TScalar, int nActiveNeigh>
 struct CommonStencil {
