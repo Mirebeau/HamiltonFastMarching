@@ -378,6 +378,7 @@ StencilGenericLag3<T>::
 SetStencil(IndexCRef index, StencilType & stencil){
 	// We'll put metric dependent adaptive stencils here in time
 	assert(false);
+	ExceptionMacro("Seismic3 error : no stencil geometry specified");
 	assert(!checkAcuteness);
 }
 
