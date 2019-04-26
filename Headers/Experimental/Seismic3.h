@@ -89,11 +89,12 @@ private:
 	// Gets about 30 performance gain on small test case, for a much increase memory usage.
 	// Not sure if worth it.
 	const bool useHopfLaxCache = false;
-	std::map<long,VectorType> vertexCache;
-	std::map<long,std::pair<VectorType,ScalarType> > edgeCache;
+	using HashKey = int_least64_t;
+	std::map<HashKey,VectorType> vertexCache;
+	std::map<HashKey,std::pair<VectorType,ScalarType> > edgeCache;
 	virtual void EraseCache(DiscreteType index) override final;
-	static long hash(DiscreteType,OffsetType);
-	static std::pair<long,bool> hash(DiscreteType,OffsetType,OffsetType);
+	static HashKey hash(DiscreteType,OffsetType);
+	static std::pair<HashKey,bool> hash(DiscreteType,OffsetType,OffsetType);
 };
 
 using StencilSeismic3 = StencilGenericLag3<TraitsSeismic3>;

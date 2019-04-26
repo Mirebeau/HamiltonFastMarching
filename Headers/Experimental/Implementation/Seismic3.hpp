@@ -54,9 +54,9 @@ HopfLaxUpdate(IndexCRef index, const OffsetVals & offsetVal)
 		const auto & indexConverter = this->pFM->values;
 		const DiscreteType linearIndex = indexConverter.Convert(index);
 		
-		auto vertexHash = [&linearIndex,&offsetVal,this](int i) -> long {
+		auto vertexHash = [&linearIndex,&offsetVal,this](int i) -> HashKey {
 			return this->hash(linearIndex,offsetVal[i].first);};
-		auto edgeHash = [&linearIndex,&offsetVal,this](int i,int j) -> std::pair<long,bool> {
+		auto edgeHash = [&linearIndex,&offsetVal,this](int i,int j) -> std::pair<HashKey,bool> {
 			return this->hash(linearIndex,offsetVal[i].first,offsetVal[j].first);};
 
 		
@@ -393,10 +393,11 @@ Setup(HFMI * that){
 
 // ----- Cache management ------
 
-template<typename T> long
+template<typename T> auto
 StencilGenericLag3<T>::
-hash(DiscreteType index,OffsetType offset){
-	long result=index;
+hash(DiscreteType index,OffsetType offset)
+-> HashKey {
+	HashKey result=index;
 	result = (result<<1) +1;
 	for(int i=0; i<Dimension; ++i){
 		result = (result<<8) + offset[i];}
@@ -404,16 +405,17 @@ hash(DiscreteType index,OffsetType offset){
 }
 
 
-template<typename T> std::pair<long,bool>
+template<typename T> auto
 StencilGenericLag3<T>::
-hash(DiscreteType index,OffsetType offset1, OffsetType offset2){
+hash(DiscreteType index,OffsetType offset1, OffsetType offset2)
+->  std::pair<HashKey, bool> {
 	using Comp = typename OffsetType::LexicographicCompare;
 	bool ordered = Comp()(offset1,offset2);
 	if(!ordered) std::swap(offset1,offset2);
 	
-	long result=index;
+	HashKey result=index;
 	result = (result<<1) +1;
-	static_assert(sizeof(long)>=8);
+	static_assert(sizeof(HashKey)>=8);
 	for(int i=0; i<Dimension; ++i){ result = (result<<5) + offset1[i];}
 	for(int i=0; i<Dimension; ++i){ result = (result<<5) + offset2[i];}
 	
@@ -426,9 +428,9 @@ EraseCache(DiscreteType index) {
 	if(!useHopfLaxCache) return;
 	
 	{ // Erase vertex data
-		const long
-		lbound = (long(index)<<1) << (8*Dimension),
-		ubound = ((long(index)<<1)+2) << (8*Dimension);
+		const HashKey
+		lbound = (HashKey(index)<<1) << (8*Dimension),
+		ubound = ((HashKey(index)<<1)+2) << (8*Dimension);
 		
 		/*
 		if(lbound<= 8539603201 && 8539603201 <= ubound){
@@ -442,9 +444,9 @@ EraseCache(DiscreteType index) {
 	}
 	
 	{ // Erase edge data
-		const long
-		lbound = (long(index)<<1) << (5*2*Dimension),
-		ubound = ((long(index)<<1)+2) << (5*2*Dimension);
+		const HashKey
+		lbound = (HashKey(index)<<1) << (5*2*Dimension),
+		ubound = ((HashKey(index)<<1)+2) << (5*2*Dimension);
 		
 		auto & hlCache = edgeCache;
 		hlCache.erase(hlCache.lower_bound(lbound),hlCache.lower_bound(ubound));

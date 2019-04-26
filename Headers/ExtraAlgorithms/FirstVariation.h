@@ -354,7 +354,8 @@ BackwardVariation(const std::vector<std::pair<IndexType,ScalarType> > & base,
     // (value,index) -> weight
     typedef std::map<std::pair<ScalarType,IndexType>,ScalarType> GeoType;
     GeoType geo;
-    for(auto [index,weight] : base){
+    for(auto [ind,weight] : base){
+		IndexType index = ind; // Workaround for MSVC compiler bug, which forgets to discard const qualifier
         if(!pFM->dom.PeriodizeNoBase(index).IsValid()) continue;
         geo.insert({{values(index),index},weight});}
 
