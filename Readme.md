@@ -34,7 +34,7 @@ This code implements a Fast-Marching solver with adaptive stencils. It computes 
 
 ## Installation instructions
 - You also need to download the Github repository github.com/Mirebeau/JMM_CPPLibs. When compiling, you may need need to enter the path to this (header only) library.
-- The code is written in C++11.
+- The code is written in C++17.
 - It is meant to be called from one of the following scripting languages.
   * Python(R). Please compile the code located in Interfaces/FileHFM using CMake. Then consult the examples located in Interfaces/PythonHFM/ExampleFiles/FileBased as well as the illustrative notebooks.
   * Mathematica(R). Please compile the code located in Interfaces/FileHFM using CMAKE. Then consult the examples located in Interfaces/MathematicaHFM/ExampleFiles/FileBased as well as the illustrative notebooks.
