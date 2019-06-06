@@ -7,6 +7,10 @@
 
 #include "JMM_CPPLibs/Macros/String.h"
 #include "JMM_CPPLibs/Macros/PPCat.h"
+
+// Saving the model name as a string for future reference
+const std::string ModelNameString=STRING(ModelName);
+
 // **** Do we need high dimensional Voronoi reduction ***
 
 #define HighVoronoi_Riemann4                1
@@ -145,10 +149,6 @@ using StencilSeismic3SIMD = StencilSeismic3;
 #include "Experimental/RollingBall.h"
  */
 #endif
-
-// Saving the model name as a string for future reference
-const std::string ModelNameString=STRING(ModelName);
-
 
 // ------- Custom invocation, with multiple models.  ---------
 
