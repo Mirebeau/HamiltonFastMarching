@@ -20,13 +20,13 @@
 If you use this program, then please cite at least one of the following papers.
 
 - (On the Reed-Shepp models) : 
-Remco Duits, Stephan P.L. Meesters, Jean-Marie Mirebeau, Jorg M. Portegies, Optimal Paths for Variants of the 2D and 3D Reeds-Shepp Car with Applications in Image Analysis, Preprint available on arXiv, 2017
+Remco Duits, Stephan P.L. Meesters, Jean-Marie Mirebeau, Jorg M. Portegies, Optimal Paths for Variants of the 2D and 3D Reeds-Shepp Car with Applications in Image Analysis, Journal of Mathematical Imaging and Vision, 2017
 
 - (On Riemannian metrics) : 
 Jean-Marie Mirebeau, Anisotropic fast-marching on cartesian grids using Voronoi's first reduction of quadratic forms, Preprint available on HAL, 2017
 
 - (On Euler Elastica and Dubins paths) : 
-Jean-Marie Mirebeau, Fast Marching methods for Curvature Penalized Shortest Paths, in preparation, 2017
+Jean-Marie Mirebeau, Fast Marching methods for Curvature Penalized Shortest Paths, Journal of Mathematical Imaging and Vision, 2018
 
 
                     GNU GENERAL PUBLIC LICENSE
