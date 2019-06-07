@@ -1,0 +1,1 @@
+See TestVDE.py in AdaptiveGridDiscretizations python library

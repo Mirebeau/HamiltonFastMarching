@@ -4,10 +4,9 @@ set (CMAKE_CXX_STANDARD 17)
 
 project(FileHFM)
 
-# Include headers (JMM_CPPLibs and ../../Headers)
-set(JMM_CPPLibs_dir "${CMAKE_CURRENT_SOURCE_DIR}/../../../JMM_CPPLibs" CACHE FILEPATH "JMM_CPPLibs directory")
+# Include headers (../../JMM_CPPLibs and ../../Headers)
 set(DummyBinDir "${CMAKE_CURRENT_BINARY_DIR}/Dummy")
-add_subdirectory("${JMM_CPPLibs_dir}/include_NoConda" "${DummyBinDir}/JMM_CPPLibs")
+add_subdirectory("../../JMM_CPPLibs" "${DummyBinDir}/JMM_CPPLibs")
 add_subdirectory("../../Headers" "${DummyBinDir}/HFMHeaders")
 
 
