@@ -1,10 +1,16 @@
 cmake_minimum_required(VERSION 3.1)
-set (CMAKE_CXX_STANDARD 14)
+set (CMAKE_CXX_STANDARD 17)
 
 project(MathematicaHFM)
 
+# Include headers (../../JMM_CPPLibs and ../../Headers)
+set(DummyBinDir "${CMAKE_CURRENT_BINARY_DIR}/Dummy")
+add_subdirectory("../../JMM_CPPLibs" "${DummyBinDir}/JMM_CPPLibs")
+add_subdirectory("../../Headers" "${DummyBinDir}/HFMHeaders")
+
 include(${CMAKE_CURRENT_SOURCE_DIR}/../common.cmake)
 include_directories(${PROJECT_DIR} ${CMAKE_CURRENT_SOURCE_DIR})
+
 
 ######################## Additional lines for Wolfram Library link
 

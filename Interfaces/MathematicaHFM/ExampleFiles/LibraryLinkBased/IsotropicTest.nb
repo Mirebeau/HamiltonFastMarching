@@ -10,10 +10,10 @@
 NotebookFileLineBreakTest
 NotebookFileLineBreakTest
 NotebookDataPosition[       158,          7]
-NotebookDataLength[     12143,        269]
-NotebookOptionsPosition[     11696,        248]
-NotebookOutlinePosition[     12056,        264]
-CellTagsIndexPosition[     12013,        261]
+NotebookDataLength[     12356,        274]
+NotebookOptionsPosition[     11909,        253]
+NotebookOutlinePosition[     12269,        269]
+CellTagsIndexPosition[     12226,        266]
 WindowFrame->Normal*)
 
 (* Beginning of Notebook Content *)
@@ -128,14 +128,18 @@ BaseIO: redefining field speed.
 ********************
 Field arrayOrdering defaults to RowMajor
 Field origin defaults to {0,0}
-Field sndOrder defaults to 0
+Field order defaults to 1
+Field spreadSeeds defaults to -1
 Field showProgress defaults to 0
-Fast marching solver completed in 6.7e-05 s.
+Field factoringMethod defaults to None
+Fast marching solver completed in 6.2e-05 s.
 Field exportActiveNeighs defaults to 0
 Field exportGeodesicFlow defaults to 0
-Unused fields from compute : MaxStencilWidth StencilCPUTime nAccepted 
-Defaulted fields : arrayOrdering exportActiveNeighs exportGeodesicFlow origin \
-showProgress sndOrder \
+Unused fields from compute : FMCPUTime MaxStencilWidth StencilCPUTime \
+nAccepted values 
+Defaulted fields : arrayOrdering exportActiveNeighs exportGeodesicFlow \
+factoringMethod order origin refineStencilAtWallBoundary showProgress \
+spreadSeeds \
 \>", "Print",
  CellChangeTimes->{
   3.701588158419917*^9, 3.7015882345555*^9, 3.701588270250873*^9, 
@@ -156,7 +160,7 @@ showProgress sndOrder \
    3.701768039497786*^9, 3.701768938712154*^9, 3.701769710715148*^9, {
    3.701769767365396*^9, 3.701769799273302*^9}, {3.720187867088984*^9, 
    3.72018788947029*^9}, 3.729541710739581*^9, {3.72954174735096*^9, 
-   3.729541754740116*^9}}],
+   3.729541754740116*^9}, 3.768939700546332*^9}],
 
 Cell[BoxData[
  RowBox[{"{", 
@@ -180,7 +184,7 @@ Cell[BoxData[
    3.701768039497786*^9, 3.701768938712154*^9, 3.701769710715148*^9, {
    3.701769767365396*^9, 3.701769799273302*^9}, {3.720187867088984*^9, 
    3.72018788947029*^9}, 3.729541710739581*^9, {3.72954174735096*^9, 
-   3.729541754746891*^9}}]
+   3.729541754740116*^9}, 3.768939700553088*^9}]
 }, Open  ]],
 
 Cell[BoxData[
@@ -243,7 +247,8 @@ dF5cUQvP2MeMItty6Mw+/wfoAtav
    3.701767671920856*^9, 3.7017677865794086`*^9, 3.7017680396068153`*^9, 
    3.701768938786606*^9, 3.701769710792988*^9, {3.7017697674847403`*^9, 
    3.701769799378573*^9}, {3.720187867158922*^9, 3.720187889575303*^9}, 
-   3.729541710807508*^9, {3.729541747444118*^9, 3.729541754842813*^9}}]
+   3.729541710807508*^9, {3.729541747444118*^9, 3.729541754842813*^9}, 
+   3.768939700601274*^9}]
 }, Open  ]]
 },
 WindowSize->{729, 855},
@@ -266,10 +271,10 @@ Notebook[{
 Cell[CellGroupData[{
 Cell[580, 22, 4275, 98, 474, "Input"],
 Cell[CellGroupData[{
-Cell[4880, 124, 1882, 34, 211, "Print"],
-Cell[6765, 160, 1431, 22, 24, "Print"]
+Cell[4880, 124, 2047, 38, 245, "Print"],
+Cell[6930, 164, 1453, 22, 24, "Print"]
 }, Open  ]],
-Cell[8211, 185, 3469, 60, 237, "Output"]
+Cell[8398, 189, 3495, 61, 237, "Output"]
 }, Open  ]]
 }
 ]
