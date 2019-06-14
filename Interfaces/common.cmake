@@ -9,7 +9,7 @@ Set(ExperimentalModelNames "Seismic2;SeismicTopographic2;Seismic3;SeismicTopogra
 Set(CustomModelNames "" CACHE STRING "CustomModelNames")
 
 option(IncludeStandardModels "IncludeStandardModels" TRUE)
-option(IncludeExperimentalModels "IncludeExperimentalModels" FALSE)
+option(IncludeExperimentalModels "IncludeExperimentalModels" TRUE)
 
 option(CustomExecutable "CustomExecutable")
 option(TestCompilation "TestCompilation" FALSE)
