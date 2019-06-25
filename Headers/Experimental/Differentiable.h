@@ -25,8 +25,9 @@ struct TraitsIsotropicDiff : TraitsBase<VDimension> {
     Redeclare3Types(Superclass,DiscreteType,ScalarType,OffsetType)
     Redeclare1Constant(Superclass,Dimension)
 
+    static constexpr size_t k_Dimension = TraitsBase<VDimension>::Dimension;
     typedef EulerianDifference<OffsetType,ScalarType,1> DifferenceType;
-    typedef EulerianStencil<DifferenceType,0,2*Dimension> StencilType;
+    typedef EulerianStencil<DifferenceType,0,2*k_Dimension> StencilType;
     
     typedef PeriodicGrid<TraitsIsotropicDiff> DomainType;
 };
