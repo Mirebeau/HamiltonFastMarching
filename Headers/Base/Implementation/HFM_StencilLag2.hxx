@@ -16,7 +16,7 @@ template<typename T> template<typename Dummy>
 struct HamiltonFastMarching<T>::_StencilDataType<SSP::Lag2,Dummy> :
 HamiltonFastMarching<T>::_StencilDataTypeBase {
 	using HFM=HamiltonFastMarching<T>;
-	using Superclass = typename HFM::_StencilDataTypeBase;
+	using Superclass = HFM::_StencilDataTypeBase;
 	Redeclare17Types(HFM,IndexCRef,OffsetCRef,StencilType,DifferenceType,Traits,FullIndexCRef,
 					ParamInterface,HFMI,MultiplierType,DomainType,DistanceGuess,
 					DiscreteType,ScalarType,PointType,VectorType,IndexType,OffsetType)
@@ -38,7 +38,7 @@ protected:
 	typedef CappedVector<std::pair<OffsetType,ScalarType>, 3> OffsetVal3;
 	virtual std::pair<ScalarType,int> HopfLaxUpdate(IndexCRef,const OffsetVal3 &) = 0;
 	virtual RecomputeType HopfLaxRecompute(IndexCRef,DiscreteFlowType &) = 0;
-	typename HFM::Array<ScalarType,Dimension> indexConverter;
+	HFM::Array<ScalarType,Dimension> indexConverter;
 private:
 	MultiVector<OffsetType,DiscreteType> directOffsets;
 };

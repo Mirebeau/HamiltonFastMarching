@@ -16,7 +16,7 @@ template<typename T> template<typename Dummy>
 struct HamiltonFastMarching<T>::_StencilDataType<SSP::Lag3,Dummy>
 : HamiltonFastMarching<T>::_StencilDataTypeBase {
 	using HFM = HamiltonFastMarching<T>;
-	using Superclass = typename HFM::_StencilDataTypeBase;
+	using Superclass = HFM::_StencilDataTypeBase;
 	Redeclare1Type(Superclass,  ConstOffsetRange)
 
 	virtual void Setup(HFMI *) override;
@@ -34,7 +34,7 @@ protected:
 	virtual RecomputeType HopfLaxRecompute(IndexCRef,DiscreteFlowType &) = 0;
 	Lagrangian3StencilGeometry geom = Lagrangian3StencilGeometry::None;
 private:
-	typename HFM::Array<StencilType,Dimension> stencils;
+	HFM::Array<StencilType,Dimension> stencils;
 	std::vector<OffsetType> tmpHLU;
 };
 

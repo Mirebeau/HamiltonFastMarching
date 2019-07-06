@@ -12,7 +12,7 @@ template<typename T> template<typename Dummy>
 struct HamiltonFastMarching<T>::_StencilDataType<SSP::Share,Dummy>
 : HamiltonFastMarching<T>::_StencilDataTypeBase {
 	using HFM = HamiltonFastMarching<T>;
-	using Superclass = typename HFM::_StencilDataTypeBase;
+	using Superclass = HFM::_StencilDataTypeBase;
 	Redeclare6Types(HFM,IndexCRef,OffsetCRef,StencilType,DifferenceType,MultiplierType,Traits)
 	Redeclare5Types(HFM,ParamInterface,HFMI,DomainType,FullIndexCRef,DistanceGuess)
 	Redeclare6Types(Traits,DiscreteType,ScalarType,PointType,VectorType,IndexType,OffsetType)

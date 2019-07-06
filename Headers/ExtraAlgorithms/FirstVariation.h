@@ -224,9 +224,8 @@ FirstVariation<T>::ValueVariationHelper<false,Dummy> {
             DiffHelper::Elem(var,diff)+=w*valueDiff;
         };
         
-        using StencilType = typename HFM::StencilType;
-        const int iMax = StencilType::GetIMax(active);
-        int iNeigh = iMax*StencilType::nSingleNeigh;
+        const int iMax = HFM::StencilType::GetIMax(active);
+        int iNeigh = iMax*HFM::StencilType::nSingleNeigh;
         const auto & forward = data.stencil.forward[iMax];
         const auto & symmetric = data.stencil.symmetric[iMax];
         

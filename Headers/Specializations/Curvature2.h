@@ -69,8 +69,8 @@ struct TraitsReedsSheppForward2 : TraitsR2S1 {
 struct StencilReedsSheppForward2 final
 : HamiltonFastMarching<TraitsReedsSheppForward2>::StencilDataType {
     typedef HamiltonFastMarching<TraitsReedsSheppForward2> HFM;
-    typedef typename HFM::StencilDataType Superclass;
-    typename HFM::ParamDefault param;
+    typedef HFM::StencilDataType Superclass;
+    HFM::ParamDefault param;
     ScalarType xi=1; // xi is the typical curvature radius
     
     typedef Traits::BasisReduction<2> ReductionType;
@@ -109,7 +109,7 @@ struct StencilDubins2 final
 : HamiltonFastMarching<TraitsDubins2>::StencilDataType {
     typedef HamiltonFastMarching<TraitsDubins2> HFM;
     typedef HFM::StencilDataType Superclass;
-    typename HFM::ParamDefault param;
+    HFM::ParamDefault param;
     ScalarType xi=1.;
     
     typedef Traits::BasisReduction<3> ReductionType;
