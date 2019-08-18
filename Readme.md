@@ -22,7 +22,7 @@
 
 ## Latest version
 
-The latest version of this program is available on the Github repository [HamiltonFastMarching](https://github.com/Mirebeau/HamiltonFastMarching). See also the illustrating [notebooks](http://nbviewer.jupyter.org/urls/rawgithub.com/Mirebeau/HFM_Python_Notebooks/master/Summary.ipynb).
+The latest version of this program is available on the Github repository [HamiltonFastMarching](https://github.com/Mirebeau/HamiltonFastMarching). See also the illustrating [notebooks](http://nbviewer.jupyter.org/urls/rawgithub.com/Mirebeau/AdaptiveGridDiscretizations/master/Summary.ipynb).
 
 The present version is part of a submission to the [Image Processing On Line](http://www.ipol.im) journal. It was validated as reproducible research, and supplemented with an online [demo](http://ipol-geometry.loria.fr/~kerautre/ipol_demo/DemoIPOL_LORIA-Geom_HFM/).
 
@@ -49,7 +49,7 @@ This code implements a Fast-Marching solver with adaptive stencils. It computes 
  cmake ../HamiltonFastMarching-master/Interfaces/FileHFM
  make
  ```
-* Have a look at the [notebooks](http://nbviewer.jupyter.org/urls/rawgithub.com/Mirebeau/HFM_Python_Notebooks/master/Summary.ipynb).
+* Have a look at the [notebooks](http://nbviewer.jupyter.org/urls/rawgithub.com/Mirebeau/AdaptiveGridDiscretizations/master/Summary.ipynb).
 
 ## Fair use
 If you use this program for an academic or commercial project, then please cite at least one of the following papers.
