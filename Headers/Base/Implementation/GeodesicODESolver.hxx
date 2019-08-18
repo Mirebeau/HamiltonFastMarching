@@ -132,8 +132,9 @@ GeodesicFlow(const PointType & p, const Array<ShortType,Dimension> & target, Flo
     ScalarType weightSum=0;
     for(const auto & wOFlow : flows){
         const ScalarType weight = wOFlow.weight;
+        if(weight<=0) continue;
         const auto & flowData = wOFlow.it->second.first;
-        if(weight>0 && flowData.value<=valThreshold){
+        if(flowData.value<=valThreshold){
             weightSum+=weight;
             //            result.value+=weight*flowData.value;
             VectorType inc = weight*flowData.flow;
