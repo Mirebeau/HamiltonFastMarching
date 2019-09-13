@@ -24,10 +24,7 @@ struct PythonIO : BaseIO {
     std::string GetComputedKeys() const;
 protected:
     static void StaticSendMsg(bool warn, std::string msg){
-/*        if (!msg.empty() && msg[msg.length()-1] == '\n') {
-            msg.erase(msg.length()-1);}*/
-        //According to PyBind11 help, one could use "end"_a="" as last argument, but this does not compile.
-        py::print(warn ? ("Warning : "+msg) : msg);}
+		py::print(warn ? ("Warning : "+msg) : msg, py::arg("end")="" );}
     void SendMsg(bool warn, const std::string & msg) const {return StaticSendMsg(warn,msg);}
     template<bool,typename> friend struct _Msg;
 };
