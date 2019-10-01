@@ -22,9 +22,9 @@
 
 ## Latest version
 
-The latest version of this program is available on the Github repository [HamiltonFastMarching](https://github.com/Mirebeau/HamiltonFastMarching). See also the illustrating [notebooks](http://nbviewer.jupyter.org/urls/rawgithub.com/Mirebeau/AdaptiveGridDiscretizations/master/Summary.ipynb).
+The latest version of this program is available on the Github repository [HamiltonFastMarching](https://github.com/Mirebeau/HamiltonFastMarching). See also the illustrating Python [notebooks](https://github.com/Mirebeau/AdaptiveGridDiscretizations), and their [online summary](http://nbviewer.jupyter.org/urls/rawgithub.com/Mirebeau/AdaptiveGridDiscretizations/master/Summary.ipynb).
 
-The present version is part of a submission to the [Image Processing On Line](http://www.ipol.im) journal. It was validated as reproducible research, and supplemented with an online [demo](http://ipol-geometry.loria.fr/~kerautre/ipol_demo/DemoIPOL_LORIA-Geom_HFM/).
+A version of this program was submitted to the [Image Processing On Line](http://www.ipol.im) journal. It was validated as reproducible research, and supplemented with an online [demo](http://ipol-geometry.loria.fr/~kerautre/ipol_demo/DemoIPOL_LORIA-Geom_HFM/).
 
 ## Program description
 This code implements a Fast-Marching solver with adaptive stencils. It computes distance maps and shortest paths with respect to a variety of metrics, on a domain discretized on a cartesian grid. Typical uses include motion planning and image segmentation. The code features:
@@ -32,24 +32,32 @@ This code implements a Fast-Marching solver with adaptive stencils. It computes 
 - second order accuracy (optional), various stopping criteria, propagation of states, forward and backward differentiation.
 - interfaces to  Mathematica(R) and Python(R) using files, Matlab(R) using mex, see ExampleFiles directory.
 
-## Installation instructions
-- You also need to download the Github repository github.com/Mirebeau/JMM_CPPLibs. When compiling, you may need need to enter the path to this (header only) library.
-- The code is written in C++17.
-- It is meant to be called from one of the following scripting languages.
-  * Python(R). Please compile the code located in Interfaces/FileHFM using CMake. Then consult the examples located in Interfaces/PythonHFM/ExampleFiles/FileBased as well as the illustrative notebooks.
-  * Mathematica(R). Please compile the code located in Interfaces/FileHFM using CMAKE. Then consult the examples located in Interfaces/MathematicaHFM/ExampleFiles/FileBased as well as the illustrative notebooks.
+## Binaries installation for Python usage, using Anaconda 
+
+Compiled binaries of the HFM library, linked with Python(R), are available for Linux, MacOS(R), Windows(R). If you do not plan to modify the C++ code, that will save you the effort of compilation.
+
+Please download and install [anaconda](https://www.anaconda.com) or [miniconda](https://conda.io/en/latest/miniconda.html). We recommend creating a dedicated conda environnement, as suggested in the [Python notebooks repository](). If not, then type in a terminal:
+```console
+conda install -c agd-lbr hfm
+```
+The feedstock repository used for creating the conda package is located [here](https://github.com/AGD-LBR/hfm-feedstock).
+
+
+## Compilation instructions
+- The code is written in C++17. You will need a recent compiler, such as gcc 8.0, VS 15, or a recent clang. (Compilation is known to fail on gcc 7.4 and VS 14.)
+
+- The binaries are meant to be called from one of the following scripting languages.
+  * Python(R). Open a terminal, cd to the directory containing the extracted archives, and type the following commands.
+   ```console
+   mkdir bin
+   cd bin
+   cmake ../HamiltonFastMarching/Interfaces/FileHFM
+   make
+   ```
+   Then consult the examples located in Interfaces/PythonHFM/ExampleFiles/FileBased as well as the illustrative notebooks.
+  * Mathematica(R). Same compilation instructions as above. Then consult the examples located in Interfaces/MathematicaHFM/ExampleFiles/FileBased as well as the illustrative notebooks.
   * Matlab(R). Please go to directory Interfaces/MatlabHFM/ExampleFiles in Matlab(R). Then use the script CompileMexHFM to build the executables, and consult the provided examples.
 
-### TL-DR. Simple and direct compilation instructions for Python usage (tested on macOs)
-* Extract the archives *HamiltonFastMarching* and *JMM_CPPLibs* in a common directory.
-* Open a terminal, cd to the directory containing the extracted archives, and type the following commands.
- ```console
- mkdir bin
- cd bin
- cmake ../HamiltonFastMarching-master/Interfaces/FileHFM
- make
- ```
-* Have a look at the [notebooks](http://nbviewer.jupyter.org/urls/rawgithub.com/Mirebeau/AdaptiveGridDiscretizations/master/Summary.ipynb).
 
 ## Fair use
 If you use this program for an academic or commercial project, then please cite at least one of the following papers.
