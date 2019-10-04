@@ -49,7 +49,7 @@ struct StencilIsotropicDiff : HamiltonFastMarching<TraitsIsotropicDiff<VDimensio
                 diff.offset[i]=s;
             }
         }
-        assert(n==stencil.forward.size());
+        assert(n==stencil.forward[0].size());
     }
     virtual const ParamInterface & Param() const override {return param;}
     virtual void Setup(HFMI *that) override {Superclass::Setup(that); param.Setup(that);}
