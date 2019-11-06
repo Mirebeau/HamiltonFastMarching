@@ -73,7 +73,7 @@ GeodesicDiscrete(std::vector<PointType> & geodesic) const {
         indexSum += weight*v;
         covSum += weight*Sym::RankOneTensor(v);
     };
-    
+    	
     // (value, increment)
     std::vector<std::pair<ScalarType,VectorType> > steps;
     ScalarType stepNorm=0;
@@ -103,7 +103,7 @@ GeodesicDiscrete(std::vector<PointType> & geodesic) const {
             geo[{fm.values(indexPer),index}] = weight;
             UpdateSums(weight,index);
         }
-		if(weightSum==0)  return false;
+		if(weightSum==0)  {return false;}
         indexAvg = PointType::FromOrigin(indexSum/weightSum);
         indexBase= indexAvg;
     }
@@ -114,12 +114,14 @@ GeodesicDiscrete(std::vector<PointType> & geodesic) const {
 	const ScalarType weightSumLowerBound = 1e-5;
 	
     while(!geo.empty() && weightSum>weightSumLowerBound){
+		
+//		std::cout << weightSum << std::endl;
         // Extract and erase point with largest value.
         const auto it = --geo.end(); // point with largest value
 		const auto [value,index] = it->first;
         const ScalarType weight = it->second;
         geo.erase(it);
-		
+				
         if(weight==0) continue;
         UpdateSums(-weight,index);
 		
@@ -133,7 +135,7 @@ GeodesicDiscrete(std::vector<PointType> & geodesic) const {
         ScalarType wSum=0;
         for(const auto & offsetWeight : flow){
             wSum+=offsetWeight.weight;}
-        if(wSum==0) continue;
+		if(wSum==0) continue;
         
         
         for(const auto & offsetWeight : flow){
@@ -149,13 +151,13 @@ GeodesicDiscrete(std::vector<PointType> & geodesic) const {
             const auto it = geo.find({val,ind});
             if(it==geo.end()){
                 // Reject new point if too small weight, or too far.
-                if(w<weightSum*weightThreshold) continue;
+				if(w<weightSum*weightThreshold)  continue;
                 geo[{val,ind}] = w;
             } else {
                 it->second+=w;}
             UpdateSums(w,ind);
         }
-        
+		        
         // Compute step
         if(weightSum<=0) {
             geodesic.push_back(indexAvg+HalfVec);
@@ -197,12 +199,18 @@ GeodesicDiscrete(std::vector<PointType> & geodesic) const {
         if(detVar>square(effectiveVolumeBound)){
             geodesic.push_back(indexAvg+HalfVec);
             return true;
-        } else {
-            // Do some cleanup of faraway points with little weight ?
+        } /*else {
+		   // Do some cleanup of faraway points with little weight ?
             // Seems to have little impact on results
-            /*
-             Alternative pruning method tried, based on anisotropic spread.
-             Quite costly, and not very efficient.*/
+		   
+		   // Problematic
+		   // Too strict criteria on large instances.
+		   // Eliminates too much mass.
+		   // Also seems to have unreasonable computation time.
+            
+            // Alternative pruning method tried, based on anisotropic spread.
+            // Quite costly, and not very efficient.
+		   
             if(Dimension>3) continue;
             const ScalarType meanWeight = weightSum/geo.size();
             const Sym invVar = variance.Inverse();
@@ -217,8 +225,9 @@ GeodesicDiscrete(std::vector<PointType> & geodesic) const {
             }
             indexAvg=PointType::FromOrigin(indexSum/weightSum);
 			
-        }
+        }*/
     }
+	
     return false;
 }
 

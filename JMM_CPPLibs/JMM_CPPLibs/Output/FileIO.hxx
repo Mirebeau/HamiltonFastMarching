@@ -7,7 +7,8 @@
 FileIO::FileIO(std::string inputPrefix, std::string outputPrefix_):outputPrefix(outputPrefix_){
     
     // ------- Read format file -------
-    
+	//	clock_t top = clock();
+
     struct {
         void operator()(std::istream & is){
             is.ignore(std::numeric_limits<std::streamsize>::max(), is.widen('\n'));}
@@ -88,9 +89,13 @@ FileIO::FileIO(std::string inputPrefix, std::string outputPrefix_):outputPrefix(
         raw.data.resize(end-begin);
         std::copy(inputData.begin()+begin, inputData.begin()+end, raw.data.begin());
     }
+	
+	//std::cout << "Read time " << (clock()-top)/double(CLOCKS_PER_SEC) << std::endl;
+
 }
 
 FileIO::~FileIO(){
+
     this->UsageReport();
     
     // Write format file
@@ -113,13 +118,16 @@ FileIO::~FileIO(){
     }
     ofs.close();
     
+	// Gather numerical data
     std::vector<ScalarType> outputData;
     outputData.reserve(totalSize);
     for(const std::vector<ScalarType>* pVec : datas){
         outputData.insert(outputData.end(),pVec->begin(),pVec->end());}
     
     // Write data file
-    ofs.open(outputPrefix+"_Data.dat",  std::ios::out | std::ios::binary);
-    ofs.write((char*) &outputData[0], outputData.size()*sizeof(ScalarType));
+	std::fstream fs; // faster than ofstream
+	fs.open(outputPrefix+"_Data.dat",  std::ios::out | std::ios::binary);
+	fs.write((char*) &outputData[0], outputData.size()*sizeof(ScalarType));
+	
 }
 #endif /* FileIO_hxx */

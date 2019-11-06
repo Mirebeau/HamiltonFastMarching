@@ -16,8 +16,8 @@ template<typename TTraits> struct GeodesicDiscreteSolver
     Redeclare1Constant(Traits,Dimension);
     
     ScalarType geodesicStep = 0.25;
-    ScalarType weightThreshold = 0.0001; // smaller contributions eliminated
-    ScalarType volumeBound= 2.5*pow(1.3, Dimension);  // restart if too much spread
+    ScalarType weightThreshold = 0.001; // smaller contributions eliminated
+    ScalarType volumeBound= 5.*pow(1.3, Dimension);  // restart if too much spread
     DiscreteType nRestartsBeforeVolumeIncrease = 5;
     ScalarType volumeIncreaseRatio = 1.3;
     DiscreteType nMaxRestarts = 50;
