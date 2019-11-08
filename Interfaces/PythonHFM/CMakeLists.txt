@@ -30,7 +30,7 @@ pybind11_add_module(PythonHFM_Custom src/main.cpp ${Project_Headers})
 target_compile_definitions(HFM_Custom PRIVATE Custom PythonModuleName=PythonHFM_Custom)
 
 # Fixes an issue with pybind11 on clang, see https://github.com/pybind/pybind11/issues/1604
-if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
+if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "AppleClang")
     target_compile_options(HFM_Custom INTERFACE -fsized-deallocation)
 endif()
 
