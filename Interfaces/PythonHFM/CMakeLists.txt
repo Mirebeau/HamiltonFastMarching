@@ -5,7 +5,7 @@ project(pybind11_hfm)
 
 FIND_PACKAGE(pybind11)
 
-message("pybind11 version : " ${pybind11_VERSION})
+message("pybind11 version  : " ${pybind11_VERSION})
 
 include(${CMAKE_CURRENT_SOURCE_DIR}/../common.cmake)
 
@@ -18,7 +18,7 @@ pybind11_add_module(HFM_${model} src/main.cpp)
 target_compile_definitions(HFM_${model} PRIVATE ModelName=${model} PythonModuleName=HFM_${model})
 
 # Fixes an issue with pybind11 on clang, see https://github.com/pybind/pybind11/issues/1604
-if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang") 
+if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "AppleClang") 
     target_compile_options(HFM_${model} INTERFACE -fsized-deallocation)
 endif()
 
