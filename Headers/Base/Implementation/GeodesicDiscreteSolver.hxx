@@ -27,7 +27,7 @@ GeodesicDiscreteSolver<Traits>::Run(HFMI * that, const std::vector<PointType> & 
         else if(nRestarts>nRestartsBeforeVolumeIncrease){
             Msg() << "Tip " << that->stencil.Param().ReDim( tip )
             << " yields " << nRestarts << " restarts, "
-            << "geodesicVolumeBound increased to " << effectiveVolumeBound << " .\n";}
+            << "geodesicVolumeBound increased to " << effectiveVolumeBound;}
         result.push_back(std::move(geodesic));
     }
     return result;

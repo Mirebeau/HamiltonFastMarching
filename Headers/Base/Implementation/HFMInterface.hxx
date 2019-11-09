@@ -294,7 +294,11 @@ Run() {
     Run_SetupSolver();
     Run_SetupExtraAlgorithms();
     if(Run_RunSolver()) return;
+	
+	const clock_t top = clock();
     Run_ExtractGeodesics();
+	io.Set<ScalarType>("GeodesicCPUTime",(clock()-top)/double(CLOCKS_PER_SEC));
+
     Run_ExportData();
 }
 
@@ -516,12 +520,7 @@ ExportGeodesics(std::string suffix, const std::vector<PointType> & tips){
         pGeodesicSolver->Setup(this);
     }
     
-	const clock_t top = clock();
     const auto & geodesics = pGeodesicSolver->Run(this,tips);
-	const clock_t elapsed = clock()-top;
-	const ScalarType GeodesicCPUTime = ScalarType(elapsed)/CLOCKS_PER_SEC;
-	io.Set<ScalarType>("GeodesicCPUTime",GeodesicCPUTime);
-
 
     std::vector<ScalarType> geodesicLengths;
     for(const auto & geo : geodesics) {geodesicLengths.push_back((ScalarType)geo.size());}
