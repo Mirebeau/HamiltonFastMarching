@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.3)
 set(CMAKE_CXX_STANDARD 17)
 
-set(CMAKE_OSX_DEPLOYMENT_TARGET 10.14)
+set(CMAKE_OSX_DEPLOYMENT_TARGET 10.14 CACHE STRING "Minimum OS X deployment version" FORCE)
 # Needed for pybind11 2.4.3 under osx. 
 #https://stackoverflow.com/questions/34208360/cmake-seems-to-ignore-cmake-osx-deployment-target
 
