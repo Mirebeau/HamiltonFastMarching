@@ -220,7 +220,6 @@ const -> RecomputeType {
 	(OffsetType offset, int & ord) -> ScalarType {
         //order code : 0 -> invalid, else requested/used order
 		
-		
         IndexType acceptedIndex = updatedIndex+IndexDiff::CastCoordinates(offset);
         const auto transform = dom.Periodize(acceptedIndex,updatedIndex);
         if(!transform.IsValid()) {ord=0; return -Traits::Infinity();}
@@ -228,7 +227,7 @@ const -> RecomputeType {
 		if(!acceptedFlags[acceptedLinearIndex]) {ord=0; return -Traits::Infinity();}
 		
         const ScalarType acceptedValue = values[acceptedLinearIndex];
-		
+
 		ord=std::min(order,ord);
 		while(ord>=2){ // Single iteration
 			OffsetType offset2 = offset;

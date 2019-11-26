@@ -53,7 +53,7 @@ template<typename Traits> template<typename Dummy> template<typename F> auto
 HamiltonFastMarching<Traits>::_StencilDataType<SSP::Recomp, Dummy>::
 HopfLaxRecompute(const F & f, IndexCRef index, ActiveNeighFlagType active, DiscreteFlowType & discreteFlow) -> RecomputeType {
 	StencilType stencil;
-	this->SetStencil(index, stencil);
+	this->SetStencil(index, stencil);	
 	return stencil.HopfLaxRecompute(f,MultiplierType(),active,discreteFlow);
 }
 

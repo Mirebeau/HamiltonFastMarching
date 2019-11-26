@@ -490,19 +490,20 @@ SetupSingleAlgorithm(){
 
 template<typename T> bool HFMInterface<T>::
 Run_RunSolver() {
-    if(!pFM->seeds.empty()){
+	if(io.HasField("values") and io.HasField("activeNeighs")){
+		if(io.verbosity>=1) Msg() << "Bypassing fast marching solver based on cached data.\n";
+		std::fill(pFM->acceptedFlags.begin(),pFM->acceptedFlags.end(),true);
+	} else if(pFM->seeds.empty()) {
+		WarnMsg() << "No seeds to run fast marching solver,"
+		<< " and missing values or activeNeighs to compute geodesics.\n";
+		return true;
+    } else {
         const clock_t top = clock();
         pFM->Run();
         const clock_t elapsed = clock()-top;
         const ScalarType FMCPUTime = ScalarType(elapsed)/CLOCKS_PER_SEC;
         io.Set<ScalarType>("FMCPUTime",FMCPUTime);
         if(io.verbosity>=1) Msg() << "Fast marching solver completed in " << FMCPUTime << " s.\n";
-    } else {
-        if(!io.HasField("values") || !io.HasField("activeNeighs")){
-            WarnMsg() << "No seeds to run fast marching solver,"
-            << " and missing values or activeNeighs to compute geodesics.\n";
-            return true;
-        }
     }
     return false;
 }
