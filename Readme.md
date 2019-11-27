@@ -24,7 +24,8 @@
 
 The latest version of this program is available on the Github repository [HamiltonFastMarching](https://github.com/Mirebeau/HamiltonFastMarching). See also the illustrating Python [notebooks](https://github.com/Mirebeau/AdaptiveGridDiscretizations), and their [online summary](http://nbviewer.jupyter.org/urls/rawgithub.com/Mirebeau/AdaptiveGridDiscretizations/master/Summary.ipynb).
 
-A version of this program was submitted to the [Image Processing On Line](http://www.ipol.im) journal. It was validated as reproducible research, and supplemented with an online [demo](http://ipol-geometry.loria.fr/~kerautre/ipol_demo/DemoIPOL_LORIA-Geom_HFM/).
+A version of this program was submitted to the [Image Processing On Line](http://www.ipol.im) journal. It was validated as reproducible research, and supplemented with an online [demo](http://ipol-geometry.loria.fr/~kerautre/ipol_demo/DemoIPOL_HFM/).
+
 
 ## Program description
 This code implements a Fast-Marching solver with adaptive stencils. It computes distance maps and shortest paths with respect to a variety of metrics, on a domain discretized on a cartesian grid. Typical uses include motion planning and image segmentation. The code features:
@@ -32,7 +33,7 @@ This code implements a Fast-Marching solver with adaptive stencils. It computes 
 - second order accuracy (optional), various stopping criteria, propagation of states, forward and backward differentiation.
 - interfaces to  Mathematica(R) and Python(R) using files, Matlab(R) using mex, see ExampleFiles directory.
 
-## Binaries installation for Python usage, using Anaconda 
+## Binaries installation for Python usage, using Anaconda
 
 Compiled binaries of the HFM library, linked with Python(R), are available for Linux, MacOS(R), Windows(R). If you do not plan to modify the C++ code, that will save you the effort of compilation.
 
