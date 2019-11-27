@@ -490,7 +490,7 @@ SetupSingleAlgorithm(){
 
 template<typename T> bool HFMInterface<T>::
 Run_RunSolver() {
-	if(io.HasField("values") and io.HasField("activeNeighs")){
+	if(io.HasField("values") && io.HasField("activeNeighs")){
 		if(io.verbosity>=1) Msg() << "Bypassing fast marching solver based on cached data.\n";
 		std::fill(pFM->acceptedFlags.begin(),pFM->acceptedFlags.end(),true);
 	} else if(pFM->seeds.empty()) {
