@@ -40,9 +40,9 @@ struct Lagrangian2Stencil {
     struct ActiveNeighFlagType {
         ShortType sectorIndex;
         ActiveNeighFlagType():sectorIndex(-1){};
-        ActiveNeighFlagType(long a):sectorIndex(ShortType(a)){};
+        ActiveNeighFlagType(unsigned long a):sectorIndex(ShortType(a)){};
         bool none() const {return sectorIndex==-1;}
-        unsigned long to_ulong() const {return (unsigned long)(sectorIndex);}
+        unsigned long to_ulong() const {return std::make_unsigned_t<ShortType>(sectorIndex);}
     };
     
     static const int nActiveNeigh = Dimension;
