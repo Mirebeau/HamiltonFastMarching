@@ -78,7 +78,7 @@ typename Base::template Array<T, d> IO_<Base>::GetArray(KeyCRef key) const {
 
 template<typename Base> template<typename T>
 auto IO_<Base>::GetDimensions(KeyCRef key) const -> std::vector<DiscreteType> {
-    auto dims = this->template GetDimsPtr<T>(key).first;
+    const auto dims = this->template GetDimsPtr<T>(key).first;
     switch (this->arrayOrdering) {
         case ArrayOrdering::RowMajor: return  dims;
         case ArrayOrdering::YXZ_RowMajor: return TransposeDims(dims);
@@ -88,6 +88,15 @@ auto IO_<Base>::GetDimensions(KeyCRef key) const -> std::vector<DiscreteType> {
 			assert(false);
 			ExceptionMacro("Unrecognized array ordering");
     }
+}
+
+template<typename Base>
+int IO_<Base>::GetElementSize(KeyCRef key, int ndim) const {
+	const auto dims = this->template GetDimsPtr<ScalarType>(key).first;
+	const int depth = dims.size();
+	if(depth==ndim){return 1;}
+	else if (depth==ndim+1){return dims.back();}
+	else return -1;
 }
 
 // Output

@@ -31,9 +31,7 @@ public std::array<TComponent,VDimension>
     static PointBase Constant(ComponentType c){PointBase p; p.fill(c); return p;}
 	
     struct LexicographicCompare;
-/*    template<typename ...Components> PointBase(Components... comps) : DataType{std::forward<Components>(comps)...}{}*/
 protected:
-//    constexpr PointBase(const DataType & data):DataType(data){};
     template<typename ...T,typename dummy = typename std::enable_if<sizeof...(T)==Dimension>::type >
     constexpr PointBase(T... t):DataType{{ComponentType(t)...}}{};
     PointBase(){};

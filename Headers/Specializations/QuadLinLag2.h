@@ -60,7 +60,6 @@ struct StencilQuadLinLag2 final
 	// Generic
 	typedef typename Traits::template DataSource<MetricElementType> MetricType;
 	std::unique_ptr<MetricType> pMetric;
-	bool dualizeMetric = false;
 	using ParamType = typename HFM::template _ParamDefault<2,void>; // Distinct scale on each axis
 	ParamType param;
 
@@ -86,6 +85,8 @@ private:
 	std::vector<OffsetType> tmp_stencil;
 	std::vector<VectorType> tmp_stencil_vec;
 	std::vector<ScalarType> tmp_stencil_scal;
+	template<typename Norm, bool b> struct MetricCaster;
+	template<bool b> void SetMetricCaster(HFMI *);
 };
 
 using StencilRander2 = StencilQuadLinLag2<TraitsRanderLag2>;

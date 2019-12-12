@@ -18,6 +18,7 @@ template<typename TTraits> struct HFMInterface {
     Redeclare4Types(HFM,ActiveNeighFlagType,StencilDataType,
 					ExtraAlgorithmInterface,GeodesicSolverInterface);
     Redeclare5Types(Traits,DiscreteType,ScalarType,PointType,VectorType,IndexType);
+	Redeclare1Type(IO,KeyCRef)
     Redeclare2Constants(Traits,Dimension,mathPi)
 
     template<typename E, size_t n> using Array = typename Traits::template Array<E,n>;
@@ -35,9 +36,10 @@ template<typename TTraits> struct HFMInterface {
     HFMInterface(IO & _io, StencilDataType & _stencil) :io(_io), stencil(_stencil) {};
     virtual void Run();
 
-    template<typename E> std::unique_ptr<DataSource<E> > GetField(std::string s, bool=true); // bool field: allow time dependency
-    template<typename E> std::unique_ptr<DataSource<E> > GetIntegralField(std::string s);
-    void ExportGeodesics(std::string, const std::vector<PointType> &);
+    template<typename E> std::unique_ptr<DataSource<E> > GetField(KeyCRef, bool=true); // bool field: allow time dependency
+	int FieldElementSize(KeyCRef) const;
+    template<typename E> std::unique_ptr<DataSource<E> > GetIntegralField(KeyCRef);
+    void ExportGeodesics(KeyCRef, const std::vector<PointType> &);
     template<typename E> struct DataSource_Inverse; // A data source which inverses the values of another data source.
     template<bool b, typename Dummy> struct SpecializationsDefault_; // Mostly internal methods
 	typedef SpecializationsDefault_<HFM::hasBundle,void> SpecializationsDefault;

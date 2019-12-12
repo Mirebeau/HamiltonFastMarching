@@ -25,10 +25,8 @@ affine_space<Point<TComponent, VDimension>, Vector<TComponent, VDimension> , TCo
     template<typename ...T,typename dummy = typename std::enable_if<sizeof...(T)==Dimension>::type >
     constexpr Vector(T... t):PointBaseType{t...}{};
 
-//    constexpr Vector(const DataType & data):PointBaseType(data){};
     Vector(){};
     
-
     // Linear algebra
     Vector & operator+=(const Vector & u){for(int i=0; i<Dimension; ++i) this->operator[](i)+=u[i]; return *this;}
     Vector & operator-=(const Vector & u){for(int i=0; i<Dimension; ++i) this->operator[](i)-=u[i]; return *this;}

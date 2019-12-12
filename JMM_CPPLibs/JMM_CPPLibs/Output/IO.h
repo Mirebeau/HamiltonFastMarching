@@ -92,6 +92,7 @@ template<typename Base> struct IO_ : Base {
     template<typename T> std::vector<T> GetVector(KeyCRef key) const;
     template<typename T, size_t d> Array<T, d> GetArray(KeyCRef) const;
     template<typename T> std::vector<DiscreteType> GetDimensions(KeyCRef) const;
+	int GetElementSize(KeyCRef, int) const;
     
     // Output
     template<typename T> void Set(KeyCRef, const T &);
