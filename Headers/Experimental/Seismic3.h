@@ -23,33 +23,35 @@ struct TraitsSeismic3 : TraitsBase<3> {
 	using DomainType = PeriodicGrid<TraitsSeismic3>;
 	struct DifferenceType {static const int multSize = -1; struct MultiplierType {};};
 	
-	using NormType = LinearAlgebra::SeismicNorm<ScalarType,3>;
+	using NormType = LinearAlgebra::SeismicNorm<ScalarType,Dimension>;
 	using DistanceGuess = NormType;
 	
 	using MetricElementType = NormType::HookeTensorType;
-	static NormType MakeNorm(const MetricElementType & m, ScalarType h){
+	using GridScalesType = ScalarType;
+	static NormType MakeNorm(const MetricElementType & m, GridScalesType h){
 		return NormType{(1./square(h))*m};}
 	
 #ifdef XSIMD_HPP
-	using SimdNormType = LinearAlgebra::SeismicNorm<xsimd::simd_type<ScalarType>, 3>;
+	using SimdNormType = LinearAlgebra::SeismicNorm<xsimd::simd_type<ScalarType>, Dimension>;
 #endif
 };
 
 struct TraitsSeismicTopographic3 : TraitsBase<3> {
-	
 	using StencilType = Lagrangian3Stencil<OffsetType,ScalarType,DiscreteType>;
 	using DomainType = PeriodicGrid<TraitsSeismicTopographic3>;
 	struct DifferenceType {static const int multSize = -1; struct MultiplierType {};};
 	
-	using BaseNormType = LinearAlgebra::SeismicNorm<ScalarType,3>;
-	using TransformType = LinearAlgebra::TopographicTransform<VectorType>;
+	using BaseNormType = LinearAlgebra::SeismicNorm<ScalarType,Dimension>;
+	using TransformType = LinearAlgebra::Matrix<ScalarType,Dimension,Dimension>;
 	using NormType = LinearAlgebra::ComposedNorm<BaseNormType,TransformType>;
 	using DistanceGuess = NormType;
 	
-	using MetricElementType = LinearAlgebra::VectorPair<BaseNormType::HookeTensorType,VectorType>;
-	static NormType MakeNorm(const MetricElementType & m, ScalarType h){
-		return NormType{(1./square(h))*m.first, TransformType{m.second}};}
-	
+	using MetricElementType = LinearAlgebra::VectorPair<BaseNormType::HookeTensorType,TransformType>;
+	using GridScalesType = PointType;
+	static NormType MakeNorm(const MetricElementType & m, const GridScalesType h){
+		TransformType a=m.second;
+		for(int i=0; i<Dimension; ++i) {for(int j=0; j<Dimension; ++j) {a(i,j)*=h[j];}}
+		return NormType{m.first, a};}
 };
 
 
@@ -63,7 +65,7 @@ struct StencilGenericLag3 final
 	Redeclare15Types(HFM,ParamDefault,ParamInterface,HFMI,DiscreteFlowType,
 					IndexCRef,VectorType,ScalarType,DiscreteType,OffsetCRef,RecomputeType,
 					DomainType,IndexDiff,PointType,IndexType,OffsetType)
-	Redeclare4Types(Traits,NormType,StencilType,DistanceGuess,MetricElementType)
+	Redeclare5Types(Traits,NormType,StencilType,DistanceGuess,MetricElementType,GridScalesType)
 	Redeclare1Type(Superclass,OffsetVals)
 	Redeclare1Constant(HFM,Dimension)
 	
@@ -72,7 +74,9 @@ struct StencilGenericLag3 final
 	
 	typedef typename Traits::template DataSource<MetricElementType> MetricType;
 	std::unique_ptr<MetricType> pMetric;
-	ParamDefault param;
+	using ParamType = std::conditional_t<std::is_same_v<GridScalesType,ScalarType>,
+	ParamDefault,typename HFM::template _ParamDefault<2,void> >;
+	ParamType param;
 	bool checkAcuteness = false; // This is TODO
 
 	virtual void SetStencil(IndexCRef index, StencilType & stencil) override;
@@ -83,10 +87,10 @@ struct StencilGenericLag3 final
 private:
 	NormType GetNorm(IndexCRef index) const; // Includes rescaling by h
 	template<size_t n> using Vec = typename NormType::template Vec<n>;
-
+	const GridScalesType & GridScales() const;
 	
 	// Tentative optimization : Caching data for faster computations
-	// Gets about 30 performance gain on small test case, for a much increase memory usage.
+	// Gets about 30% performance gain on small test case, for a much increase memory usage.
 	// Not sure if worth it.
 	const bool useHopfLaxCache = false;
 	using HashKey = int_least64_t;

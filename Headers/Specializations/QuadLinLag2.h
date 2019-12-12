@@ -8,6 +8,8 @@
 #ifndef QuadLinLag2_h
 #define QuadLinLag2_h
 
+#include "JMM_CPPLibs/Macros/DependentFalse.h"
+
 #include "Base/Lagrangian2Stencil.h"
 #include "JMM_CPPLibs/LinearAlgebra/RanderNorm.h"
 #include "JMM_CPPLibs/LinearAlgebra/AsymmetricQuadraticNorm.h"
@@ -15,7 +17,6 @@
 #include "Specializations/CommonTraits.h"
 #include "JMM_CPPLibs/LinearAlgebra/HopfLaxMinimize.h"
 #include "JMM_CPPLibs/LinearAlgebra/VectorPairType.h"
-
 
 /// Traits and stencil for metrics built of a quadratic and a linear part
 

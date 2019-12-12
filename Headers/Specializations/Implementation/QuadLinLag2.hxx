@@ -8,8 +8,6 @@
 #ifndef QuadLinLag2_hxx
 #define QuadLinLag2_hxx
 
-template<typename T> struct dependent_false : std::false_type {};
-
 template<typename T> template<typename Norm, bool dualize>
 struct StencilQuadLinLag2<T>::MetricCaster : StencilQuadLinLag2<T>::MetricType {
 	typedef typename Traits::template DataSource<Norm> MetricSource;
@@ -33,7 +31,7 @@ struct StencilQuadLinLag2<T>::MetricCaster : StencilQuadLinLag2<T>::MetricType {
 			if(dualize) {norm=norm.DualNorm();}
 			return MetricElementType{norm.m,norm.w};
 		} else {
-			static_assert(dependent_false<T>::value,"Unsupported norm type.");
+			static_assert(dependent_false_v<T>,"Unsupported norm type.");
 		}
 	};
 };

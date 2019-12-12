@@ -593,7 +593,30 @@ Run_ExportData() {
         }
         io.SetArray<VectorType>("geodesicFlow", flow);
     }
-    
+	if(io.Get<ScalarType>("exportDiscreteFlow",0.)) {
+		// Possible improvement : do simultaneously with exportGeodesicFlow
+		// to avoid recomputing twice.
+		Redeclare3Types(HFM,DiscreteFlowType,OffsetType,ShortType)
+		using ElemType = std::array<ScalarType,DiscreteFlowType::max_size()>;
+		Array<ElemType,Dimension> flow;
+        flow.dims=pFM->values.dims;
+        flow.resize(pFM->values.size());
+        for(DiscreteType i=0; i<flow.size(); ++i){
+			DiscreteFlowType discreteFlow;
+			pFM->Recompute(flow.Convert(i),discreteFlow);
+			ElemType & elem = flow[i];
+			
+			for(int j=0; j<discreteFlow.size(); ++j){
+				const OffsetType & offset = discreteFlow[j].offset;
+				unsigned long offset_tolong = 0;
+				for(int k=0; k<Dimension; ++k){
+					offset_tolong += std::make_unsigned_t<ShortType>(offset[k]) << (8*sizeof(ShortType)*(Dimension-k-1));}
+				elem[j] = ScalarType(offset_tolong);
+			}
+			for(int j=discreteFlow.size(); j<discreteFlow.max_size(); ++j) {elem[j]=0;}
+        }
+        io.SetArray<ElemType>("discreteFlow", flow);
+	}
     for(const auto & pAlg : extras) pAlg->Finally(this);
 }
 

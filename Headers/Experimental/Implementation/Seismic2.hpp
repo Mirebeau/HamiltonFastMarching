@@ -9,17 +9,23 @@
 #define Seismic2_hpp
 
 template<typename T> auto StencilGenericLag2<T>::
+GridScales() const -> const GridScalesType & {
+	if constexpr(std::is_same_v<GridScalesType,ScalarType>) {return param.gridScale;}
+	else {return param.gridScales;}
+}
+
+template<typename T> auto StencilGenericLag2<T>::
 GetNorm(IndexCRef index) const -> NormType {
 	assert(pMetric!=nullptr);
-	return Traits::MakeNorm((*pMetric)(index), param.gridScale);
+	return Traits::MakeNorm((*pMetric)(index),GridScales());
 }
 
 template<typename T> auto StencilGenericLag2<T>::
 GetGuess(const PointType & p) const -> DistanceGuess {
 	assert(pMetric!=nullptr);
-	return Traits::MakeNorm(MapWeightedSum<MetricElementType>(*pMetric,this->pFM->dom.Neighbors(p)), param.gridScale);
-//	const ScalarType invh2 = 1./square(param.gridScale);
-//	return NormType{invh2*MapWeightedSum<MetricElementType>(*pMetric,pFM->dom.Neighbors(p))};
+	return Traits::MakeNorm(
+		MapWeightedSum<MetricElementType>(*pMetric,this->pFM->dom.Neighbors(p)),
+		GridScales());
 }
 
 template<typename T> auto StencilGenericLag2<T>::
@@ -155,8 +161,6 @@ HopfLaxUpdate(IndexCRef index, const OffsetVal3 & offsetVal)
 }
 
 
-
-
 template<typename T> auto StencilGenericLag2<T>::
 HopfLaxRecompute(IndexCRef index, DiscreteFlowType & flow)
 -> RecomputeType {
@@ -196,7 +200,7 @@ SetNeighbors(IndexCRef index, std::vector<OffsetType> & stencil){
 	tmp_stencil.insert(tmp_stencil.end(),{OffsetType(1,0),OffsetType(0,-1),OffsetType(-1,0),OffsetType(0,1)});
 	
 	/*
-	// Predicate based version, uses two to three gradient evaluations per point.
+	// Predicate based version, uses two or three gradient evaluations per point, instead of one.
 	auto pred = [&norm,this](OffsetCRef u, OffsetCRef v) -> bool {
 		return CosAngle(norm,VectorType::CastCoordinates(u),
 						VectorType::CastCoordinates(v)) >= this->cosAngleMin;};

@@ -8,18 +8,24 @@
 #ifndef Seismic3_hpp
 #define Seismic3_hpp
 
+template<typename T> auto StencilGenericLag3<T>::
+GridScales() const -> const GridScalesType & {
+	if constexpr(std::is_same_v<GridScalesType,ScalarType>) {return param.gridScale;}
+	else {return param.gridScales;}
+}
+
 template<typename T> auto
 StencilGenericLag3<T>::
 GetNorm(IndexCRef index) const -> NormType {
 	assert(pMetric!=nullptr);
-	return Traits::MakeNorm((*pMetric)(index),param.gridScale);
+	return Traits::MakeNorm((*pMetric)(index),GridScales());
 }
 
 template<typename T> auto
 StencilGenericLag3<T>::
 GetGuess(const PointType & p) const -> DistanceGuess {
 	assert(pMetric!=nullptr);
-	return Traits::MakeNorm(MapWeightedSum<MetricElementType>(*pMetric,this->pFM->dom.Neighbors(p)),param.gridScale);
+	return Traits::MakeNorm(MapWeightedSum<MetricElementType>(*pMetric,this->pFM->dom.Neighbors(p)),GridScales());
 }
 
 

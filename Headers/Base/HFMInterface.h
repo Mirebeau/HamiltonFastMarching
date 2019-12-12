@@ -15,7 +15,7 @@
 template<typename TTraits> struct HFMInterface {
     typedef TTraits Traits;
     typedef HamiltonFastMarching<Traits> HFM;
-    Redeclare4Types(HFM,ActiveNeighFlagType,StencilDataType,
+    Redeclare5Types(HFM,ActiveNeighFlagType,StencilDataType,DiscreteFlowType,
 					ExtraAlgorithmInterface,GeodesicSolverInterface);
     Redeclare5Types(Traits,DiscreteType,ScalarType,PointType,VectorType,IndexType);
 	Redeclare1Type(IO,KeyCRef)

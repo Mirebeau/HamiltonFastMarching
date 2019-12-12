@@ -23,13 +23,14 @@ struct TraitsSeismic2 : TraitsBase<2> {
 	using DomainType = PeriodicGrid<TraitsSeismic2>;
 	struct DifferenceType {static const int multSize = -1; struct MultiplierType {};};
 	
-	using NormType = LinearAlgebra::SeismicNorm<ScalarType,2>;
+	using NormType = LinearAlgebra::SeismicNorm<ScalarType,Dimension>;
 	using DistanceGuess = NormType;
-	
 	using MetricElementType = NormType::HookeTensorType;
-	static NormType MakeNorm(const MetricElementType & m, ScalarType h){
+	using GridScalesType = ScalarType;
+	static NormType MakeNorm(const MetricElementType & m, GridScalesType h){
 		return NormType{(1./square(h))*m};}
 };
+
 
 struct TraitsSeismicTopographic2 : TraitsBase<2> {
 	
@@ -37,16 +38,19 @@ struct TraitsSeismicTopographic2 : TraitsBase<2> {
 	using DomainType = PeriodicGrid<TraitsSeismicTopographic2>;
 	struct DifferenceType {static const int multSize = -1; struct MultiplierType {};};
 
-	using BaseNormType = LinearAlgebra::SeismicNorm<ScalarType,2>;
-	using TransformType = LinearAlgebra::TopographicTransform<VectorType>;
+	using BaseNormType = LinearAlgebra::SeismicNorm<ScalarType,Dimension>;
+	using TransformType = LinearAlgebra::Matrix<ScalarType,Dimension,Dimension>;
+	using MetricElementType = LinearAlgebra::VectorPair<BaseNormType::HookeTensorType,TransformType>;
 	using NormType = LinearAlgebra::ComposedNorm<BaseNormType,TransformType>;
 	using DistanceGuess = NormType;
 	
-	using MetricElementType = LinearAlgebra::VectorPair<BaseNormType::HookeTensorType,VectorType>;
-	static NormType MakeNorm(const MetricElementType & m, ScalarType h){
-		return NormType{(1./square(h))*m.first, TransformType{m.second}};}
-	
+	using GridScalesType = PointType;
+	static NormType MakeNorm(const MetricElementType & m, const GridScalesType h){
+		TransformType a=m.second;
+		for(int i=0; i<Dimension; ++i) {for(int j=0; j<Dimension; ++j) {a(i,j)*=h[j];}}
+		return NormType{m.first, a};}
 };
+ 
 
 template<typename TTraits>
 struct StencilGenericLag2 final
@@ -57,20 +61,21 @@ struct StencilGenericLag2 final
 	Redeclare13Types(HFM,ParamDefault,ParamInterface,HFMI,DiscreteFlowType,
 					IndexCRef,VectorType,ScalarType,DiscreteType,OffsetCRef,RecomputeType,
 					DomainType,IndexDiff,PointType)
-	Redeclare6Types(Traits,NormType,IndexType,StencilType,OffsetType,DistanceGuess,
-					MetricElementType)
+	Redeclare7Types(Traits,NormType,IndexType,StencilType,OffsetType,DistanceGuess,
+					MetricElementType,GridScalesType)
 	Redeclare1Type(Superclass,OffsetVal3)
 	Redeclare1Constant(HFM,Dimension)
 	
 	// Specific to this model
 	virtual std::pair<ScalarType,int> HopfLaxUpdate(IndexCRef, const OffsetVal3 &) override;
 	virtual RecomputeType HopfLaxRecompute(IndexCRef,DiscreteFlowType &) override;
-//	using MetricElementType = NormType::HookeTensorType;
 	
 	// Generic
 	using MetricType = typename Traits::template DataSource<MetricElementType>;
 	std::unique_ptr<MetricType> pMetric;
-	ParamDefault param;
+	using ParamType = std::conditional_t<std::is_same_v<GridScalesType,ScalarType>,
+	ParamDefault,typename HFM::template _ParamDefault<2,void> >;
+	ParamType param;
 	
 	ScalarType cosAngleMin = 0.5; // Refinement criterion
 	virtual void SetNeighbors(IndexCRef index, std::vector<OffsetType> & stencil) override;
@@ -93,6 +98,8 @@ private:
 	std::unordered_multimap<DiscreteType,long> vertexCacheKeys;
 	virtual void EraseCache(DiscreteType index) override final;
 	static long hash(DiscreteType,OffsetType);
+	template<typename Transform> struct MetricCaster;
+	const GridScalesType & GridScales() const;
 };
 
 using StencilSeismic2 = StencilGenericLag2<TraitsSeismic2>;

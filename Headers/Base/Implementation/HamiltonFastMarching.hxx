@@ -415,9 +415,7 @@ GeodesicFlow(const IndexType & index) const -> FlowDataType {
     result.width = rec.width;
     
     result.flow.fill(0.);
-    for(const auto & offsetWeight : discreteFlow){
-        const OffsetType & offset = offsetWeight.offset;
-        const ScalarType & weight = offsetWeight.weight;
+    for(const auto & [offset,weight] : discreteFlow){
         assert(weight>=0);
         for(int i=0; i<Dimension; ++i){
             result.flow[i]+=weight*ScalarType(offset[i]);}

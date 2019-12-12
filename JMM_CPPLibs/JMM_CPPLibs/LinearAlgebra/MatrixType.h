@@ -5,6 +5,7 @@
 #define AmongConvex2_LinearTransform_h
 
 #include "VectorType.h"
+#include "../DataStructures/GetComponent.h"
 
 namespace LinearAlgebra {
     
@@ -90,4 +91,13 @@ std::ostream & operator << (std::ostream & f, const Matrix<TC,VR,VC> & m) {
 #include "Implementation/MatrixType.hxx"
 
 } // namespace LinearAlgebra
+
+template<typename C, size_t VRows, size_t VCols>
+struct GetComponent<LinearAlgebra::Matrix<C,VRows,VCols>, C> {
+	typedef LinearAlgebra::Matrix<C,VRows,VCols> T;
+	static constexpr size_t size() {return T().data.size();}
+	static const C & Get(const T & t, size_t i) {assert(i<size()); return t.data[i];}
+	static C & Get(T & t, size_t i) {assert(i<size()); return t.data[i];}
+};
+
 #endif
