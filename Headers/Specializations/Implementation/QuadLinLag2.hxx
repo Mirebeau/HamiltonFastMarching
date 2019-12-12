@@ -10,7 +10,10 @@
 
 template<typename T> template<typename Norm, bool dualize>
 struct StencilQuadLinLag2<T>::MetricCaster : StencilQuadLinLag2<T>::MetricType {
-	typedef typename Traits::template DataSource<Norm> MetricSource;
+	using Traits = T;
+	using StencilType = StencilQuadLinLag2<T>;
+	Redeclare5Types(StencilType,IndexType,MetricElementType,ScalarType,SymmetricMatrixType,NormType)
+	using MetricSource = typename Traits::template DataSource<Norm>;
 	std::unique_ptr<MetricSource> pMetric;
 	MetricCaster(std::unique_ptr<MetricSource> pMetric_):pMetric(std::move(pMetric_)){};
 	virtual bool CheckDims(const IndexType & dims) const {return pMetric->CheckDims(dims);};
