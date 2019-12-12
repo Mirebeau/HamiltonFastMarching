@@ -593,7 +593,7 @@ Run_ExportData() {
         }
         io.SetArray<VectorType>("geodesicFlow", flow);
     }
-	if(io.Get<ScalarType>("exportDiscreteFlow",0.)) {
+	if(io.Get<ScalarType>("exportActiveOffsets",0.)) {
 		// Possible improvement : do simultaneously with exportGeodesicFlow
 		// to avoid recomputing twice.
 		Redeclare3Types(HFM,DiscreteFlowType,OffsetType,ShortType)
@@ -615,7 +615,7 @@ Run_ExportData() {
 			}
 			for(int j=discreteFlow.size(); j<discreteFlow.max_size(); ++j) {elem[j]=0;}
         }
-        io.SetArray<ElemType>("discreteFlow", flow);
+        io.SetArray<ElemType>("activeOffsets", flow);
 	}
     for(const auto & pAlg : extras) pAlg->Finally(this);
 }

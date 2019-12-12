@@ -17,7 +17,6 @@
 #include "JMM_CPPLibs/LinearAlgebra/ComposedNorm.h"
 #include "JMM_CPPLibs/LinearAlgebra/VectorPairType.h"
 
-
 struct TraitsSeismic2 : TraitsBase<2> {
 	using StencilType = Lagrangian2Stencil<OffsetType,ScalarType,DiscreteType>;
 	using DomainType = PeriodicGrid<TraitsSeismic2>;
@@ -30,7 +29,6 @@ struct TraitsSeismic2 : TraitsBase<2> {
 	static NormType MakeNorm(const MetricElementType & m, GridScalesType h){
 		return NormType{(1./square(h))*m};}
 };
-
 
 struct TraitsSeismicTopographic2 : TraitsBase<2> {
 	
@@ -50,7 +48,6 @@ struct TraitsSeismicTopographic2 : TraitsBase<2> {
 		for(int i=0; i<Dimension; ++i) {for(int j=0; j<Dimension; ++j) {a(i,j)*=h[j];}}
 		return NormType{m.first, a};}
 };
- 
 
 template<typename TTraits>
 struct StencilGenericLag2 final
