@@ -97,13 +97,16 @@ const -> std::pair<ComponentType,Vec<3> > {
 	
 	// Is the infimum attained at a vertex ?
 	if(d01>=0 && d02>=0){
-		return {g[0].ScalarProduct(neigh[0])+l[0],VectorType{1.,0.,0.}};}
+		const ScalarType norm0 = g[0].ScalarProduct(neigh[0]);
+		return {norm0+l[0],VectorType{1./norm0,0.,0.}};}
 	
 	if(d12>=0 && d10>=0){
-		return {g[1].ScalarProduct(neigh[1])+l[1],VectorType{0.,1.,0.}};}
+		const ScalarType norm1 = g[1].ScalarProduct(neigh[1]);
+		return {norm1+l[1],VectorType{0.,1./norm1,0.}};}
 	
 	if(d20>=0 && d21>=0){
-		return {g[2].ScalarProduct(neigh[2])+l[2],VectorType{0.,0.,1.}};}
+		const ScalarType norm2 = g[2].ScalarProduct(neigh[2]);
+		return {norm2+l[2],VectorType{0.,0.,1./norm2}};}
 	
 	/*		// We use the coordinate chart mapping neigh[0],neigh[1],neigh[2]
 	 // onto (0,0), (1,0), (0,1)
@@ -397,10 +400,13 @@ const -> std::pair<ComponentType,Vec<2> > {
 	// constraint.v should be spanned by the neighbors
 	if constexpr(isSimple) {assert(abs(Determinant(v[0], v[1], constraint.v)) < 1e-6);}
 	
+	const ScalarType normalization = p.ScalarProduct(constraint.v);
 	auto const gram = Sym2::EuclideanGram(v);
 	Vec<2> const weights = -
 	gram.Inverse()*Vec<2>{v[0].ScalarProduct(constraint.v),
-		v[1].ScalarProduct(constraint.v)};
+		v[1].ScalarProduct(constraint.v)} / normalization;
+	
+	// TODO : normalization, dividing by zopt.ScalarProduct(constraint.v)
 	
 	/*
 	 std::cout << "In hl edge "

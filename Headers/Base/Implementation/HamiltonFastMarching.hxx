@@ -188,7 +188,7 @@ const -> RecomputeType {
 		p->BeforeRecompute(updatedIndex);}
     const DiscreteType updatedLinearIndex = values.Convert(updatedIndex);
     const ActiveNeighFlagType active = activeNeighs[updatedLinearIndex];
-    if(active.none()) return {values[updatedLinearIndex],0.}; // Handled below
+    if(active.none()) return {values[updatedLinearIndex],0.};
 	
 	// First order scheme, without factorisation, used for dynamic factoring pre-process.
 	auto GetValue1 = [this,&updatedIndex](OffsetType offset, int & ord) -> ScalarType {
