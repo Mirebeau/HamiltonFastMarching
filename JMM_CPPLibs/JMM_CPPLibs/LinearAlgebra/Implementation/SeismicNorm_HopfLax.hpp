@@ -406,17 +406,6 @@ const -> std::pair<ComponentType,Vec<2> > {
 	gram.Inverse()*Vec<2>{v[0].ScalarProduct(constraint.v),
 		v[1].ScalarProduct(constraint.v)} / normalization;
 	
-	// TODO : normalization, dividing by zopt.ScalarProduct(constraint.v)
-	
-	/*
-	 std::cout << "In hl edge "
-	 ExportVarArrow(V)
-	 ExportVarArrow(weights)
-	 ExportVarArrow(p)
-	 ExportVarArrow(GradNorm(V*weights)-p)
-	 << std::endl;
-	 */
-	
 	// Weights should be positive .. up to numerical precision
 	//assert(weights.IsNonNegative());
 	if constexpr(isSimple) {
