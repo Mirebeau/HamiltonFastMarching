@@ -35,7 +35,7 @@ struct TraitsIO {
     enum class SetterTag {User,Compute,Unknown};
     SetterTag currentSetter = SetterTag::User;
 
-    enum class ArrayOrdering {RowMajor, ColumnMajor, YXZ_RowMajor, YXZ_ColumnMajor};
+    enum class ArrayOrdering {RowMajor, ColumnMajor, YXZ_RowMajor, YXZ_ColumnMajor, Ignore};
     ArrayOrdering arrayOrdering = ArrayOrdering::RowMajor;
 protected:
     template<size_t d> using DimType = LinearAlgebra::Point<DiscreteType,d>;
@@ -89,15 +89,18 @@ template<typename Base> struct IO_ : Base {
     
     template<typename T> T Get(KeyCRef) const;
     template<typename T> T Get(KeyCRef, const T &, int=1) const;
-    template<typename T> std::vector<T> GetVector(KeyCRef key) const;
-    template<typename T, size_t d> Array<T, d> GetArray(KeyCRef) const;
-    template<typename T> std::vector<DiscreteType> GetDimensions(KeyCRef) const;
+    template<typename T> std::vector<T> GetVector(KeyCRef) const;
+    template<typename T, size_t d> Array<T, d> GetArray(KeyCRef,
+					ArrayOrdering=ArrayOrdering::Ignore) const;
+    template<typename T> std::vector<DiscreteType> GetDimensions(KeyCRef,
+					ArrayOrdering=ArrayOrdering::Ignore) const;
 	int GetElementSize(KeyCRef, int) const;
     
     // Output
     template<typename T> void Set(KeyCRef, const T &);
     template<typename T> void SetVector(KeyCRef, const std::vector<T> &);
-    template<typename T, size_t d> void SetArray(KeyCRef, const Array<T, d> &);
+    template<typename T, size_t d> void SetArray(KeyCRef, const Array<T, d> &,
+					ArrayOrdering=ArrayOrdering::Ignore);
 protected:
     template<typename V> static V TransposeDims(const V &);
     template<typename V> static V ReverseDims(const V &);

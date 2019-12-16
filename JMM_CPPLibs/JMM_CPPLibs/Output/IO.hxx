@@ -36,7 +36,8 @@ std::vector<T> IO_<Base>::GetVector(KeyCRef key) const {
 }
 
 template<typename Base> template<typename T, size_t d>
-typename Base::template Array<T, d> IO_<Base>::GetArray(KeyCRef key) const {
+typename Base::template Array<T, d> IO_<Base>::GetArray(KeyCRef key,
+					ArrayOrdering ordering) const {
     auto dimsPtr = this->template GetDimsPtr<T>(key);
     auto & dims = dimsPtr.first;
 	typedef typename decltype(dimsPtr)::second_type TI; // Iterator to type T
@@ -53,7 +54,7 @@ typename Base::template Array<T, d> IO_<Base>::GetArray(KeyCRef key) const {
     std::copy(dims.begin(), dims.end(), result.dims.begin());
     result.resize(result.dims.Product());
     
-    switch (this->arrayOrdering) {
+    switch(ordering==ArrayOrdering::Ignore ? this->arrayOrdering : ordering){
         case ArrayOrdering::RowMajor: {
 			for(size_t i=0; i<result.size(); ++i) result[i] = dimsPtr.second[(long)i];
 			break;}
@@ -72,20 +73,21 @@ typename Base::template Array<T, d> IO_<Base>::GetArray(KeyCRef key) const {
             result.dims = TransposeDims(ReverseDims(result.dims));
             for(size_t i=0; i<result.size(); ++i) result[i] = TrRevVals((DiscreteType)i);
             break;}
+		default: assert(false);
+			ExceptionMacro("Unrecognized array ordering");
     }
     return result;
 }
 
 template<typename Base> template<typename T>
-auto IO_<Base>::GetDimensions(KeyCRef key) const -> std::vector<DiscreteType> {
+auto IO_<Base>::GetDimensions(KeyCRef key,ArrayOrdering ordering) const -> std::vector<DiscreteType> {
     const auto dims = this->template GetDimsPtr<T>(key).first;
-    switch (this->arrayOrdering) {
+    switch(ordering==ArrayOrdering::Ignore ? this->arrayOrdering : ordering){
         case ArrayOrdering::RowMajor: return  dims;
         case ArrayOrdering::YXZ_RowMajor: return TransposeDims(dims);
         case ArrayOrdering::ColumnMajor: return ReverseDims(dims);
         case ArrayOrdering::YXZ_ColumnMajor: return TransposeDims(ReverseDims(dims));
-		default:
-			assert(false);
+		default: assert(false);
 			ExceptionMacro("Unrecognized array ordering");
     }
 }
@@ -119,8 +121,9 @@ void IO_<Base>::SetVector(KeyCRef key, const std::vector<T> & val) {
 }
 
 template<typename Base> template<typename T, size_t d>
-void IO_<Base>::SetArray(KeyCRef key, const Array<T, d> & val) {
-    switch (this->arrayOrdering) {
+void IO_<Base>::SetArray(KeyCRef key, const Array<T, d> & val,
+						 ArrayOrdering ordering) {
+    switch(ordering==ArrayOrdering::Ignore ? this->arrayOrdering : ordering){
         case ArrayOrdering::RowMajor: return Set<T,d>(key,val.dims,&val[0]);
         case ArrayOrdering::YXZ_RowMajor:
             return Base::template Set<T,d>(key, TransposeDims(val.dims),
@@ -131,6 +134,8 @@ void IO_<Base>::SetArray(KeyCRef key, const Array<T, d> & val) {
         case ArrayOrdering::YXZ_ColumnMajor:
             return Base::template Set<T,d>(key,ReverseDims(TransposeDims(val.dims)), // Corrected
                                            ReverseTransposeVals<T,d>(val.dims,&val[0]) );
+		default: assert(false);
+			ExceptionMacro("Unrecognized array ordering");
     }
 }
 

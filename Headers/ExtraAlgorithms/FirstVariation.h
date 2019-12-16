@@ -108,7 +108,7 @@ template<typename T> void FirstVariation<T>::Finally(HFMI*that){
         Array<ScalarType,Dimension+1> valueVariations;
         if(io.HasField("seedValueVariation")){
             const auto seeds = io.template GetVector<PointType>("seeds");
-            const auto seedVariations = io.template GetArray<ScalarType,2>("seedValueVariation");
+            const auto seedVariations = io.template GetArray<ScalarType,2>("seedValueVariation",IO::ArrayOrdering::RowMajor);
             
             const DiscreteType nVar = seedVariations.dims[0];
             valueVariations.dims=DeepIndex(that->stencil.dims, nVar);
