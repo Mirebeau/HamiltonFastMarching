@@ -175,18 +175,7 @@ HopfLaxUpdate(FullIndexCRef updated, OffsetCRef acceptedOffset, ScalarType value
 				}
 				break;
 			}
-			
-			{
-				std::vector<ScalarType> updates;
-				const int nI=100;
-				for(int i=0; i<nI; ++i){
-					ScalarType x=t0+(t1-t0)*(i/double(nI));
-					updates.push_back(norm.UpdateValue(x,values,selling));
-				}
-//				std::cout ExportArrayArrow(updates) << std::endl;
-			}
-			
-//			std::cout ExportVarArrow(val0) ExportVarArrow(val1) << std::endl;
+
 			// Now, root finding in the interval [t0,t1]
 			ScalarType x0=t0,x1=t1, // Lower and upper bounds for the subinterval
 			x=(val1.v[0]*t0-val0.v[0]*t1)/(val1.v[0]-val0.v[0]),xOld=inf; // Candidate point

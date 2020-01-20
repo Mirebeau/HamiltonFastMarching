@@ -33,7 +33,7 @@ PrintSelf(std::ostream & os) const {
 template<typename TS, int VD> template<typename T>
 T TTINorm<TS,VD>::Level(const Vector<T,Dimension> & p0) const {
 	using Vec = Vector<T,Dimension>;
-	Vec p = transform*p0;
+	Vec p = transform*p0; // Should be transpose inverse. Ok if orthogonal.
 	for(auto & x : p) x*=x;
 	if constexpr(Dimension==2){
 		return 1.-(p.ScalarProduct(linear) + 0.5*quadratic.SquaredNorm(p));
@@ -110,6 +110,7 @@ UpdateValue(const T & t, const NeighborValuesType & val,
 	const ScalarType valMin=val[indices[0]];
 	
 	// Get the multiplier
+	// TODO : optimization opportunity in Multiplier(t)
 	const T & mult = Multiplier(t);
 	
 	// Compute the update, solving ax^2-2bx+c=0
@@ -141,7 +142,7 @@ UpdateValue(const T & t, const NeighborValuesType & val,
 	else {
 		if(sol==inf) {return T(inf);}
 		T a(0),b(0),c(-mult);
-		for(int r_=0; r_<r; ++r_){
+		for(int r_=1; r_<r; ++r_){
 			const int i = indices[r_];
 			const ScalarType v = val[i] - valMin;
 			const T w = path.weights0[i]+t*(path.weights1[i]-path.weights0[i]),
@@ -154,7 +155,34 @@ UpdateValue(const T & t, const NeighborValuesType & val,
 		assert(delta>=0.);
 		const T sol = (b+sqrt(delta))/a;
 		return valMin+sol;
-	}
+	} /*else {
+		// optimized variant, assuming t is a canonical one dimensional AD type.
+		if(sol==inf) {return T(inf);}
+		ScalarType ap(0),bp(0),cp(0);
+		for(int r_=1; r-<r; ++r_){
+			const int i = indices[r_];
+			const ScalarType v = val[i] - valMin;
+			const T wp = path.weights1[i]-path.weights0[i],
+			wv=w*v, wvv=wv*v;
+			ap+=w;
+			bp+=wv;
+			cp+=wvv;
+		}
+		T a_,b_,c_,delta;
+		using AD2Type = AD2<ScalarType,1>;
+		using AD1Type = DifferentiationType<ScalarType,Vector<ScalarType, 1> >;
+		if constexpr(std::is_same<T,AD2Type>){
+			a_ = AD2Type{a,{ap}};
+			b_ = AD2Type(b,{bp}};
+						 c_ = AD2Type(c,{
+		
+		} else if constexpr(std::is_same<T,AD1Type>{
+			a_=
+		}
+
+		
+		
+	}*/
 }
 
 template<typename TS, int VD> template<typename T> T TTINorm<TS,VD>::
@@ -190,25 +218,21 @@ Multiplier(const T & t) const {
 
 // ----------------- Norm computation --------------
 template<typename TS,int VD> auto TTINorm<TS,VD>::
-Gradient(const VectorType & q) const -> VectorType {
+Gradient(const VectorType & q0) const -> VectorType {
 	// Use sequential quadratic programming to solve the optimization problem
 	// sup <v,w> subject to Level(w)>=0,
 	// where one is implicitly restricted to the connected component of the origin.
 	
 	// TODO : some optimizations are possible, if this becomes a limiting factor,
 	// especially in 3D (exploit transversal isotropy, to reduce to 2D).
-	
-	VectorType p; p.fill(0.);
-	
+		
 	// Setup AD variable
 	using Diff2 = AD2<ScalarType,Dimension>;
 	using D2Vec = Vector<Diff2,Dimension>;
-	D2Vec Dp;
-	for(int i=0; i<Dimension;++i) {Dp[i] = Diff2(p[i],i);}
 
 	// Perform one step of sequential quadratic programming
 	// Aim for maximizing <q,p> subject to constraint, differentiated at p
-	auto sqp_step = [&p,&q](const Diff2 & c){
+	auto sqp_step = [](const Diff2 & c, const VectorType & q){
 		const SymmetricMatrixType d = c.m.Inverse();
 		const VectorType dv = d*c.v, dq = d*q;
 		const ScalarType num = dv.ScalarProduct(c.v) - 2.*c.x;
@@ -217,15 +241,51 @@ Gradient(const VectorType & q) const -> VectorType {
 		using std::sqrt;
 		const ScalarType lambda = -sqrt(num / den);
 		const VectorType h = lambda*dq - dv;
-		p += h;
+		return h;
 	};
 	
-	const int nIter_SQP = 8;
-	for(int iter=0; iter<nIter_SQP; ++iter){
-		sqp_step(Level(Dp));
-		for(int i=0; i<Dimension; ++i){Dp[i].x = p[i];}
+	constexpr bool optimized = Dimension==2;
+	constexpr int nIter_SQP = 8;
+	
+	if(!optimized){
+		VectorType p; p.fill(0.);
+		D2Vec Dp;
+		for(int i=0; i<Dimension;++i) {Dp[i] = Diff2(p[i],i);}
+		for(int iter=0; iter<nIter_SQP; ++iter){
+			const Diff2 lvl = Level(Dp);
+			p+=sqp_step(lvl,q0);
+			for(int i=0; i<Dimension; ++i){Dp[i].x = p[i];}
+		}
+		return p;
+	} else if constexpr(Dimension==2) {
+		const ScalarType &
+		a=linear[0],b=linear[1],
+		c=quadratic(0,0),d=quadratic(0,1),e=quadratic(1,1);
+
+		const VectorType q = transform*q0;
+		// Solve analytically the first sqp step
+		const ScalarType q0a=q[0]/a,q1b=q[1]/b;
+		using std::sqrt;
+		VectorType p = VectorType{q0a,q1b}/sqrt(q[0]*q0a+q[1]*q1b);
+		
+		for(int i=1; i<nIter_SQP; ++i){
+			// Evaluate constraint and derivatives
+			const ScalarType & x=p[0],y=p[1];
+			const ScalarType x2=x*x,y2=y*y,
+			cx2=c*x2,ey2=e*y2,dx2=d*x2,dy2=d*y2;
+			const Diff2 lvl
+			= Diff2{1.-(a*x2+b*y2+0.5*(cx2*x2+2.*dx2*y2+ey2*y2)),
+				(-2.)*VectorType{x*(a+cx2+dy2),y*(b+dx2+ey2)},
+				(-2.)*SymmetricMatrixType{a+3*cx2+dy2,2.*d*x*y,b+dx2+3.*ey2}
+			};
+			
+			p+=sqp_step(lvl,q);
+		}
+		return transform.Transpose()*p;
+	} else {// Do a recursive call to the two dimensional case.
+		assert(false);
+		return {};
 	}
-	return p;
 }
 
 template<typename TS,int VD> auto TTINorm<TS,VD>::
