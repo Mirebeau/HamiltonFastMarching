@@ -20,7 +20,7 @@
 #endif
 
 template<int VDim> struct TraitsBase {
-    static const int Dimension = VDim;
+    static constexpr int Dimension = VDim;
     typedef BaseGrid<VDim, double, int, int_least8_t> BaseDomain;
     Redeclare6Types(BaseDomain,DiscreteType,IndexType,IndexDiff,IndexCRef,ShortType,OffsetType)
     Redeclare3Types(BaseDomain,ScalarType,PointType,VectorType)
@@ -65,6 +65,7 @@ template<int VDim> struct TraitsBase {
 // Linker wants the following two lines for some obscure reason.
 template<int VD> constexpr const typename TraitsBase<VD>::StencilDepType_None TraitsBase<VD>::stencilDependencies;
 template<int VD> constexpr const Boundary_AllClosed TraitsBase<VD>::boundaryConditions;
+
 
 // --------------------- Tensor decomposition ---------------------
 

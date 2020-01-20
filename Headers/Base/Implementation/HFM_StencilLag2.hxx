@@ -10,6 +10,14 @@
 
 #include "Base/Lagrangian2Stencil.h"
 
+/*
+ This class implements a stencil data structure for the Hamilton-Fast-Marching class,
+ with the following features :
+ - Stencils have a variable size, and involve only offsets. (Semi-Lagrangian type.)
+ - Each point has an independent stencil.
+ - They are computed only once.
+ */
+
 // ********** Stencil data - Semi-Lagrangian2 *******
 
 template<typename T> template<typename Dummy>
@@ -31,14 +39,15 @@ HamiltonFastMarching<T>::_StencilDataTypeBase {
 	virtual ConstOffsetRange ReversedOffsets(FullIndexCRef) const override final;
 protected:
 	friend struct HamiltonFastMarching<Traits>;
-	virtual ScalarType HopfLaxUpdate(FullIndexCRef, OffsetCRef, ScalarType, ActiveNeighFlagType &) override final;
+	virtual ScalarType HopfLaxUpdate(FullIndexCRef, OffsetCRef, ScalarType, ActiveNeighFlagType &) override;
 	template<typename F> RecomputeType HopfLaxRecompute(const F &, IndexCRef, ActiveNeighFlagType, DiscreteFlowType &);
 	
 	Lagrangian2StencilGeometry geom = Lagrangian2StencilGeometry::None;
-	typedef CappedVector<std::pair<OffsetType,ScalarType>, 3> OffsetVal3;
+	using OffsetVal3 = CappedVector<std::pair<OffsetType,ScalarType>, 3>;
 	virtual std::pair<ScalarType,int> HopfLaxUpdate(IndexCRef,const OffsetVal3 &) = 0;
 	virtual RecomputeType HopfLaxRecompute(IndexCRef,DiscreteFlowType &) = 0;
 	HFM::Array<ScalarType,Dimension> indexConverter;
+	Redeclare1Type(ActiveNeighFlagType, SectorIndexType)
 private:
 	MultiVector<OffsetType,DiscreteType> directOffsets;
 };
@@ -144,8 +153,8 @@ HopfLaxUpdate(FullIndexCRef full, OffsetCRef acceptedOffset,
 	};
 	
 	// A failed experiment. TODO : remove ?
-	const bool useSecondOrderOnFirstPass = false;
-	if(useSecondOrderOnFirstPass){ // -----------------------
+	constexpr bool useSecondOrderOnFirstPass = false;
+	if constexpr(useSecondOrderOnFirstPass){ // -----------------------
 		auto & fm = *(this->pFM);
 		fm.template SetIndex<true,true>(updatedIndex); // useFactoring, smallCorrection
 		int order=2;
@@ -201,7 +210,9 @@ HopfLaxUpdate(FullIndexCRef full, OffsetCRef acceptedOffset,
 		const auto [newValue,newActive] = HopfLaxUpdate(updatedIndex,offsetVal);
 		const ScalarType oldValue = fm.values[full.linear];
 		if(newValue>=oldValue) return oldValue;
-		active.sectorIndex = act[newActive];
+		
+		if constexpr(std::is_same_v<void,SectorIndexType>){assert(false);}
+		else {active.sectorIndex = act[newActive];}
 		return newValue;
 	}
 }
@@ -214,15 +225,19 @@ HopfLaxRecompute(const F & f, IndexCRef index, ActiveNeighFlagType active, Discr
 	StencilType stencil;
 	SetStencil(index, stencil);
 	
+	int sectorIndex;
+	if constexpr(std::is_same_v<void,SectorIndexType>){assert(false); sectorIndex=0;}
+	else {sectorIndex = active.sectorIndex;}
+	
 	// Get data of neighbor 0
 	int ord0 = 3;
-	const OffsetType offset0 = stencil.Sector(active.sectorIndex,0);
+	const OffsetType offset0 = stencil.Sector(sectorIndex,0);
 	ScalarType val0 = f(offset0,ord0);
 	
 	
 	// Get data of neighbor 1
 	int ord1 = ord0==0 ? 3 : ord0;
-	const OffsetType offset1 = stencil.Sector(active.sectorIndex,1);
+	const OffsetType offset1 = stencil.Sector(sectorIndex,1);
 	const ScalarType val1 = f(offset1,ord1);
 	
 	

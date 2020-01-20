@@ -14,9 +14,10 @@ struct Matrix :
 vector_space< Matrix<TComponent,VRows,VColumns>, TComponent>
 {
     typedef TComponent ComponentType;
-    static const size_t Rows = VRows, Columns = VColumns;
+    static constexpr size_t Rows = VRows, Columns = VColumns;
     
-    static bool IsInRange(int i, int j)  {return 0<=i && i<Rows && 0<=j && j<Columns;}
+    static constexpr bool IsInRange(int i, int j)  {
+		return 0<=i && i<Rows && 0<=j && j<Columns;}
     ComponentType           & operator()(size_t i, size_t j)       {
         assert(IsInRange(int(i),int(j))); return data[LinearizedIndex(i,j)];}
     const ComponentType     & operator()(size_t i, size_t j) const {
@@ -30,9 +31,12 @@ vector_space< Matrix<TComponent,VRows,VColumns>, TComponent>
     Matrix operator -() {Matrix m; m.data = -data; return m;}
     
     // Multiplication
-    typedef Vector<ComponentType,VRows>    OutputVectorType;
-    typedef Vector<ComponentType,VColumns>  InputVectorType;
-    OutputVectorType operator * (const InputVectorType & u) const;
+    typedef Vector<ComponentType,Rows>    OutputVectorType;
+    typedef Vector<ComponentType,Columns>  InputVectorType;
+	template<typename T, typename S = algebra_t<ComponentType, T> >
+    Vector<S,Rows> operator * (const Vector<T, Columns> & u) const;
+	OutputVectorType Column(int) const;
+	InputVectorType  Row(int) const;
     
     template <size_t Columns2> Matrix<ComponentType, Rows, Columns2>
     operator * (const Matrix<ComponentType,Columns,Columns2> & m) const;

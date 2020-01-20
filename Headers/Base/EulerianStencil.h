@@ -52,10 +52,11 @@ EulerianStencil {
 	using CommonStencilType = CommonStencil<OffsetType,ScalarType,nActiveNeigh>;
 	Redeclare3Types(CommonStencilType,DiscreteFlowElement,DiscreteFlowType,RecomputeType);
     template<typename F> RecomputeType
-	HopfLaxRecompute(const F &,const MultiplierType &, ActiveNeighFlagType, DiscreteFlowType &) const;
+	HopfLaxRecompute(const F &,const MultiplierType &,
+					 ActiveNeighFlagType, DiscreteFlowType &) const;
 };
 
-// ---- Enhanced offsets, referred to as differences (define the finite difference scheme) ---
+// ---- Enhanced offsets, referred to as differences  ---
 /** A Difference is a basic component of a PDE scheme. It is the data of an offset and weight.
  The weight which is either specified directly or as a baseweight and a multiplier index, within [0,VMultSize[.*/
 
@@ -71,7 +72,8 @@ struct EulerianDifference {
     OffsetType offset;
     ScalarType baseWeight;
     ShortType multIndex;
-    ScalarType Weight(const MultiplierType & mult) const {return baseWeight*square(mult[multIndex]);}
+    ScalarType Weight(const MultiplierType & mult) const {
+		return baseWeight*square(mult[multIndex]);}
 };
 
 template<typename TOff, typename TScal>
@@ -85,7 +87,8 @@ struct EulerianDifference<TOff,TScal,1> {
 
     OffsetType offset;
     ScalarType baseWeight;
-    ScalarType Weight(const MultiplierType & mult) const {return baseWeight*square(mult);}
+    ScalarType Weight(const MultiplierType & mult) const {
+		return baseWeight*square(mult);}
 };
 
 template<typename TOff, typename TScal>
@@ -109,7 +112,8 @@ struct EulerianDifference<TOff,TScal,0> {
 template<typename TS, size_t n>
 struct QuadraticMax {
     typedef TS ScalarType;
-    static constexpr ScalarType Infinity() {return std::numeric_limits<ScalarType>::infinity();}
+    static constexpr ScalarType Infinity() {
+		return std::numeric_limits<ScalarType>::infinity();}
     
     ScalarType minVal=-Infinity();
     

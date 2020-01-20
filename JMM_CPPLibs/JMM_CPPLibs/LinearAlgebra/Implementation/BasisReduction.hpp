@@ -75,20 +75,13 @@ BasisReduction<TS,TD,VD>::ObtuseSuperbase(const SymmetricMatrixType & m, Superba
             for(int j=i+1; j<=Dimension; ++j){
                 if(m.ScalarProduct(sb[i],sb[j])>0){
                     reduced=true;
-                    if(Dimension==2){
-                        const int k = 0+1+2-i-j;
+                    if constexpr(Dimension==2){
+						const auto [k] = ComplementIndices(i,j);
                         sb[k]=sb[i]-sb[j];
                     } else {
-                        int k[2]; int *kIt=k;
-                        for(int l=0; l<=Dimension; ++l)
-                            if(l!=i && l!=j){
-                                *kIt=l;
-                                ++kIt;
-                            }
-                        assert(kIt==k+2);
-                        assert(i+j+k[0]+k[1]==0+1+2+3);
-                        sb[k[0]]+=sb[i];
-                        sb[k[1]]+=sb[i];
+						const auto [k,l] = ComplementIndices(i,j);
+                        sb[k]+=sb[i];
+                        sb[l]+=sb[i];
                     }
                     sb[i]*=-1;
                 }
@@ -97,7 +90,7 @@ BasisReduction<TS,TD,VD>::ObtuseSuperbase(const SymmetricMatrixType & m, Superba
     if(reduced) assert(false);
     if(reduced) ExceptionMacro("ObtuseSuperbase error : did not terminate in "
                                << maxIt << " iterations, for matrix " << m
-                               /*<< ", current superbase: " ExportArrayArrow(sb)*/
+                               // << ", current superbase: " ExportArrayArrow(sb)
                                << ".\n");
     for(int i=0; i<Dimension; ++i)
         for(int j=i+1; j<=Dimension; ++j)
@@ -162,5 +155,133 @@ struct BasisReduction<TS, TD, VD>::TensorDecompositionHelper_<3,Dummy> {
     }
 };
 
+
+template<typename TS, typename TD, size_t VD> auto BasisReduction<TS, TD, VD>::
+ComplementIndices(int i, int j) -> std::array<int,Dimension-1> {
+	assert(0<=i && i<=Dimension);
+	assert(0<=j && j<=Dimension);
+
+	if constexpr(Dimension==2){return {(0+1+2)-i-j};}
+	else { static_assert(Dimension==3, "Unsupported dimension");
+		std::array<int,2> result;
+		auto rIt = result.begin();
+		for(int k=0; k<=Dimension; ++k){
+			if(k!=i && k!=j){
+				*rIt = k;
+				++rIt;
+			}
+		}
+		assert(rIt==result.end());
+		assert(i+j+result[0]+result[1]==0+1+2+3);
+		return result;
+	}
+}
+
+template<typename TS, typename TD, size_t VD> int BasisReduction<TS, TD, VD>::
+LinearizeIndices(int i, int j){
+	if(i>j) std::swap(i,j);
+	assert(0<=i && i<j && j<=Dimension);
+	int r=j-i-1;
+	if(i==1){r+=Dimension;}
+	else if(i==2 && Dimension==3){r+=2*Dimension-1;}
+	else {assert(i==0);}
+	assert(r == i*Dimension-(i*(i-1))/2 + (j-i-1) );
+	return r;
+}
+
+// ------------ Selling path -----------
+
+template<typename TS,typename TD, size_t VD> void BasisReduction<TS,TD,VD>::SellingPath::
+PrintSelf(std::ostream & os) const {
+	os << "{"
+	ExportVarArrow(D0)
+	ExportVarArrow(D1)
+	ExportArrayArrow(sb)
+	ExportArrayArrow(offsets)
+	ExportArrayArrow(weights0)
+	ExportArrayArrow(weights1)
+	<< "}";
+}
+
+template<typename TS, typename TD, size_t VD> BasisReduction<TS, TD, VD>::SellingPath::
+SellingPath(const SymmetricMatrixType & D0_, const SymmetricMatrixType & D1_, ScalarType t)
+:D0(D0_),D1(D1_),sb(CanonicalSuperBase()){
+	
+	// Find the obtuse superbase for t.
+	ObtuseSuperbase((1.-t)*D0 + t*D1, sb);
+	
+	// Fill in the weights and offsets
+	for(int i=0, r=0; i<=Dimension; ++i){
+		for(int j=i+1; j<=Dimension; ++j){
+			weights0[r] = -D0.ScalarProduct(sb[i],sb[j]);
+			weights1[r] = -D1.ScalarProduct(sb[i],sb[j]);
+			if constexpr(Dimension==2){
+				const auto [k] = ComplementIndices(i,j);
+				offsets[r] = Perp(sb[k]);
+			} else {static_assert(Dimension==3,"Unsupported dimension");
+				const auto [k,l] = ComplementIndices(i,j);
+				offsets[r] = Cross(sb[k],sb[l]);
+			}
+			++r;
+		}
+	}
+}
+
+template<typename TS, typename TD, size_t VD> auto BasisReduction<TS,TD,VD>::SellingPath::
+NextStep(ScalarType & t) const -> std::pair<int,int> {
+	[[maybe_unused]] const ScalarType tMin = t;
+	[[maybe_unused]] constexpr ScalarType eps = std::numeric_limits<ScalarType>::epsilon();
+
+	t=std::numeric_limits<ScalarType>::infinity();
+	// Find the next t, when obtuseness fails.
+	int iNext=-1,jNext=-1;
+	for(int i=0,r=0; i<=Dimension; ++i) {
+		for(int j=i+1; j<=Dimension; ++j,++r) {
+			const ScalarType s0 = weights0[r], s1=weights1[r];
+//			std::cout ExportVarArrow((1.-tMin)*s0+tMin*s1) << std::endl;
+			assert((1.-tMin)*s0+tMin*s1 >= -1000*eps); //Expect obtuse superbase initially
+			if(s1>=s0) continue; // Continue if vectors become more obtuse
+			const ScalarType tRoot = s0/(s0-s1);
+			assert(tRoot>=tMin-1000*eps); //Expect obtuse superbase initially
+			if(tRoot>=t) continue;
+			t=tRoot;
+			iNext=i;
+			jNext=j;
+		}
+	}
+	return {iNext,jNext};
+}
+
+template<typename TS, typename TD, size_t VD> void BasisReduction<TS,TD,VD>::SellingPath::
+MakeStep(const std::pair<int,int> & indices) {
+	// Make a Selling step
+	const auto [i,j] = indices;
+	
+	if constexpr(Dimension==2){
+		const auto [k] = ComplementIndices(i,j);
+		// Update superbase (Selling step)
+		sb[k]=sb[i]-sb[j];
+		sb[i]*=-1;
+		// Update offsets (sign changes omitted)
+		offsets[LinearizeIndices(i,j)] = Perp(sb[k]);
+	} else { static_assert(Dimension==3, "Unsupported dimension");
+		const auto [k,l] = ComplementIndices(i,j);
+		// Update superbase (Selling step)
+		sb[k]+=sb[i];
+		sb[l]+=sb[i];
+		sb[i]*=-1;
+		// Update offsets (sign changes omitted)
+		offsets[LinearizeIndices(i,j)] = Cross(sb[k],sb[l]);
+		std::swap(offsets[LinearizeIndices(i, k)],offsets[LinearizeIndices(i, l)]);
+	}
+	
+	// Update weights
+	for(int i=0,r=0; i<=Dimension; ++i){
+		for(int j=i+1; j<=Dimension; ++j,++r){
+			weights0[r] = -D0.ScalarProduct(sb[i],sb[j]);
+			weights1[r] = -D1.ScalarProduct(sb[i],sb[j]);
+		}
+	}
+}
 
 #endif /* BasisReduction_hpp */

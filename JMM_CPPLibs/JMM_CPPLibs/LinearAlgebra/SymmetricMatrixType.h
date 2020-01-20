@@ -15,15 +15,15 @@ struct SymmetricMatrix :
 vector_space< SymmetricMatrix<TComponent, VDimension>, TComponent>
 {
     typedef TComponent ComponentType;
-    static const size_t Dimension = VDimension;
+    static constexpr size_t Dimension = VDimension;
     typedef Vector<ComponentType, Dimension> VectorType;
     typedef Point<ComponentType, Dimension> PointType;
     typedef Matrix<ComponentType, Dimension, Dimension> MatrixType;
     
     // Coefficient access
-    static bool IsInRange(int i, int j){
+    static constexpr bool IsInRange(int i, int j){
         return 0<=i && i<Dimension && 0<=j && j<Dimension;}
-    static int LinearizedIndex(int i, int j);
+    static constexpr int LinearizedIndex(int i, int j);
     ComponentType & operator()(int i, int j){return data[LinearizedIndex(i,j)];}
     const ComponentType & operator()(int i, int j) const {return data[LinearizedIndex(i,j)];}
 
@@ -35,26 +35,27 @@ vector_space< SymmetricMatrix<TComponent, VDimension>, TComponent>
     SymmetricMatrix operator -() const {SymmetricMatrix m; m.data=-data; return m;}
     
     // Geometry
-    template<typename T> ComponentType
-    ScalarProduct(const Vector<T, Dimension> &, const Vector<T, Dimension> &) const;
+    template<typename T,typename S = algebra_t<ComponentType, T> > S
+    ScalarProduct(const Vector<T,Dimension> &, const Vector<T, Dimension> &) const;
     
-    template<typename T> ComponentType
+    template<typename T,typename S = algebra_t<ComponentType, T> > S
     SquaredNorm(const Vector<T,Dimension> & u) const {return ScalarProduct(u, u);}
     
-    template<typename T> ComponentType
-    Norm(const Vector<T, Dimension> & u) const {return sqrt(SquaredNorm(u));}
+    template<typename T, typename S = algebra_t<ComponentType, T> > S
+	Norm(const Vector<T,Dimension> & u) const {using std::sqrt;return sqrt(SquaredNorm(u));}
     
     template<typename T> bool
     IsAcute(const Vector<T, Dimension> & u, const Vector<T, Dimension> & v) const {
         return ScalarProduct(u, v)>=0;}
 
-    template<typename T> VectorType
+    template<typename T, typename S = algebra_t<T,ComponentType> > Vector<S,Dimension>
     operator*(const Vector<T, Dimension> &) const;
 	
 	VectorType Gradient(const VectorType & u) const {return operator*(u)/Norm(u);}
 	
     ComponentType Trace() const;
     ComponentType Determinant() const;
+	SymmetricMatrix Comatrix() const;
     SymmetricMatrix Inverse() const;
     VectorType CGSolve(VectorType) const;
 	
@@ -71,11 +72,17 @@ vector_space< SymmetricMatrix<TComponent, VDimension>, TComponent>
 	ComponentType SquaredFrobeniusNorm() const;
 	ComponentType FrobeniusNorm() const;
     
-    // Constructors
+    // Factory methods
     static SymmetricMatrix Zero();
     static SymmetricMatrix Identity();
     static SymmetricMatrix Diagonal(const VectorType &);
-    template<typename T> static SymmetricMatrix RankOneTensor(const Vector<T, Dimension> & u);
+	/// Returns v v^T
+	template<typename T> static SymmetricMatrix OuterSelf(const Vector<T,Dimension> & u);
+    template<typename T> static SymmetricMatrix
+	RankOneTensor(const Vector<T, Dimension> & u) {return OuterSelf(u);}
+	/// Returns u v^T+v u^T
+	static SymmetricMatrix Outer2(const VectorType &u, const VectorType &v);
+	
     static SymmetricMatrix RandomPositive();
     static SymmetricMatrix FromUpperTriangle(const MatrixType & mat);
     SymmetricMatrix operator=(ComponentType a); // Dimension 1 only

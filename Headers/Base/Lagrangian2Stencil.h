@@ -11,6 +11,7 @@
 #include "CommonStencil.h"
 #include "JMM_CPPLibs/LinearAlgebra/VectorType.h"
 #include "JMM_CPPLibs/Output/EnumToString.h"
+#include "JMM_CPPLibs/Macros/DependentFalse.h"
 
 // ------ Default stencils ------
 enum class Lagrangian2StencilGeometry {Diamond,Square,SpikySquare,Voronoi,None};
@@ -26,8 +27,8 @@ struct Lagrangian2Stencil {
 	typedef TDiscrete DiscreteType;
 	typedef TScalar ScalarType;
     typedef typename OffsetType::ComponentType ShortType;
-    static const DiscreteType Dimension = OffsetType::Dimension;
-	static_assert(Dimension==2,"Two dimensional stencil class");
+    static constexpr DiscreteType Dimension = OffsetType::Dimension;
+//	static_assert(Dimension==2,"Two dimensional stencil class");
     
 	DiscreteType NSectors() const {return nOffsets;}
     const OffsetType & Sector(DiscreteType n, DiscreteType k) const {
@@ -38,11 +39,13 @@ struct Lagrangian2Stencil {
     
     PrintSelfMacro(Lagrangian2Stencil);
     struct ActiveNeighFlagType {
-        ShortType sectorIndex;
+		using SectorIndexType = ShortType;
+        SectorIndexType sectorIndex;
         ActiveNeighFlagType():sectorIndex(-1){};
-        ActiveNeighFlagType(unsigned long a):sectorIndex(ShortType(a)){};
+        ActiveNeighFlagType(unsigned long a):sectorIndex(SectorIndexType(a)){};
         bool none() const {return sectorIndex==-1;}
-        unsigned long to_ulong() const {return std::make_unsigned_t<ShortType>(sectorIndex);}
+        unsigned long to_ulong() const {
+			return std::make_unsigned_t<SectorIndexType>(sectorIndex);}
     };
     
     static const int nActiveNeigh = Dimension;
@@ -53,7 +56,9 @@ struct Lagrangian2Stencil {
     DiscreteType nOffsets;
 	
 	static std::vector<OffsetType>
-	MakeStencil(Lagrangian2StencilGeometry, OffsetType={1,0}, OffsetType v={0,1});
+	MakeStencil(Lagrangian2StencilGeometry,
+				OffsetType=OffsetType::CanonicalBasis(0),
+				OffsetType=OffsetType::CanonicalBasis(1));
 };
 
 
@@ -67,7 +72,10 @@ Lagrangian2Stencil<TO,TS,TD>::PrintSelf(std::ostream & os) const {
 template<typename TO, typename TS, typename TD> auto
 Lagrangian2Stencil<TO,TS,TD>::MakeStencil(Lagrangian2StencilGeometry geom, OffsetType u, OffsetType v)
 -> std::vector<OffsetType> {
-	assert(std::abs(LinearAlgebra::Determinant(u,v) )==1);
+	if constexpr(Dimension==2){
+		assert(std::abs(LinearAlgebra::Determinant(u,v) )==1);
+	} else {assert(false);}
+	
 	switch(geom){
 		case Lagrangian2StencilGeometry::Diamond: return {u,v,-u,-v};
 		case Lagrangian2StencilGeometry::Square: return {

@@ -10,6 +10,7 @@ set(Experimental_Headers
 	${CMAKE_CURRENT_SOURCE_DIR}/Seismic2.h
 	${CMAKE_CURRENT_SOURCE_DIR}/Seismic3.h
 	${CMAKE_CURRENT_SOURCE_DIR}/AlignedBillard.h
+	${CMAKE_CURRENT_SOURCE_DIR}/TTI.h
 	PARENT_SCOPE
 	)
 

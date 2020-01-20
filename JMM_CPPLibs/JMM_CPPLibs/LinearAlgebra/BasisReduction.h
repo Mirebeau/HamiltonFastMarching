@@ -15,6 +15,8 @@ J. Fehrenbach and J.-M. Mirebeau, “Sparse Non-negative Stencils for Anisotropi
 
 #include "SymmetricMatrixType.h"
 #include "../Macros/RedeclareTypes.h"
+#include "../Macros/DependentFalse.h"
+#include "../Macros/ExportArrow.h"
 
 namespace LinearAlgebra {
     
@@ -41,13 +43,33 @@ struct BasisReduction {
     static void ObtuseSuperbase(const SymmetricMatrixType &, SuperbaseType &); // Selling reduced basis (Dimension<=3)
     static TensorDecompositionType TensorDecomposition(const SymmetricMatrixType &);
     static int maxIt;
+	
+	/// Complementary indices for set {0,1,..., Dimension}
+	static std::array<int,Dimension-1> ComplementIndices(int,int);
+	/// Linearized index for pair (i,j), 0<=i<j<=Dimension, fast j
+	static int LinearizeIndices(int,int);
+	
+	/// Structure dedicated to enumerating the obtuse superbases along the line between two symmetric matrices
+	struct SellingPath {
+		SymmetricMatrixType D0,D1;
+		SuperbaseType sb;
+		std::array<DiscreteVectorType,SymDimension> offsets;
+		std::array<ScalarType,SymDimension> weights0,weights1;
+		SellingPath(const SymmetricMatrixType &, const SymmetricMatrixType &, ScalarType=0.);
+		
+		// Next step, with a lower and upper bound.
+		// Returns pair corresponding to the previously obtuse pair.
+		std::pair<int,int> NextStep(ScalarType &) const;
+		void MakeStep(const std::pair<int,int> &);
+		PrintSelfMacro(SellingPath);
+	};
 protected:
     template<size_t VD, typename Dummy> struct TensorDecompositionHelper_;
 	typedef TensorDecompositionHelper_<Dimension, void> TensorDecompositionHelper;
 };
 	
-template<typename TS,typename TD,size_t VD> int BasisReduction<TS,TD,VD>::maxIt=200;
-	
+template<typename TS,typename TD, size_t VD> int BasisReduction<TS,TD,VD>::maxIt=200;
+
 #include "Implementation/BasisReduction.hpp"
 }
 

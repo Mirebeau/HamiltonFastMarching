@@ -28,9 +28,12 @@ affine_space<Point<TComponent, VDimension>, Vector<TComponent, VDimension> , TCo
     Vector(){};
     
     // Linear algebra
-    Vector & operator+=(const Vector & u){for(int i=0; i<Dimension; ++i) this->operator[](i)+=u[i]; return *this;}
-    Vector & operator-=(const Vector & u){for(int i=0; i<Dimension; ++i) this->operator[](i)-=u[i]; return *this;}
-    Vector & operator*=(const ComponentType & a){for(int i=0; i<Dimension; ++i) this->operator[](i)*=a; return *this;}
+    Vector & operator+=(const Vector & u){
+		for(int i=0; i<Dimension; ++i) this->operator[](i)+=u[i]; return *this;}
+    Vector & operator-=(const Vector & u){
+		for(int i=0; i<Dimension; ++i) this->operator[](i)-=u[i]; return *this;}
+    Vector & operator*=(const ComponentType & a){
+		for(int i=0; i<Dimension; ++i) this->operator[](i)*=a; return *this;}
     Vector & operator/=(const ComponentType & a){
 		if constexpr(std::is_same_v<decltype(a!=ComponentType(0.)),bool>) assert(a != ComponentType(0.));
         const ComponentType b=ComponentType(1)/a;
@@ -44,7 +47,9 @@ affine_space<Point<TComponent, VDimension>, Vector<TComponent, VDimension> , TCo
     friend PointType & operator-=(PointType & p, const Vector & u){for(int i=0; i<Dimension; ++i) p[i]-=u[i]; return p;}
     
     // Geometry
-    ComponentType ScalarProduct(const Vector & u) const {ComponentType s(0.); for(size_t i=0; i<Dimension; ++i) s = s+this->operator[](i)*u[i]; return s;}
+	template<typename T, typename S=algebra_t<ComponentType, T> >
+    S ScalarProduct(const Vector<T,Dimension> & u) const {S s(0.);
+		for(size_t i=0; i<Dimension; ++i) s += this->operator[](i)*u[i]; return s;}
     ComponentType SquaredNorm() const {return ScalarProduct(*this);}
 	ComponentType Norm() const { assert(!std::is_integral<ComponentType>::value); using std::sqrt;  return sqrt(SquaredNorm()); }
     bool IsNull() const {for(int i=0;i<Dimension;++i) if((*this)[i]!=ComponentType(0.)) return false; return true;}
@@ -59,6 +64,8 @@ affine_space<Point<TComponent, VDimension>, Vector<TComponent, VDimension> , TCo
     static Vector RandomUnit();
     template<typename Component2>
     static Vector CastCoordinates(const Vector<Component2,Dimension> & u){return Vector(PointBaseType::CastCoordinates(u));}
+	static constexpr Vector CanonicalBasis(int i){assert(0<=i && i<Dimension);
+		Vector v; v.fill(0); v[i]=1; return v;}
 protected:
     Vector(const PointBaseType & p):PointBaseType(p){};
 };
@@ -75,9 +82,8 @@ Vector<TC,VD>  operator- (const Point<TC,VD> & p, const Point<TC,VD> & q)
 
     
 // Determinant, in dimension 2,3.
-template<typename TComponent>
-TComponent
-Determinant(const Vector<TComponent,2> & u, const Vector<TComponent,2> & v){return u[0]*v[1]-u[1]*v[0];}
+template<typename T1,typename T2,typename S = algebra_t<T1, T2> >
+S Determinant(const Vector<T1,2> & u, const Vector<T2,2> & v){return u[0]*v[1]-u[1]*v[0];}
 
 template<typename TComponent>
 TComponent

@@ -203,12 +203,12 @@ template<typename T> bool Factoring<T>::
 NeedsRecompute(IndexCRef index) {
 	switch(method){
 		case FactoringMethod::None: return false;
-			
 		case FactoringMethod::Dynamic: data_dynamic.guesses.clear();
 		case FactoringMethod::Static:
 		default:
 			assert(!factoringRegion.empty());
-			return factoringRegion(index);
+			return factoringRegion(index)
+			&& (pFM->order>1 || ! HFM::factorFirstPass);
 	}
 }
 

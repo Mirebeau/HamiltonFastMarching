@@ -8,38 +8,39 @@
 #ifndef SymmetricMatrixType_hxx
 #define SymmetricMatrixType_hxx
 
-template<typename TC, size_t VD>  int SymmetricMatrix<TC,VD>::
+template<typename TC, size_t VD> constexpr int SymmetricMatrix<TC,VD>::
 LinearizedIndex(int i, int j){
     assert(IsInRange(i, j));
     if(i<j) std::swap(i, j);
     return (i*(i+1))/2+j;
 }
 
-template<typename TC, size_t VD> template<typename T> auto SymmetricMatrix<TC,VD>::
+template<typename TC, size_t VD> template<typename T, typename S>
+S SymmetricMatrix<TC,VD>::
 ScalarProduct(const Vector<T, Dimension> & u, const Vector<T, Dimension> & v) const
--> ComponentType
 {
-    ComponentType sum(0.);
+    S sum(0.);
     for(int i=0; i<Dimension; ++i){
-        ComponentType sumi(0.);
+        S sumi(0.);
 		for(int j=0; j<Dimension; ++j){
-			sumi+=coef(i,j)*ComponentType(v[j]);}
-		sum+=ComponentType(u[i])*sumi;
+			sumi+=coef(i,j)*v[j];}
+		sum+=u[i]*sumi;
 	}
     return sum;
 }
 
-template<typename TC, size_t VD> template<typename T> auto SymmetricMatrix<TC,VD>::
-operator*(const Vector<T,Dimension> & u) const -> VectorType
+template<typename TC, size_t VD> template<typename T, typename S>
+auto SymmetricMatrix<TC,VD>::
+operator*(const Vector<T,Dimension> & u) const -> Vector<S,Dimension>
 {
-    VectorType v;
+    Vector<S,Dimension> v;
     for(int i=0; i<Dimension; ++i){
-        v[i]=ComponentType(0.);
+        v[i]=S(0.);
 		for(int j=0; j<Dimension; ++j){
-			v[i]+=coef(i, j)*ComponentType(u[j]);}
+			v[i]+=coef(i,j)*u[j];
+		}
 	}
     return v;
-
 }
 
 template<typename TC, size_t VD> auto SymmetricMatrix<TC,VD>::
@@ -71,11 +72,20 @@ Diagonal(const VectorType & u) -> SymmetricMatrix
 }
 
 template<typename TC, size_t VD> template<typename T> auto SymmetricMatrix<TC,VD>::
-RankOneTensor(const Vector<T,Dimension> & u) -> SymmetricMatrix {
+OuterSelf(const Vector<T,Dimension> & u) -> SymmetricMatrix {
     SymmetricMatrix m;
     for(int i=0; i<Dimension; ++i)
         for(int j=0; j<=i; ++j)
             m(i,j)=u[i]*u[j];
+    return m;
+}
+
+template<typename TC, size_t VD> auto SymmetricMatrix<TC,VD>::
+Outer2(const VectorType & u, const VectorType & v) -> SymmetricMatrix {
+	SymmetricMatrix m;
+    for(int i=0; i<Dimension; ++i)
+        for(int j=0; j<=i; ++j)
+            m(i,j)=u[i]*v[j] + u[j]*v[i];
     return m;
 }
 
@@ -207,28 +217,29 @@ SymmetricMatrix<TC, VD>::Determinant() const {
 	
 }
 
-template<typename TC, size_t VD>
-SymmetricMatrix<TC, VD>
+template<typename TC,size_t VD> auto SymmetricMatrix<TC, VD>::
+Comatrix() const -> SymmetricMatrix {
+	static_assert(Dimension<=3, "Unsupported dimension");
+	if constexpr(Dimension==0){return SymmetricMatrix();}
+	else if constexpr(Dimension==1){return SymmetricMatrix{1.};}
+	else if constexpr(Dimension==2){
+		return SymmetricMatrix{coef(1,1),-coef(1,0),coef(0,0)};}
+	else {
+		static_assert(Dimension==3, "Unsupported dimension");
+		SymmetricMatrix  m;
+		for(int i=0; i<3; ++i)
+			for(int j=0; j<=i; ++j){
+				const int i1 = (i+1)%3, i2=(i+2)%3, j1=(j+1)%3, j2=(j+2)%3;
+				m(i,j) = coef(i1,j1)*coef(i2,j2)-coef(i1,j2)*coef(i2,j1);
+			}
+		return m;
+	}
+}
+
+template<typename TC, size_t VD> SymmetricMatrix<TC, VD>
 SymmetricMatrix<TC, VD>::Inverse() const {
-    if(VD>3) return FromUpperTriangle(this->operator MatrixType().Inverse());
-    ComponentType det = Determinant();
-    SymmetricMatrix  m;
-    switch (VD) {
-        case 0: return SymmetricMatrix();
-        case 1: m(0,0) = ComponentType(1)/det; return m;
-        case 2: m(0,0) = coef(1,1); m(1,1) = coef(0,0); m(0,1)=-coef(0,1);
-            m/=det; return m;
-        case 3:
-            for(int i=0; i<3; ++i)
-                for(int j=0; j<=i; ++j){
-                    const int i1 = (i+1)%3, i2=(i+2)%3, j1=(j+1)%3, j2=(j+2)%3;
-                    m(i,j) = coef(i1,j1)*coef(i2,j2)-coef(i1,j2)*coef(i2,j1);
-                }
-            m/=det; return m;
-        default:
-            assert(false);
-			ExceptionMacro("SymmetricMatrix::Inverse() error : unsupported dimension");
-    }
+	if constexpr(Dimension<=3){ return Comatrix()/Determinant();}
+	else { return FromUpperTriangle(this->operator MatrixType().Inverse());}
 }
 
 template<typename TC, size_t VD> auto SymmetricMatrix<TC,VD>::
@@ -278,7 +289,9 @@ SquaredFrobeniusNorm() const -> ComponentType {
 	ComponentType res=0;
 	for(int i=0; i<Dimension; ++i){
 		for(int j=0; j<=i; ++j){
-			res+=(i==j ? coef(i,j) : 2*coef(i,j));
+			const ComponentType c = coef(i, j);
+			if (i==j) {res+=c*c;}
+			else {res+=2*c*c;}
 		}
 	}
 	return res;

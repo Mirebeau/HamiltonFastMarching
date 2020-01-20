@@ -9,6 +9,6 @@
 #define DependentFalse_h
 
 template<typename T> struct dependent_false : std::false_type {};
-template<typename T> bool dependent_false_v = dependent_false<T>::value;
+template<typename T> constexpr bool dependent_false_v = dependent_false<T>::value;
 
 #endif /* DependentFalse_h */

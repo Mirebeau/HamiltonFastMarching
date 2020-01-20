@@ -30,6 +30,7 @@ set(LinearAlgebra_Headers
 	${LinearAlgebra_Dir}/Pol1.h
 	${LinearAlgebra_Dir}/AnisotropicGeometry.h
 	${LinearAlgebra_Dir}/ComposedNorm.h
+	${LinearAlgebra_Dir}/TTINorm.h
 	PARENT_SCOPE
 	)
 

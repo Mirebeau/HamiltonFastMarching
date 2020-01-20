@@ -1,7 +1,7 @@
 # ---- Choose the models to be compiled ---- 
 SET(TestCompilationModelNames "Isotropic2;Riemann2" CACHE STRING "TestCompilationModelNames")
 
-SET(StandardModelNames "Isotropic2;Isotropic3;Diagonal2;Diagonal3;Riemann2;Riemann3;ReedsShepp2;ReedsSheppForward2;Elastica2;Dubins2;ReedsShepp3;ReedsSheppForward3;IsotropicDiff2;DubinsExt2" CACHE STRING "ModelNames")
+SET(StandardModelNames "Isotropic2;Isotropic3;Diagonal2;Diagonal3;Riemann2;Riemann3;ReedsShepp2;ReedsSheppForward2;Elastica2;Dubins2;ReedsShepp3;ReedsSheppForward3;IsotropicDiff2;DubinsExt2;TTI2;TTI3" CACHE STRING "ModelNames")
 
 # Also, Seismic3SIMD, which requires additional libraries
 

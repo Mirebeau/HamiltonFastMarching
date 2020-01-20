@@ -114,14 +114,19 @@ bool HamiltonFastMarching<T>::RunOnce(){
 
 template<typename T> int HamiltonFastMarching<T>::
 PostProcess(IndexCRef acceptedIndex) {
-    int result = (order>1 || factoring.NeedsRecompute(acceptedIndex) || !extras.postProcessWithRecompute.empty()) ?
-    Decision::kRecompute : Decision::kAccept;
-    for(ExtraAlgorithmInterface * p : extras.postProcess) result|=p->PostProcess(acceptedIndex);
+    int result =
+	(order>1
+	 || factoring.NeedsRecompute(acceptedIndex)
+	 || !extras.postProcessWithRecompute.empty())
+	? Decision::kRecompute : Decision::kAccept;
+	for(ExtraAlgorithmInterface * p : extras.postProcess) {
+		result|=p->PostProcess(acceptedIndex);}
     return result;
 }
 
 template<typename T> int HamiltonFastMarching<T>::
-PostProcessWithRecompute(IndexCRef acceptedIndex, const RecomputeType & rec, const DiscreteFlowType & flow){
+PostProcessWithRecompute(IndexCRef acceptedIndex, const RecomputeType & rec,
+						 const DiscreteFlowType & flow){
     values(acceptedIndex)=rec.value;
     int result = Decision::kAccept;
     for(ExtraAlgorithmInterface * p : extras.postProcessWithRecompute)
@@ -140,10 +145,10 @@ HamiltonFastMarching<T>::ConditionalUpdate(IndexCRef acceptedIndex,
     transform.PullVector(offset);    
     updated.linear = values.Convert(updated.index);
     if(acceptedFlags[updated.linear]) return;
-
     // Next line forbids updating of seeds or given data.
     // Can be specialized to allow e.g. for sequential computation of Voronoi diagrams.
-    if(activeNeighs[updated.linear].none() && values[updated.linear]!=Traits::Infinity()) return;
+    if(activeNeighs[updated.linear].none() &&
+	   values[updated.linear]!=Traits::Infinity()) return;
     if(values[updated.linear]<=acceptedValue) return;
 	
     Update(updated, offset, acceptedValue); // also pushes in queue
@@ -156,8 +161,8 @@ Update(FullIndexCRef updated, OffsetCRef offset, ScalarType acceptedValue){
 
 /*    // Alternatively, only insert in queue if value is strictly decreased.
     ScalarType & val = values[updatedLinearIndex];
-    if(result.first>=val) return;*/
-	
+    if(result.first>=val) return;
+ */
     const ScalarType updatedValue =
     stencilData.HopfLaxUpdate(updated,offset,acceptedValue,active);
     values[updated.linear] = updatedValue;
@@ -167,7 +172,8 @@ Update(FullIndexCRef updated, OffsetCRef offset, ScalarType acceptedValue){
 // ----------------- Boundary conditions -------------------
 
 template<typename T> auto HamiltonFastMarching<T>::
-VisibleOffset(const IndexType & acceptedIndex, const OffsetType & offset, IndexType & updatedIndex) const -> DomainTransformType {
+VisibleOffset(const IndexType & acceptedIndex, const OffsetType & offset,
+			  IndexType & updatedIndex) const -> DomainTransformType {
     updatedIndex=acceptedIndex+IndexDiff::CastCoordinates(offset);
     DomainTransformType result = dom.Periodize(updatedIndex,acceptedIndex);
     if(!result.IsValid()) return result;
@@ -349,9 +355,10 @@ const -> ScalarType {
 	const auto transform = dom.Periodize(acceptedIndex,index);
 	if(!transform.IsValid()) {ord=0; return -Traits::Infinity();}
 	const DiscreteType acceptedLinearIndex = values.Convert(acceptedIndex);
+
 	if(!acceptedFlags[acceptedLinearIndex]) {ord=0; return -Traits::Infinity();}
 	const ScalarType acceptedValue = values[acceptedLinearIndex];
-
+	
 	ord=std::min(order,ord);
 	while(maxOrder>=2 && ord>=2){ // Single iteration
 		OffsetType offset2 = offset;
@@ -386,12 +393,14 @@ const -> ScalarType {
 			if(acceptedValue3>acceptedValue2) break;
 			
 			if(smallCorrection){// Ditch if not a sufficiently small correction
-				const ScalarType diff3 = oldValue-3*acceptedValue+3*acceptedValue2-acceptedValue3;
+				const ScalarType diff3 =
+				oldValue-3*acceptedValue+3*acceptedValue2-acceptedValue3;
 				if(std::abs(diff3) > maxRatioOrder3*offsetNormApprox) break;
 			}
 			
 			ord=3;
-			ScalarType result = 3.*acceptedValue -1.5*acceptedValue2 +(1./3.)*acceptedValue3;
+			ScalarType result =
+			3.*acceptedValue -1.5*acceptedValue2 +(1./3.)*acceptedValue3;
 			if(useFactoring) {result+= factoring.Correction(offset,3);}
 			return (6./11.)* result;
 		}

@@ -8,11 +8,12 @@
 #ifndef MatrixType_hxx
 #define MatrixType_hxx
 
-template<typename TC, size_t VR, size_t VC> auto Matrix<TC,VR,VC>::
-operator * (const InputVectorType & u) const -> OutputVectorType
+template<typename TC, size_t VR, size_t VC> template<typename T,typename S>
+auto Matrix<TC,VR,VC>::
+operator * (const Vector<T, Columns> & u) const -> Vector<S, Rows>
 {
-    OutputVectorType v;
-    v.fill(ComponentType(0.));
+	Vector<S, Rows> v;
+    v.fill(S(0.));
     for(size_t i=0; i<Rows; ++i){
         for(size_t j=0; j<Columns; ++j)
             v[i]+=this->operator()(i,j)*u[j];
@@ -20,6 +21,21 @@ operator * (const InputVectorType & u) const -> OutputVectorType
     return v;
 }
 
+template<typename TC, size_t VR, size_t VC> auto Matrix<TC,VR,VC>::
+Column(int i) const -> OutputVectorType {
+	assert(0<=i && i<Columns);
+	OutputVectorType result;
+	for(int j=0; j<Rows; ++j){result[j] = this->operator()(i,j);}
+	return result;
+}
+
+template<typename TC, size_t VR, size_t VC> auto Matrix<TC,VR,VC>::
+Row(int j) const -> InputVectorType {
+	assert(0<=j && j<Rows);
+	InputVectorType result;
+	for(int i=0; i<Columns; ++i){result[i] = this->operator()(i,j);}
+	return result;
+}
 
 template<typename TC, size_t VR, size_t VC> template<size_t Columns2> auto Matrix<TC,VR,VC>::
 operator * (const Matrix<ComponentType,Columns,Columns2> & m) const
@@ -90,7 +106,7 @@ Rotation(ComponentType theta) -> Matrix
     static_assert(Rows==2 && Columns==2,"Rotation matrices are two dimensional");
     static_assert( ! std::is_integral<ComponentType>::value,"Rotation matrices have real coefficients");
     const double c=cos(theta), s=sin(theta);
-    return FromRows({{ {{c,-s}} , {{s,c}} }});
+    return FromRows({ InputVectorType{c,-s} , InputVectorType{s,c} });
 }
 
 template<typename TC, size_t VR, size_t VC> auto Matrix<TC,VR,VC>::

@@ -8,6 +8,15 @@
 #ifndef HFM_StencilRecompute_hxx
 #define HFM_StencilRecompute_hxx
 
+/*
+ This class implements a stencil data structure for the Hamilton-Fast-Marching class,
+ with the following features :
+ - Stencils have a fixed size, and involve weights and offsets. (Eulerian type.)
+ - Each point has an independent stencil.
+ - They are computed initially, to get the reversed stencils.
+ - They are recomputed when the point is first considered, and then cached until it is accepted.
+ */
+
 // ******** Stencil data - recompute *********
 
 template<typename T> template<typename Dummy>

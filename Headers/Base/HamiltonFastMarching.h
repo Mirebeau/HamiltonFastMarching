@@ -19,17 +19,37 @@
 #include "BaseGrid.h"
 #include "JMM_CPPLibs/Macros/ExportArrow.h"
 #include "JMM_CPPLibs/Macros/TemplateLog2.h"
-/*
-// Note : walls must not be taken into account at initialization with mult based.
- 
- Failsafe mechanism enableMaxRatioOrder, for high order schemes, requires an estimate of the offset primal norm. For now, we use a rough estimate, requiring the strict causality of the scheme.
- */
 
 template<typename T> struct HFMInterface;
 template<typename T> struct Factoring;
 
-enum class StencilStoragePolicy {Share,Recomp,Lag2,Lag3};
 enum class FactoringMethod {None, Static, Dynamic};
+enum class StencilStoragePolicy {Share,Recomp,Lag2,Lag3};
+
+/// This structure provides default definitions for several traits of the models. Can be specialized.
+template<typename Traits, typename Dummy=void> struct ExtraTraits {
+    Redeclare1Constant(Traits,Dimension)
+	Redeclare1Type(Traits,DifferenceType)
+	
+	static constexpr bool hasBundle =
+	(0<Traits::nStencilDependencies) && (Traits::nStencilDependencies<Dimension);
+		
+	/* multSize<0 usually identifies semi-Lagrangian schemes, which have
+	specific storage policies, and enjoy strict causality.*/
+    static constexpr StencilStoragePolicy policy =
+    DifferenceType::multSize>0 ? StencilStoragePolicy::Share :
+    DifferenceType::multSize==0 ? StencilStoragePolicy::Recomp :
+	Dimension==2 ? StencilStoragePolicy::Lag2 :
+	StencilStoragePolicy::Lag3;
+	
+	/// Wether the scheme is strictly causal. Used when considering high order schemes.
+	static constexpr bool strictlyCausal = DifferenceType::multSize<0;
+	/// Wether the scheme uses singularity factoring at the first pass, before recomputation.
+	static constexpr bool factorFirstPass =
+	(policy==StencilStoragePolicy::Lag2 ||
+	 policy==StencilStoragePolicy::Lag3);
+};
+
 
 template<typename TTraits>
 struct HamiltonFastMarching {
@@ -38,20 +58,22 @@ struct HamiltonFastMarching {
     Redeclare12Types(Traits,ScalarType,DiscreteType,ShortType,DomainType,
 					 StencilType,DistanceGuess,PointType,VectorType,IndexType,OffsetType,
 					 DifferenceType,IndexDiff)
+	Redeclare4Constants(ExtraTraits<Traits>,hasBundle,policy,strictlyCausal,
+						factorFirstPass)
 	
-    typedef const IndexType & IndexCRef;
-    typedef const OffsetType & OffsetCRef;
+    using IndexCRef = const IndexType &;
+    using OffsetCRef = const OffsetType &;
     struct FullIndexType {IndexType index; DiscreteType linear; PrintSelfMacro(FullIndexType)};
-    typedef const FullIndexType & FullIndexCRef;
-    typedef HamiltonFastMarching HFM;
-    typedef HFMInterface<Traits> HFMI;
+    using FullIndexCRef = const FullIndexType &;
+    using HFM = HamiltonFastMarching;
+    using HFMI = HFMInterface<Traits>;
     
     template<typename E, size_t n> using Array = typename Traits::template Array<E,n>;
     template<typename E> using DataSource = typename Traits::template DataSource<E>;
     template<size_t n> using BasisReduction=typename Traits::template BasisReduction<n>;
 
     // Domain and Running
-    typedef typename DomainType::Transform DomainTransformType;
+    using DomainTransformType = typename DomainType::Transform;
     const DomainType dom;
     DomainTransformType VisibleOffset(IndexCRef, OffsetCRef, IndexType &) const;
 
@@ -61,7 +83,7 @@ struct HamiltonFastMarching {
 
 	// High order scheme extension.
 	int order = 1;
-	static const bool strictlyCausal = DifferenceType::multSize<0; // A.k.a. semi-Lagrangian.
+//	static constexpr bool strictlyCausal = DifferenceType::multSize<0; // A.k.a. semi-Lagrangian.
 	ScalarType maxRatioOrder2 = 0.5, maxRatioOrder3 = 0.25; // Fallback to low order. Req above
 	
     // Geodesic related functions. Require values and activeNeighs to be correctly set,
@@ -76,32 +98,32 @@ struct HamiltonFastMarching {
     
     RecomputeType Recompute(IndexCRef, DiscreteFlowType &) const;
 
-    typedef ParamInterface_<PointType,VectorType> ParamInterface;
-    typedef typename DifferenceType::MultiplierType MultiplierType;
+    using ParamInterface = ParamInterface_<PointType,VectorType>;
+    using MultiplierType = typename DifferenceType::MultiplierType;
 
-    static const StencilStoragePolicy policy =
+/*    static constexpr StencilStoragePolicy policy =
     DifferenceType::multSize>0 ? StencilStoragePolicy::Share :
     DifferenceType::multSize==0 ? StencilStoragePolicy::Recomp :
 	Dimension==2 ? StencilStoragePolicy::Lag2 :
-	StencilStoragePolicy::Lag3;
+	StencilStoragePolicy::Lag3;*/
 	
 	struct _StencilDataTypeBase;
     template<StencilStoragePolicy, typename Dummy> struct _StencilDataType;
-    typedef _StencilDataType<policy,void> StencilDataType;
+    using StencilDataType = _StencilDataType<policy,void>;
     DiscreteType MaxStencilWidth() const;
     StencilDataType & stencilData;
     
     // Default domain parametrization (Currently used in all instantiations)
-    static const bool hasBundle = (0<Traits::nStencilDependencies) && (Traits::nStencilDependencies<Dimension);
+/*    static constexpr bool hasBundle = (0<Traits::nStencilDependencies) && (Traits::nStencilDependencies<Dimension);*/
     template<int hasBundle_, typename Dummy> struct _ParamDefault;
-    typedef _ParamDefault<int(hasBundle),void> ParamDefault;
+    using ParamDefault = _ParamDefault<int(hasBundle),void>;
     
     // Extra algorithms may be inserted at different points
     enum Decision {kAccept=0, kContinue=1, kTerminate=2, kRecompute=1<<10};
     struct ExtraAlgorithmInterface;
     struct ExtraAlgorithmPtrs;
     ExtraAlgorithmPtrs extras;
-	typedef Factoring<Traits> FactoringType;
+	using FactoringType = Factoring<Traits>;
 	mutable FactoringType factoring;
     
     HamiltonFastMarching(StencilDataType &);

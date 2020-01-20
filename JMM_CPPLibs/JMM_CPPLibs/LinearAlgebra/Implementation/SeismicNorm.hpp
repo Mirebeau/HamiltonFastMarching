@@ -202,7 +202,8 @@ SeismicNorm<TC, VD>::AD2Constraint(VectorType const & p, AD2SymType & s) const
 // ****** Primal norm computation *******
 // The vast majority of CPU time goes here.
 // This procedure has been shown to fail if anellipticity is too pronounced.
-// Seems to work otherwise, though. (Failure observed with anell = 0.0011..., 2D)
+// In that case, a path following method would be appropriate.
+// Seems to work in realistic cases, though. (Failure observed with anell = 0.0011..., 2D)
 template<typename TC, size_t VD> auto
 SeismicNorm<TC, VD>::GradNorm(VectorType const& q) const
 -> VectorType {
@@ -212,6 +213,7 @@ SeismicNorm<TC, VD>::GradNorm(VectorType const& q) const
 	VectorType p = VectorType::Constant(ComponentType(0.));
 	
 	// Perform one step of sequential quadratic programming
+	// Aim for maximizing <q,p> subject to constraint >=0, differentiated at p
 	auto sqp_step = [&p,&q](const AD2Type & c){
 		const SymmetricMatrixType d = c.m.Inverse();
 		const VectorType dv = d*c.v, dq = d*q;
@@ -219,7 +221,9 @@ SeismicNorm<TC, VD>::GradNorm(VectorType const& q) const
 		const ComponentType	den = dq.ScalarProduct(q);
 //		const ComponentType num = d.SquaredNorm(c.v) - 2.*c.x;
 //		const ComponentType	den = d.SquaredNorm(q);
-		constexpr bool isSimple = std::is_same_v<decltype(q[0] == q[0]), bool>; // Redefinition required by MSVC
+		
+		// MSVC requires to redeclare isSimple
+		constexpr bool isSimple = std::is_same_v<decltype(q[0] == q[0]), bool>;
 		if constexpr(isSimple) {assert(num*den >= 0);}
 		const ComponentType lambda = -sqrt(num / den);
 		// Optimization (??) : saved d*c.v and d*q from the squared norm computation,

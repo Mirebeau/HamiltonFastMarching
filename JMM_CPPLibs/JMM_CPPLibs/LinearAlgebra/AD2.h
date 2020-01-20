@@ -6,20 +6,21 @@
  */
 
 #include <cmath>
+
 #include "SymmetricMatrixType.h"
+#include "UtilsAD.h"
 
 namespace LinearAlgebra {
-
-template<typename TAD, typename TComponent> struct AD2Operators;
 	
 // second order automatic differentiation class
-template<typename TComponent, size_t VDimension>
-struct AD2 : AD2Operators<AD2<TComponent,VDimension>,TComponent> {
-	typedef TComponent ComponentType;
-	static const size_t Dimension = VDimension;
-	typedef LinearAlgebra::SymmetricMatrix<ComponentType, Dimension> SymmetricMatrixType;
-	typedef LinearAlgebra::Vector<ComponentType, Dimension> VectorType;
-
+template<typename TComponent, size_t VDimension> struct AD2 :
+DifferentiationTypeOperators<AD2<TComponent,VDimension>,TComponent> {
+	static constexpr size_t Dimension = VDimension;
+	using ComponentType =  TComponent;
+	using VectorType = LinearAlgebra::Vector<ComponentType, Dimension>;
+	using SymmetricMatrixType = LinearAlgebra::SymmetricMatrix<ComponentType, Dimension> ;
+	using Sym = SymmetricMatrixType;
+	
 	ComponentType x;
 	VectorType v;
 	SymmetricMatrixType m;
@@ -28,7 +29,7 @@ struct AD2 : AD2Operators<AD2<TComponent,VDimension>,TComponent> {
 
 	AD2() {};
 
-	AD2(ComponentType x_, int i) {
+	AD2(const ComponentType & x_, int i) {
 		assert(0 <= i && i < Dimension);
 		x = x_;
 		v = VectorType::Constant(0);
@@ -36,12 +37,17 @@ struct AD2 : AD2Operators<AD2<TComponent,VDimension>,TComponent> {
 		m = SymmetricMatrixType::Zero();
 	}
 
-	AD2(ComponentType x_) {
+	AD2(const ComponentType & x_) {
 		x = x_;
 		v = VectorType::Constant(0);
 		m = SymmetricMatrixType::Zero();
 	}
-
+	
+	AD2(const ComponentType & x_, const VectorType & v_, const SymmetricMatrixType & m_)
+	:x(x_),v(v_),m(m_){};
+	
+	// --------- Addition and substraction ----------
+	
 	void operator+= (AD2 const& a) {
 		x += a.x;
 		v += a.v;
@@ -70,15 +76,9 @@ struct AD2 : AD2Operators<AD2<TComponent,VDimension>,TComponent> {
 		return a;
 	}
 
+	// ---------- Multiplication and division ----------
 	void operator*= (AD2 const& a) {
-		int const d = Dimension;
-		m = x*(a.m)+(a.x)*m;
-		// On effectue m+= v*(a.v)+(a.v)*v
-		for (int i = 0; i < d; ++i) {
-			for (int j = i; j < d; ++j) {
-				m(i, j) += v[i] * a.v[j] + a.v[i] * v[j];
-			}
-		}
+		m = x*(a.m)+(a.x)*m + Sym::Outer2(v,a.v);
 		v = v*(a.x) + x*(a.v);
 		x *= a.x;
 	};
@@ -88,7 +88,30 @@ struct AD2 : AD2Operators<AD2<TComponent,VDimension>,TComponent> {
 		v *= a;
 		m *= a;
 	};
-
+	
+	AD2 Inverse() const {
+		assert(x!=0);
+		const ComponentType xi = 1./x, xi2=xi*xi;
+		return AD2{xi, -v*xi2, xi2*((2*xi)*Sym::OuterSelf(v) - m)};
+	}
+		
+	void operator/= (ComponentType const& a) {
+		x /= a;
+		v /= a;
+		m /= a;
+	};
+	// ----------- Comparison -----------
+	bool operator<(AD2 const& a) const {return x<a.x;}
+	bool operator<(ComponentType const& a){return x<a;}
+	
+	// ------------ Special functions ---------
+	friend AD2 sqrt(const AD2 & a){
+		assert(a>=0.);
+		using std::sqrt;
+		const ComponentType x=a.x, xs=sqrt(x), xi=1/x;
+		const VectorType w = (0.5*xi)*a.v;
+		return xs*AD2{1.,w, 0.5*(xi*a.m - Sym::OuterSelf(w))};
+	}
 
 };
 
@@ -114,6 +137,12 @@ AD2<TC, VD> sqrt(AD2<TC, VD> a) {
 	return a;
 }
 
+template<typename TScalar, size_t VDimension>
+struct UtilsAD<AD2<TScalar,VDimension> >{
+	using ScalarType = TScalar;
+	using ADType = LinearAlgebra::AD2<TScalar,VDimension>;
+	static ScalarType Scalar(const ADType & t){return t.x;}
+};
 
 /*
 // Derivative of a two argument function
@@ -127,6 +156,6 @@ AD2<double,2> deriv(funct const & f, double x, double y) {
 
 #include "Implementation/AD2.hpp"
 	
-} // namespace LineaAlgebra
+} // namespace LinearAlgebra
 
 #endif // AD2_h

@@ -8,6 +8,17 @@
 #ifndef HFM_StencilShare_hxx
 #define HFM_StencilShare_hxx
 
+/*
+This class implements a stencil data structure for the Hamilton-Fast-Marching class,
+with the following features :
+- Stencils have a fixed size, and involve weights and offsets. (Eulerian type.)
+- The weight can be modulated by a (vector) cost function.
+- The stencils depend only on some of the point coordinates,
+  and are shared between points with those same coordinates.
+- They are computed only once.
+*/
+
+
 template<typename T> template<typename Dummy>
 struct HamiltonFastMarching<T>::_StencilDataType<SSP::Share,Dummy>
 : HamiltonFastMarching<T>::_StencilDataTypeBase {
@@ -76,8 +87,10 @@ HopfLaxUpdate(FullIndexCRef updated, OffsetCRef offset,
 
 template<typename Traits> template<typename Dummy> template<typename F> auto
 HamiltonFastMarching<Traits>::_StencilDataType<SSP::Share, Dummy>::
-HopfLaxRecompute(const F & f, IndexCRef index, ActiveNeighFlagType active, DiscreteFlowType & discreteFlow) -> RecomputeType {
-	return stencils(ShortIndexFromIndex(index)).HopfLaxRecompute(f,(*pMultSource)(index),active,discreteFlow);
+HopfLaxRecompute(const F & f, IndexCRef index, ActiveNeighFlagType active,
+				 DiscreteFlowType & discreteFlow) -> RecomputeType {
+	return stencils(ShortIndexFromIndex(index)).
+	HopfLaxRecompute(f,(*pMultSource)(index),active,discreteFlow);
 };
 
 // --- Recompute data ---

@@ -79,6 +79,9 @@ const std::string ModelNameString=STRING(ModelName);
 #define Seismic3_SeismicTopographic3 1
 #define Seismic3SIMD_Seismic3SIMD 1
 
+#define TTI_TTI2 1
+#define TTI_TTI3 1
+
 #define AlignedBillard_AlignedBillard 1
 
 // **** Include the correct header ****
@@ -139,6 +142,10 @@ using StencilRiemannLifted2_Periodic = StencilRiemannLifted2<Boundary::Periodic>
 #include "xsimd/xsimd.hpp"
 #include "Experimental/Seismic3.h"
 using StencilSeismic3SIMD = StencilSeismic3;
+#elif PPCAT(TTI_,ModelName)
+#include "Experimental/TTI.h"
+using StencilTTI2 = StencilTTI<2>;
+using StencilTTI3 = StencilTTI<3>;
 #elif PPCAT(AlignedBillard_,AlignedBillard)
 #include "Experimental/AlignedBillard.h"
 // Very experimental specializations
@@ -168,6 +175,7 @@ if(model== #modelName){ \
 //#include "Experimental/RiemannLifted.h"
 
 #include "Experimental/AlignedBillard.h"
+#include "Experimental/TTI.h"
 
 #endif
 /*
@@ -225,7 +233,8 @@ void Run(IO & io){
 #ifdef Custom
 // This custom executable is here to let the user choose the adequate combination of (FastMarchingClass, Model) for his/her application.
 
-	
+//	HFMSpecializationMacro(TTI2)
+//	HFMSpecializationMacro(TTI3)
 //    HFMSpecializationMacro(IsotropicDiff<2>)
 //    HFMSpecializationMacro(RiemannLifted2<Boundary::Closed>)
 	
