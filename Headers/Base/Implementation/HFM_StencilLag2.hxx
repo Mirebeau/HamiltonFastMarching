@@ -220,7 +220,8 @@ HopfLaxUpdate(FullIndexCRef full, OffsetCRef acceptedOffset,
 // HopfLaxRecompute
 template<typename Traits> template<typename Dummy> template<typename F> auto
 HamiltonFastMarching<Traits>::_StencilDataType<SSP::Lag2, Dummy>::
-HopfLaxRecompute(const F & f, IndexCRef index, ActiveNeighFlagType active, DiscreteFlowType & discreteFlow) -> RecomputeType {
+HopfLaxRecompute(const F & f, IndexCRef index, ActiveNeighFlagType active,
+				 DiscreteFlowType & discreteFlow) -> RecomputeType {
 	assert(!active.none());
 	StencilType stencil;
 	SetStencil(index, stencil);

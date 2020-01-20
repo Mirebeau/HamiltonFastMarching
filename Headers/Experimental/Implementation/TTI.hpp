@@ -96,7 +96,7 @@ HopfLaxUpdate(FullIndexCRef updated, OffsetCRef acceptedOffset, ScalarType value
 		}
 	}
 	
-	const bool display = (updated.index==IndexType{0,2});
+/*	const bool display = (updated.index==IndexType{0,2});
 	if(display){
 	std::cout << "In HopfLaxUpdate"
 	ExportVarArrow(updated.index)
@@ -104,7 +104,7 @@ HopfLaxUpdate(FullIndexCRef updated, OffsetCRef acceptedOffset, ScalarType value
 	ExportVarArrow(value)
 	ExportVarArrow(acceptedPos)
 	ExportVarArrow(norm) << std::endl;
-	}
+	}*/
 	
 	// Prepare the array for holding the neighbor values
 	NeighborValuesType values;
@@ -134,18 +134,18 @@ HopfLaxUpdate(FullIndexCRef updated, OffsetCRef acceptedOffset, ScalarType value
 					valm = fm.template GetNeighborValue<true,false,1>(-offset,orderm);
 					values[r] = std::min(orderp ? valp : inf, orderm ? valm : inf);
 //					assert(std::max(orderp,orderm)==1);
-					std::cout
+/*					std::cout
 					ExportVarArrow(offset)
 					ExportVarArrow(valp)
 					ExportVarArrow(valm)
-					<< std::endl;
+					<< std::endl;*/
 					
 				}
 			}
-			std::cout
+/*			std::cout
 			ExportArrayArrow(values) << "\n"
 			ExportArrayArrow(fm.values)
-			<< std::endl;
+			<< std::endl;*/
 //TODO : optimization opportunity, sort values only once
 //TODO : optimization opportunity, get val0 from previous val1
 			using Vec1 =  LinearAlgebra::Vector<ScalarType,1>;
@@ -156,7 +156,7 @@ HopfLaxUpdate(FullIndexCRef updated, OffsetCRef acceptedOffset, ScalarType value
 			// Get the update value, and derivative at t0 endpoint
 			const Diff1 val0 =
 			objSign*norm.UpdateValue(Diff1(t0,0), values,selling);
-			std::cout ExportVarArrow(val0) ExportVarArrow(t0) << std::endl;
+//			std::cout ExportVarArrow(val0) ExportVarArrow(t0) << std::endl;
 			if(val0.v[0]>=0){ // Minimum over [t0,t1] attained at t0
 				if(val0<updateValue){
 					updateValue = val0.s;
@@ -167,7 +167,7 @@ HopfLaxUpdate(FullIndexCRef updated, OffsetCRef acceptedOffset, ScalarType value
 			// Get the update value, and derivative at t0 endpoint
 			const Diff1 val1 =
 			objSign*norm.UpdateValue(Diff1(t1,0), values, selling);
-			std::cout ExportVarArrow(val1) ExportVarArrow(t1) << std::endl;
+//			std::cout ExportVarArrow(val1) ExportVarArrow(t1) << std::endl;
 			if(val1.v[0]<=0){ // Minimum over [t0,t1] attained at t1
 				if(val1<updateValue){
 					updateValue=val1.s;
@@ -183,10 +183,10 @@ HopfLaxUpdate(FullIndexCRef updated, OffsetCRef acceptedOffset, ScalarType value
 					ScalarType x=t0+(t1-t0)*(i/double(nI));
 					updates.push_back(norm.UpdateValue(x,values,selling));
 				}
-				std::cout ExportArrayArrow(updates) << std::endl;
+//				std::cout ExportArrayArrow(updates) << std::endl;
 			}
 			
-			std::cout ExportVarArrow(val0) ExportVarArrow(val1) << std::endl;
+//			std::cout ExportVarArrow(val0) ExportVarArrow(val1) << std::endl;
 			// Now, root finding in the interval [t0,t1]
 			ScalarType x0=t0,x1=t1, // Lower and upper bounds for the subinterval
 			x=(val1.v[0]*t0-val0.v[0]*t1)/(val1.v[0]-val0.v[0]),xOld=inf; // Candidate point
@@ -196,7 +196,7 @@ HopfLaxUpdate(FullIndexCRef updated, OffsetCRef acceptedOffset, ScalarType value
 				assert(x0<=x && x<=x1);
 				const Diff2 val =
 				objSign*norm.UpdateValue(Diff2(x,0), values,selling);
-				std::cout ExportVarArrow(x) ExportVarArrow(val) << std::endl;
+//				std::cout ExportVarArrow(x) ExportVarArrow(val) << std::endl;
 				// Update the sub-interval
 				if(val.v[0]<=0) {x0=x;}
 				else {x1=x;}
@@ -235,10 +235,10 @@ HopfLaxUpdate(FullIndexCRef updated, OffsetCRef acceptedOffset, ScalarType value
 		}
 	}
 	
-	std::cout
+/*	std::cout
 	ExportVarArrow(updated.index)
 	ExportVarArrow(objSign*updateValue)
-	<< "\n---------------------\n";
+	<< "\n---------------------\n";*/
 	
 	const ScalarType newValue = objSign*updateValue;
 	if(newValue<oldValue) {

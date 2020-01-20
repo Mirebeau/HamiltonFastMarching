@@ -112,14 +112,6 @@ UpdateValue(const T & t, const NeighborValuesType & val,
 	// Get the multiplier
 	const T & mult = Multiplier(t);
 	
-	std::cout << "In Update Value "
-	ExportVarArrow(t)
-	ExportVarArrow(valMin)
-	ExportArrayArrow(val)
-	ExportArrayArrow(indices)
-	ExportVarArrow(path)
-	<< std::endl;
-	
 	// Compute the update, solving ax^2-2bx+c=0
 	const ScalarType inf = std::numeric_limits<ScalarType>::infinity();
 	using std::sqrt; using std::max; using LinearAlgebra::RemoveAD;
@@ -144,7 +136,6 @@ UpdateValue(const T & t, const NeighborValuesType & val,
 		sol = (b+sqrt(delta))/a;
 	}
 	
-	std::cout ExportVarArrow(sol) << std::endl;
 	// Recompute the update, if the required type is not the scalar type
 	if constexpr(std::is_same_v<ScalarType,T>){return valMin+sol;}
 	else {
@@ -161,9 +152,7 @@ UpdateValue(const T & t, const NeighborValuesType & val,
 		}
 		const T delta = b*b-a*c;
 		assert(delta>=0.);
-		std::cout ExportVarArrow(a) ExportVarArrow(b) ExportVarArrow(delta) << std::endl;
 		const T sol = (b+sqrt(delta))/a;
-		std::cout ExportVarArrow(sol) << std::endl;
 		return valMin+sol;
 	}
 }
