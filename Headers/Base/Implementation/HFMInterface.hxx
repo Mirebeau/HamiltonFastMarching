@@ -380,8 +380,8 @@ Run_SetupSolver() {
             }
             else seedValues.resize(seedPoints.size(),0.);
 			
-			/* The seedRadius option allows to spread seeds on the grid, instead of
-			rounding the given position to the nearest grid point.
+			/* The seedRadius option allows to spread seeds on the grid, in addition to
+			 rounding the given position to the nearest grid point.
 			 The grid points within the given radius in pixels of the seed position are
 			 set as seeds for the grid propagation, with appropriate values. We also
 			 include those points accessible in one step from the reverse stencil. This
@@ -395,33 +395,20 @@ Run_SetupSolver() {
 			const bool stencilStep = seedRadius>0;
 			seedRadius = std::abs(seedRadius);
 			
-			if(seedRadius!=0){
-				Array<int, Dimension> arr;
-				arr.dims.fill(1+2*std::ceil(seedRadius));
-				IndexType center; center.fill(std::ceil(seedRadius));
-				for(DiscreteType i=0; i<arr.size(); ++i){
-					const auto offset = arr.Convert(i) - center;
-					// Add offset to rounded point, check if within radius
-				}
-				// Test if any points were added, otherwise raise.
-				
-				// If necessary, add
-			
-			}
-			
-//			spreadSeeds =
-//			(!io.HasField("factoringMethod") || io.GetString("factoringMethod")=="None") ? -1 : 0;
-			
-			spreadSeeds = (DiscreteType) io.Get<ScalarType>("spreadSeeds",spreadSeeds);
-			if(!(-1<=spreadSeeds && spreadSeeds<=1))
-			   ExceptionMacro("Error : spreadSeeds parameter should be -1,0, 1, but  has value "
-							  << spreadSeeds << ".\n");
-
-			if(spreadSeeds>=0){
+			if(seedRadius>0){
 				std::vector<PointType> newPoints;
 				std::vector<ScalarType> newValues;
-				std::vector<ScalarType> newGradients;
-				std::set<IndexType> indices; // Avoid repetition of spreaded points for a given seed point
+				std::vector<VectorType> newGradients;
+				// Avoid repetition of spreaded points, for a given seed point
+				std::set<IndexType> indices;
+				
+				// Enumerate candidate offsets in a box
+				Array<int, Dimension> arr;
+				const DiscreteType seedRadiusBd = 1+(DiscreteType)std::ceil(seedRadius);
+				arr.dims.fill(1+2*seedRadiusBd);
+				IndexType arrCenter; arrCenter.fill(seedRadiusBd);
+				auto arrOffset = [&](DiscreteType i){return arr.Convert(i)-arrCenter;};
+
 				
 				const auto & dom = pFM->dom;
 				for(size_t i=0; i<seedPoints.size(); ++i){
@@ -429,47 +416,33 @@ Run_SetupSolver() {
 					const PointType & p = seedPoints[i];
 					const ScalarType value = seedValues[i];
 					const auto & distp = stencil.GetGuess(p);
+					constexpr ScalarType inf=std::numeric_limits<ScalarType>::infinity();
 					
-					auto insert = [&](IndexType index){
+					auto insert = [&](IndexType index,ScalarType radius){
 						if(!indices.insert(index).second) return; // Already seen
 						const PointType q = dom.PointFromIndex(index);
 						newPoints.push_back(q);
 						const VectorType v=p-q;
+						if(v.Norm()>=radius) return;
 						const auto & distq = stencil.GetGuess(index);
 						const VectorType grad = 0.5*(distp.Gradient(v)+distq.Gradient(v));
-						newGradients.push_back(dom.ADim(grad));
+						newGradients.push_back(stencil.Param().ADim(grad));
 						newValues.push_back(value+v.ScalarProduct(grad));
 						// equivalent to 0.5*(distp.Norm(v)+distq.Norm(v))
 					};
 					
-					const auto & neighs = dom.Neighbors(p);
-					for(const auto & [index,w] : neighs){
-						if(w==0) continue;
-						const PointType q = dom.PointFromIndex(index);
-						
-						if(indices.insert(index).second){
-							const auto & distq = stencil.GetGuess(index);
-							newPoints.push_back(q);
-							const VectorType v = p-q; // Directed toward seed.
-							newValues.push_back(value+ 0.5*( distp.Norm(v) + distq.Norm(v) ) );
-						}
-						
-						if(spreadSeeds>=1){
-							auto rev = stencil.ReversedOffsets({index,pFM->values.Convert(index)});
-							for(const auto & offset : rev){
-								Redeclare1Type(Traits,IndexDiff);
-								const IndexType neighIndex = index+IndexDiff::CastCoordinates(offset);
-								if(indices.insert(neighIndex).second){
-									const auto & distn = stencil.GetGuess(neighIndex);
-									const PointType neigh = dom.PointFromIndex(neighIndex);
-									
-									newPoints.push_back(neigh);
-									const VectorType v = p-neigh; // Toward seed.
-									newValues.push_back(value +
-										0.5*(distp.Norm(v)+distn.Norm(v)));
-								}
-							}
-							
+					const IndexType pIndex = dom.IndexFromPoint(p);
+					insert(pIndex,inf);
+					
+					for(DiscreteType i=0; i<arr.size(); ++i){
+						insert(pIndex+arrOffset(i),seedRadius);}
+					
+					if(!stencilStep) {continue;}
+					std::set<IndexType> indices2 = indices; // Copy already inserted
+					for(IndexCRef index : indices2){
+						auto rev=stencil.ReversedOffsets({index,pFM->values.Convert(index)});
+						for(OffsetCRef offset : rev){
+							insert(pIndex+IndexDiff::CastCoordinates(offset),inf);
 						}
 					}
 				}
@@ -481,8 +454,8 @@ Run_SetupSolver() {
 				for(const PointType & p : seedPoints) {seedPointsRedim.push_back(stencil.Param().ReDim(p));}
 				io.SetVector("spreadedSeeds", seedPointsRedim);
 				io.SetVector("spreadedSeedValues", seedValues);
+				io.SetVector("spreadedSeedGradients", newGradients);
 			}
-			
         }
         
         if(HFM::hasBundle && io.HasField("seeds_Unoriented")){
