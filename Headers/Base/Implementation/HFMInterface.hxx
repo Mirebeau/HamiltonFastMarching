@@ -383,16 +383,16 @@ Run_SetupSolver() {
 			/* The seedRadius option allows to spread seeds on the grid, in addition to
 			 rounding the given position to the nearest grid point.
 			 The grid points within the given radius in pixels of the seed position are
-			 set as seeds for the grid propagation, with appropriate values. We also
-			 include those points accessible in one step from the reverse stencil. This
-			 latter option can be disabled using a negative seedRadius */
+			 set as seeds for the grid propagation, with appropriate values. If radius is
+			 negative, then we also include those points accessible in one step from the
+			 reverse stencil.  */
 			
 			// Setting default issue : factoring is not yet set.
 			// Cannot test pFM->factoring.method == FactoringMethod::None
 			if(io.HasField("factoringMethod") && io.GetString("factoringMethod")!="None"){
 				seedRadius = 1;} // Default value
 			seedRadius = io.Get<ScalarType>("seedRadius",seedRadius);
-			const bool stencilStep = seedRadius>0;
+			const bool stencilStep = seedRadius<0;
 			seedRadius = std::abs(seedRadius);
 			
 			if(seedRadius>0){
@@ -408,7 +408,6 @@ Run_SetupSolver() {
 				arr.dims.fill(1+2*seedRadiusBd);
 				IndexType arrCenter; arrCenter.fill(seedRadiusBd);
 				auto arrOffset = [&](DiscreteType i){return arr.Convert(i)-arrCenter;};
-
 				
 				const auto & dom = pFM->dom;
 				for(size_t i=0; i<seedPoints.size(); ++i){
@@ -419,30 +418,32 @@ Run_SetupSolver() {
 					constexpr ScalarType inf=std::numeric_limits<ScalarType>::infinity();
 					
 					auto insert = [&](IndexType index,ScalarType radius){
-						if(!indices.insert(index).second) return; // Already seen
 						const PointType q = dom.PointFromIndex(index);
-						newPoints.push_back(q);
-						const VectorType v=p-q;
+						const VectorType v=p-q; // toward seed
 						if(v.Norm()>=radius) return;
+						if(!indices.insert(index).second) return; // Already seen
 						const auto & distq = stencil.GetGuess(index);
 						const VectorType grad = 0.5*(distp.Gradient(v)+distq.Gradient(v));
+						newPoints.push_back(q);
 						newGradients.push_back(stencil.Param().ADim(grad));
-						newValues.push_back(value+v.ScalarProduct(grad));
-						// equivalent to 0.5*(distp.Norm(v)+distq.Norm(v))
+						const ScalarType norm = v.IsNull() ? 0. : v.ScalarProduct(grad);
+						newValues.push_back(value+norm);
+						//  equivalent to 0.5*(distp.Norm(v)+distq.Norm(v))
 					};
 					
 					const IndexType pIndex = dom.IndexFromPoint(p);
 					insert(pIndex,inf);
 					
-					for(DiscreteType i=0; i<arr.size(); ++i){
+					for(DiscreteType i=0; i<arr.dims.Product(); ++i){
 						insert(pIndex+arrOffset(i),seedRadius);}
 					
 					if(!stencilStep) {continue;}
 					std::set<IndexType> indices2 = indices; // Copy already inserted
 					for(IndexCRef index : indices2){
-						auto rev=stencil.ReversedOffsets({index,pFM->values.Convert(index)});
+						const auto rev =
+						stencil.ReversedOffsets({index,pFM->values.Convert(index)});
 						for(OffsetCRef offset : rev){
-							insert(pIndex+IndexDiff::CastCoordinates(offset),inf);
+							insert(index+IndexDiff::CastCoordinates(offset),inf);
 						}
 					}
 				}
