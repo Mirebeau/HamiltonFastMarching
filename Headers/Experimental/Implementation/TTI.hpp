@@ -22,7 +22,7 @@ MakeNorm(const MetricElementType & m) const -> NormType {
 	NormType norm{linear,quadratic,trans};
 	for(int i=0; i<Dimension; ++i){
 		for(int j=0; j<Dimension; ++j){
-			norm.transform(i,j)/=param.gridScales[j];
+			norm.transform(i,j)*=param.gridScales[j];
 		}
 	}
 	return norm;

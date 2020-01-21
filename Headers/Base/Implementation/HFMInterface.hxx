@@ -380,12 +380,37 @@ Run_SetupSolver() {
             }
             else seedValues.resize(seedPoints.size(),0.);
 			
-			// If desired, with exact given position get to be spreaded over a few pixels
+			/* The seedRadius option allows to spread seeds on the grid, instead of
+			rounding the given position to the nearest grid point.
+			 The grid points within the given radius in pixels of the seed position are
+			 set as seeds for the grid propagation, with appropriate values. We also
+			 include those points accessible in one step from the reverse stencil. This
+			 latter option can be disabled using a negative seedRadius */
 			
 			// Setting default issue : factoring is not yet set.
 			// Cannot test pFM->factoring.method == FactoringMethod::None
-			spreadSeeds =
-			(!io.HasField("factoringMethod") || io.GetString("factoringMethod")=="None") ? -1 : 0;
+			if(io.HasField("factoringMethod") && io.GetString("factoringMethod")!="None"){
+				seedRadius = 1;} // Default value
+			seedRadius = io.Get<ScalarType>("seedRadius",seedRadius);
+			const bool stencilStep = seedRadius>0;
+			seedRadius = std::abs(seedRadius);
+			
+			if(seedRadius!=0){
+				Array<int, Dimension> arr;
+				arr.dims.fill(1+2*std::ceil(seedRadius));
+				IndexType center; center.fill(std::ceil(seedRadius));
+				for(DiscreteType i=0; i<arr.size(); ++i){
+					const auto offset = arr.Convert(i) - center;
+					// Add offset to rounded point, check if within radius
+				}
+				// Test if any points were added, otherwise raise.
+				
+				// If necessary, add
+			
+			}
+			
+//			spreadSeeds =
+//			(!io.HasField("factoringMethod") || io.GetString("factoringMethod")=="None") ? -1 : 0;
 			
 			spreadSeeds = (DiscreteType) io.Get<ScalarType>("spreadSeeds",spreadSeeds);
 			if(!(-1<=spreadSeeds && spreadSeeds<=1))
@@ -395,6 +420,7 @@ Run_SetupSolver() {
 			if(spreadSeeds>=0){
 				std::vector<PointType> newPoints;
 				std::vector<ScalarType> newValues;
+				std::vector<ScalarType> newGradients;
 				std::set<IndexType> indices; // Avoid repetition of spreaded points for a given seed point
 				
 				const auto & dom = pFM->dom;
@@ -402,9 +428,21 @@ Run_SetupSolver() {
 					indices.clear();
 					const PointType & p = seedPoints[i];
 					const ScalarType value = seedValues[i];
-					const auto & neighs = dom.Neighbors(p);
-					
 					const auto & distp = stencil.GetGuess(p);
+					
+					auto insert = [&](IndexType index){
+						if(!indices.insert(index).second) return; // Already seen
+						const PointType q = dom.PointFromIndex(index);
+						newPoints.push_back(q);
+						const VectorType v=p-q;
+						const auto & distq = stencil.GetGuess(index);
+						const VectorType grad = 0.5*(distp.Gradient(v)+distq.Gradient(v));
+						newGradients.push_back(dom.ADim(grad));
+						newValues.push_back(value+v.ScalarProduct(grad));
+						// equivalent to 0.5*(distp.Norm(v)+distq.Norm(v))
+					};
+					
+					const auto & neighs = dom.Neighbors(p);
 					for(const auto & [index,w] : neighs){
 						if(w==0) continue;
 						const PointType q = dom.PointFromIndex(index);

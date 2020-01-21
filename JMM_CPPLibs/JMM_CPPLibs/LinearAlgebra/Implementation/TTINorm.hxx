@@ -33,7 +33,7 @@ PrintSelf(std::ostream & os) const {
 template<typename TS, int VD> template<typename T>
 T TTINorm<TS,VD>::Level(const Vector<T,Dimension> & p0) const {
 	using Vec = Vector<T,Dimension>;
-	Vec p = transform*p0; // Should be transpose inverse. Ok if orthogonal.
+	Vec p = transform.Inverse().Transpose()*p0;
 	for(auto & x : p) x*=x;
 	if constexpr(Dimension==2){
 		return 1.-(p.ScalarProduct(linear) + 0.5*quadratic.SquaredNorm(p));
@@ -91,11 +91,11 @@ TTINorm<TS,VD>::Props() const -> Properties {
 template<typename TS, int VD> auto TTINorm<TS,VD>::
 Selling(ScalarType t) const -> SellingPath {
 	// Generate the extremal symmetric matrices
-	const TransformType & A = transform;
+	const TransformType & A = transform.Inverse();
 	using Sym = SymmetricMatrixType;
-	Sym D0 = Sym::RankOneTensor(A.Column(0));
-	Sym D1 = Dimension==2 ? Sym::RankOneTensor(A.Column(1)) :
-	Sym::RankOneTensor(A.Column(1)) + Sym::RankOneTensor(A.Column(2));
+	Sym D0 = Sym::RankOneTensor(A.Row(0));
+	Sym D1 = Dimension==2 ? Sym::RankOneTensor(A.Row(1)) :
+	Sym::RankOneTensor(A.Row(1)) + Sym::RankOneTensor(A.Row(2));
 	return SellingPath(D0,D1,t);
 }
 
@@ -115,12 +115,12 @@ UpdateValue(const T & t, const NeighborValuesType & val,
 	
 	// Compute the update, solving ax^2-2bx+c=0
 	const ScalarType inf = std::numeric_limits<ScalarType>::infinity();
-	using std::sqrt; using std::max; using LinearAlgebra::RemoveAD;
+	using std::sqrt; using std::max;
 	ScalarType a(0),b(0),c(-RemoveAD(mult)),sol(inf);
 	int r=0;
 	for(; r<SymDimension; ++r){
 		const int i = indices[r];
-		// Optimization opportinity : first loop yiels v=0
+		// Optimization opportinity : first loop yiels v=0 (but w!=0)
 		const ScalarType v = val[i] - valMin;
 		if(v>=sol) break;
 		
@@ -142,7 +142,7 @@ UpdateValue(const T & t, const NeighborValuesType & val,
 	else {
 		if(sol==inf) {return T(inf);}
 		T a(0),b(0),c(-mult);
-		for(int r_=1; r_<r; ++r_){
+		for(int r_=0; r_<r; ++r_){
 			const int i = indices[r_];
 			const ScalarType v = val[i] - valMin;
 			const T w = path.weights0[i]+t*(path.weights1[i]-path.weights0[i]),
@@ -188,6 +188,7 @@ UpdateValue(const T & t, const NeighborValuesType & val,
 template<typename TS, int VD> template<typename T> T TTINorm<TS,VD>::
 Multiplier(const T & t) const {
 	// Returns beta such that diag(1-t,t)/beta is a tangent ellipse.
+	// TODO : Optimization opportunity. Probably more efficient to bypass AD here.
 	using Sym2 = QuadraticType;
 	using Vec2 = LinearType;
 	using DVec2 = Vector<T,2>;
@@ -198,22 +199,48 @@ Multiplier(const T & t) const {
 	const Sym2 Q = quadratic.Comatrix();
 	const Vec2 & l = linear;
 	const Vec2 Ql = Q*l;
-	const DVec2 v{1-t,t};
-	const DVec2 Qv = Q*v;
 	const ScalarType detQ = Q.Determinant();
-	const T detVL = Determinant(v, l);
-	
 	const ScalarType lQl = l.ScalarProduct(Ql);
-	const T lQv = l.ScalarProduct(Qv);
-	const T vQv = v.ScalarProduct(Qv);
 	
-	const T num = detVL*detVL + 2*vQv;
-	const int signNum = num>0 ? 1 : -1;
-	
-	using std::sqrt;
-	const T sdelta = sqrt(vQv*(2*detQ+lQl));
-	const T den = signNum * sdelta + lQv;
-	return num/den;
+	constexpr bool optimized = true;
+	using AD2Type = AD2<ScalarType,1>;
+	if constexpr(optimized && std::is_same_v<T,AD2Type>){
+		// Bypass AD2 implementation for efficiency
+		assert(t.v[0]==1 && t.m(0,0)==0);
+		const ScalarType t_=t.x,t=t_,s=1.-t;
+		const ScalarType &
+		a=Q(0,0),b=Q(0,1),c=Q(1,1),
+		l0=l[0],l1=l[1];
+		const ScalarType
+		as=a*s, ct=c*t,
+		l01=l0+l1, l1s=l1*s, l0t=l0*t, l0tl1s=l0t-l1s;
+		
+		const T
+		vQv{as*s+2*b*s*t+ct*t,(-2.)*(as+b*(t-s)-ct),2.*(a-2.*b+c)},
+		detVL2{square(l0tl1s),2.*l01*l0tl1s,2.*square(l01)},
+		lQv{Ql[0]*s+Ql[1]*t,Ql[1]-Ql[0],0.};
+		
+		const T num=detVL2+2*vQv;
+		const int signNum = num>0 ? 1 : -1;
+		const T sdelta = sqrt(vQv*(2*detQ+lQl));
+		const T den = signNum * sdelta + lQv;
+		return num/den;
+	} else {
+		const DVec2 v{1-t,t};
+		const DVec2 Qv = Q*v;
+		const T detVL = Determinant(v, l);
+		
+		const T lQv = l.ScalarProduct(Qv);
+		const T vQv = v.ScalarProduct(Qv);
+		
+		const T num = detVL*detVL + 2*vQv;
+		const int signNum = num>0 ? 1 : -1;
+		
+		using std::sqrt;
+		const T sdelta = sqrt(vQv*(2*detQ+lQl));
+		const T den = signNum * sdelta + lQv;
+		return num/den;
+	}
 }
 
 // ----------------- Norm computation --------------
@@ -244,7 +271,7 @@ Gradient(const VectorType & q0) const -> VectorType {
 		return h;
 	};
 	
-	constexpr bool optimized = Dimension==2;
+	constexpr bool optimized = true;
 	constexpr int nIter_SQP = 8;
 	
 	if(!optimized){

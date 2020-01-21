@@ -31,7 +31,7 @@ template<typename TTraits> struct HFMInterface {
     std::vector<std::unique_ptr<ExtraAlgorithmInterface> > extras;
     std::unique_ptr<TimeDependentFields<Traits> > pTime;
     std::unique_ptr<GeodesicSolverInterface> pGeodesicSolver;
-	int spreadSeeds=-2;
+	int seedRadius=0;
 	
     HFMInterface(IO & _io, StencilDataType & _stencil) :io(_io), stencil(_stencil) {};
     virtual void Run();
