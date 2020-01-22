@@ -423,12 +423,19 @@ Run_SetupSolver() {
 						if(v.Norm()>=radius) return;
 						if(!indices.insert(index).second) return; // Already seen
 						const auto & distq = stencil.GetGuess(index);
-						const VectorType grad = 0.5*(distp.Gradient(v)+distq.Gradient(v));
+						
 						newPoints.push_back(q);
-						newGradients.push_back(stencil.Param().ADim(grad));
-						const ScalarType norm = v.IsNull() ? 0. : v.ScalarProduct(grad);
-						newValues.push_back(value+norm);
-						//  equivalent to 0.5*(distp.Norm(v)+distq.Norm(v))
+						if(v.IsNull()){
+							newValues.push_back(value);
+							newGradients.push_back(VectorType::Constant(0.));
+						} else {
+							const VectorType grad=0.5*(distp.Gradient(v)+distq.Gradient(v));
+							//  equivalent to 0.5*(distp.Norm(v)+distq.Norm(v)),
+							// by Euler's identity
+							const ScalarType norm = v.ScalarProduct(grad);
+							newValues.push_back(value+norm);
+							newGradients.push_back(stencil.Param().ADim(grad));
+						}
 					};
 					
 					const IndexType pIndex = dom.IndexFromPoint(p);

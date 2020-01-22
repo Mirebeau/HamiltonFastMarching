@@ -252,66 +252,53 @@ Gradient(const VectorType & q0) const -> VectorType {
 	
 	// TODO : some optimizations are possible, if this becomes a limiting factor,
 	// especially in 3D (exploit transversal isotropy, to reduce to 2D).
-		
-	// Setup AD variable
-	using Diff2 = AD2<ScalarType,Dimension>;
-	using D2Vec = Vector<Diff2,Dimension>;
-
-	// Perform one step of sequential quadratic programming
-	// Aim for maximizing <q,p> subject to constraint, differentiated at p
-	auto sqp_step = [](const Diff2 & c, const VectorType & q){
-		const SymmetricMatrixType d = c.m.Inverse();
-		const VectorType dv = d*c.v, dq = d*q;
-		const ScalarType num = dv.ScalarProduct(c.v) - 2.*c.x;
-		const ScalarType den = dq.ScalarProduct(q);
-		assert(num*den >= 0);
-		using std::sqrt;
-		const ScalarType lambda = -sqrt(num / den);
-		const VectorType h = lambda*dq - dv;
-		return h;
-	};
-	
 	constexpr bool optimized = true;
 	constexpr int nIter_SQP = 8;
 	
 	if(!optimized){
-		VectorType p; p.fill(0.);
-		D2Vec Dp;
-		for(int i=0; i<Dimension;++i) {Dp[i] = Diff2(p[i],i);}
+		using Diff2 = AD2<ScalarType,Dimension>;
+		VectorType p = VectorType::Constant(0); // Initial guess
 		for(int iter=0; iter<nIter_SQP; ++iter){
-			const Diff2 lvl = Level(Dp);
-			p+=sqp_step(lvl,q0);
-			for(int i=0; i<Dimension; ++i){Dp[i].x = p[i];}
-		}
+			p+=Level(Diff2::Perturbation(p)).SQP(q0);}
 		return p;
-	} else if constexpr(Dimension==2) {
-		const ScalarType &
-		a=linear[0],b=linear[1],
-		c=quadratic(0,0),d=quadratic(0,1),e=quadratic(1,1);
-
-		const VectorType q = transform*q0;
-		// Solve analytically the first sqp step
-		const ScalarType q0a=q[0]/a,q1b=q[1]/b;
-		using std::sqrt;
-		VectorType p = VectorType{q0a,q1b}/sqrt(q[0]*q0a+q[1]*q1b);
+	}
+	
+	// Optimized variant
+	using Diff2 = AD2<ScalarType,2>; // Two dimensional perturbation, vector, matrix
+	using Vec2 = Vector<ScalarType,2>;
+	using Sym2 = SymmetricMatrix<ScalarType,2>;
+	
+	const ScalarType &
+	a=linear[0],b=linear[1],
+	c=quadratic(0,0),d=quadratic(0,1),e=quadratic(1,1);
+	
+	const VectorType q1 = transform*q0;
+	using std::sqrt;
+	const Vec2 q{q1[0],Dimension==2 ? q1[1] : sqrt(q1[1]*q1[1]+q1[2]*q1[2])};
+	// Solve analytically the first sqp step
+	const ScalarType q0a=q[0]/a,q1b=q[1]/b;
+	using std::sqrt;
+	Vec2 p = Vec2{q0a,q1b}/sqrt(q[0]*q0a+q[1]*q1b);
+	
+	for(int i=1; i<nIter_SQP; ++i){
+		// Evaluate constraint and derivatives
+		const ScalarType & x=p[0],y=p[1];
+		const ScalarType x2=x*x,y2=y*y,
+		cx2=c*x2,ey2=e*y2,dx2=d*x2,dy2=d*y2;
+		const Diff2 lvl
+		= Diff2{1.-(a*x2+b*y2+0.5*(cx2*x2+2.*dx2*y2+ey2*y2)),
+			(-2.)*Vec2{x*(a+cx2+dy2),y*(b+dx2+ey2)},
+			(-2.)*Sym2{a+3*cx2+dy2,2.*d*x*y,b+dx2+3.*ey2}
+		};
 		
-		for(int i=1; i<nIter_SQP; ++i){
-			// Evaluate constraint and derivatives
-			const ScalarType & x=p[0],y=p[1];
-			const ScalarType x2=x*x,y2=y*y,
-			cx2=c*x2,ey2=e*y2,dx2=d*x2,dy2=d*y2;
-			const Diff2 lvl
-			= Diff2{1.-(a*x2+b*y2+0.5*(cx2*x2+2.*dx2*y2+ey2*y2)),
-				(-2.)*VectorType{x*(a+cx2+dy2),y*(b+dx2+ey2)},
-				(-2.)*SymmetricMatrixType{a+3*cx2+dy2,2.*d*x*y,b+dx2+3.*ey2}
-			};
-			
-			p+=sqp_step(lvl,q);
-		}
-		return transform.Transpose()*p;
-	} else {// Do a recursive call to the two dimensional case.
-		assert(false);
-		return {};
+		p+=lvl.SQP(q);
+	}
+	const TransformType ttrans = transform.Transpose();
+	if constexpr(Dimension==2){return a*p;}
+	else {
+		const ScalarType n12 = q[1]; // Norm of components 1 and 2 of q1
+		if(n12==0.){return ttrans*VectorType{p[0],0.,0.};}
+		else {return ttrans*VectorType{p[0],p[1]*q1[1]/n12,p[1]*q1[2]/n12};}
 	}
 }
 

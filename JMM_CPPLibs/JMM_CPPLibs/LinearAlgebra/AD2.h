@@ -2,7 +2,9 @@
 #define AD2_h
 
 /*
- This file implements second order forward automatic differentiation, in arbitrary but fixed dimension.
+ This file implements second order forward automatic differentiation,
+ in arbitrary but fixed dimension.
+ An auxiliary function implements a single step of Sequential-Quadratic-Programming.
  */
 
 #include <cmath>
@@ -113,6 +115,29 @@ DifferentiationTypeOperators<AD2<TComponent,VDimension>,TComponent> {
 		return xs*AD2{1.,w, 0.5*(xi*a.m - Sym::OuterSelf(w))};
 	}
 
+	static Vector<AD2,Dimension> Perturbation(const VectorType & v){
+		Vector<AD2,Dimension> delta;
+		for(int i=0; i<Dimension;++i){delta[i]=AD2(v[i],i);}
+		return delta;
+	}
+	
+	/* ------ Single step of Sequential Quadratic Programming -------
+	 Maximize <q,p> subject to constraint >=0, differentiated at p. Usage :
+	 for(int i=0; i<nIter; ++i){p+=Level(Perturbation(p)).SQP(q);}
+	 */
+	VectorType SQP(const VectorType & q) const {
+		const AD2 & c = *this;
+		const SymmetricMatrixType d = c.m.Inverse();
+		const VectorType dv = d*c.v, dq = d*q;
+		const ComponentType num = dv.ScalarProduct(c.v) - 2.*c.x;
+		const ComponentType den = dq.ScalarProduct(q);
+		assert(num*den >= 0);
+		using std::sqrt;
+		const ComponentType lambda = -sqrt(num / den);
+		const VectorType h = lambda*dq - dv;
+		return h;
+	};
+	
 };
 
 template<typename TC,size_t VD>
