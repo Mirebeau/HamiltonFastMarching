@@ -96,19 +96,9 @@ HopfLaxUpdate(FullIndexCRef updated, OffsetCRef acceptedOffset, ScalarType value
 		}
 	}
 	
-/*	const bool display = (updated.index==IndexType{0,2});
-	if(display){
-	std::cout << "In HopfLaxUpdate"
-	ExportVarArrow(updated.index)
-	ExportVarArrow(acceptedOffset)
-	ExportVarArrow(value)
-	ExportVarArrow(acceptedPos)
-	ExportVarArrow(norm) << std::endl;
-	}*/
-	
 	// Prepare the array for holding the neighbor values
 	NeighborValuesType values;
-	const ScalarType inf = std::numeric_limits<ScalarType>::infinity();
+	constexpr ScalarType inf = std::numeric_limits<ScalarType>::infinity();
 	values.fill(-inf);
 	
 	// Find the minimizer on each interval
@@ -133,19 +123,8 @@ HopfLaxUpdate(FullIndexCRef updated, OffsetCRef acceptedOffset, ScalarType value
 					valp = fm.template GetNeighborValue<true,false,1>( offset,orderp),
 					valm = fm.template GetNeighborValue<true,false,1>(-offset,orderm);
 					values[r] = std::min(orderp ? valp : inf, orderm ? valm : inf);
-//					assert(std::max(orderp,orderm)==1);
-/*					std::cout
-					ExportVarArrow(offset)
-					ExportVarArrow(valp)
-					ExportVarArrow(valm)
-					<< std::endl;*/
-					
 				}
 			}
-/*			std::cout
-			ExportArrayArrow(values) << "\n"
-			ExportArrayArrow(fm.values)
-			<< std::endl;*/
 //TODO : optimization opportunity, sort values only once
 //TODO : optimization opportunity, get val0 from previous val1
 			using Vec1 =  LinearAlgebra::Vector<ScalarType,1>;
@@ -156,7 +135,6 @@ HopfLaxUpdate(FullIndexCRef updated, OffsetCRef acceptedOffset, ScalarType value
 			// Get the update value, and derivative at t0 endpoint
 			const Diff1 val0 =
 			objSign*norm.UpdateValue(Diff1(t0,0), values,selling);
-//			std::cout ExportVarArrow(val0) ExportVarArrow(t0) << std::endl;
 			if(val0.v[0]>=0){ // Minimum over [t0,t1] attained at t0
 				if(val0<updateValue){
 					updateValue = val0.s;
@@ -224,43 +202,50 @@ HopfLaxUpdate(FullIndexCRef updated, OffsetCRef acceptedOffset, ScalarType value
 		}
 	}
 	
-/*	std::cout
-	ExportVarArrow(updated.index)
-	ExportVarArrow(objSign*updateValue)
-	<< "\n---------------------\n";*/
-	
 	const ScalarType newValue = objSign*updateValue;
 	if(newValue<oldValue) {
-		active = tActive;
+		active = ActiveNeighFlagType(tActive,isInterior);
 		return newValue;
 	} else {
 		return oldValue;
 	}
 }
 
-template<int VD> template<typename F> auto StencilTTI<VD>::
-HopfLaxRecompute(const F & f, IndexCRef index, ActiveNeighFlagType active,
+template<int VD> auto StencilTTI<VD>::
+_HopfLaxRecompute(IndexCRef index, ActiveNeighFlagType active,
 				 DiscreteFlowType & discreteFlow) -> RecomputeType {
-	// TODO : maybe do not exclude, in case of strong anisotropy in a corner ?
-	assert(!active.none());
+	// Possible improvement : introduce some Newton iterations to refine tActive ?
+	// (Not strictly necessary to achieve second order, thanks to envelope theorem)
 	assert(discreteFlow.empty());
 	
-	const NormType norm = DistanceGuess(index);
-	const auto props = norm.Props();
-	const auto selling = norm.Selling(active.tActive);
+	constexpr int SymDim = SymmetricMatrixType::InternalDimension;
+	constexpr ScalarType inf = std::numeric_limits<ScalarType>::infinity();
+	RecomputeType result;
+
+	// In case of strong anisotropy in a corner.
+	if(active.none()) {result.value=inf; result.width=inf; return result;}
 	
-	static const int SymDim = SymmetricMatrixType::InternalDimension;
+	auto & fm = *(this->pFM);
+	fm.template SetIndex<true,false>(index);
+		
+	const NormType norm = GetGuess(index);
+	const ScalarType t = active.tActive();
+	const auto selling = norm.Selling(t);
+
 	NeighborValuesType values;
-	int order=3;
 	std::array<int,SymDim> orders; orders.fill(-1);
 	std::array<int,SymDim> signs;
 	
 	// Get the neighbor values
 	for(int r=0; r<SymDim; ++r){
-		int orderp=order,orderm=order;
+		int orderp=fm.order,orderm=fm.order;
+		const OffsetType offset = OffsetType::CastCoordinates(selling.offsets[r]);
 		ScalarType
-		valp = f( selling.offsets[r],orderp),
-		valm = f(-selling.offsets[r],orderm);
+		valp = fm.template GetNeighborValue<true,false,3>( offset,orderp),
+		valm = fm.template GetNeighborValue<true,false,3>(-offset,orderm);
+		if(orderp==0){valp=inf;}
+		if(orderm==0){valm=inf;}
+		
 		if(valp<valm){
 			values[r]=valp;
 			orders[r]=orderp;
@@ -271,25 +256,57 @@ HopfLaxRecompute(const F & f, IndexCRef index, ActiveNeighFlagType active,
 			signs[r]=-1;
 		}
 	}
-	// TODO : handle high order
-	// TODO : introduce some Newton iterations to refine tActive ?
-	assert(order==1);
-	const ScalarType t = active.tActive();
-	const ScalarType val = norm.UpdateValue(t, values,props,selling);
+	constexpr std::array<ScalarType,4> multOrder
+	= {0.,1.,3/2.,11/6.};
+	 
+	// Following code is close to norm.UpdateValue,
+	// - but handles high order
+	// - does not handle automatic differentiation
 	
-	RecomputeType result;
-	
-	result.value = val;
-	result.width = 0.; ScalarType weightSum=0.;
-	for(int r=0; r<SymDim; ++r){
-		if(val>values[r]){
-			const ScalarType weight = selling.weights0[r]*(1.-t)+selling.weights1[r]*t;
-			const ScalarType diff = val-values[r];
-			discreteFlow.push_back({selling.offsets[r]*signs[r],weight*diff});
-			weightSum+=weight; result.diff+=weight*diff;
-		}
+	// Sort the neighbor values
+	std::array<ScalarType,SymDim> indices;
+	for(int i=0; i<SymDim; ++i) {indices[i]=i;}
+	std::sort(indices.begin(),indices.end(),
+			  [&values](int i,int j){return values[i]<values[j];});
+	const ScalarType valMin=values[indices[0]];
+
+	// Compute the update value
+	ScalarType a(0.), b(0.), c(-norm.Multiplier(t)), sol(inf);
+	int r=0;
+	for(; r<SymDim; ++r){
+		const int i=indices[r];
+		const ScalarType v=values[i]-valMin;
+		if(v>=sol) break;
+		const ScalarType w0 = (1-t)*selling.weights0[i]+t*selling.weights1[i];
+		const ScalarType w = w0 * square(multOrder[orders[i]]),
+		wv=w*v,wvv=wv*v;
+		a+=w;
+		b+=wv;
+		c+=wvv;
+		
+		if(a <= 100*std::abs(c)*std::numeric_limits<ScalarType>::epsilon()){continue;}
+		const ScalarType delta = b*b-a*c;
+		assert(delta>=0.);
+		sol = (b+sqrt(delta))/a;
 	}
-	result.diff/=weightSum;
-	return val;
+	
+	// Fill the discrete flow weights
+	result.value = sol+valMin;
+	result.width=0.;
+	ScalarType weightSum = 0.;
+	for(int r_=0; r_<r; ++r_){
+		const int i=indices[r_];
+		const ScalarType v = values[i]-valMin;
+		const ScalarType w0 = (1-t)*selling.weights0[i]+t*selling.weights1[i];
+		weightSum += w0;
+		const ScalarType wd =  (sol-v) * w0;
+		assert(wd>=0.);
+		result.width += wd;
+		const ScalarType w = (sol-v) * w0 * multOrder[orders[i]]; // No square multOrder
+		const OffsetType offset = OffsetType::CastCoordinates(selling.offsets[i]);
+		discreteFlow.push_back({offset*signs[i],w});
+	}
+	result.width/=weightSum;
+	return result;
 }
 #endif /* TTI_hpp */
