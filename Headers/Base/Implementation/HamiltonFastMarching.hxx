@@ -289,30 +289,6 @@ const -> RecomputeType {
 		+factoring.Correction(offset,1);
     };
 	
-	/*
-// ------- Debug
-	const PointType seed(0.,1.5);
-	auto Value = [&seed](const PointType & q){
-		const VectorType v = q-seed;
-		const VectorType w (q[0]-seed[0],q[1]+seed[1]);
-		return log( (w.Norm()+v.Norm()) / (w.Norm()-v.Norm()) );
-	};
-	
-	const PointType p = stencilData.Param().ReDim( dom.PointFromIndex(updatedIndex));
-	assert(discreteFlow.empty());
-	const auto result = stencilData.HopfLaxRecompute(GetValueCorr,updatedIndex,active,discreteFlow);
-	std::cout << "In recompute "
-	ExportVarArrow(updatedIndex)
-	ExportVarArrow(result.value)
-	ExportVarArrow(Value(p))
-	ExportVarArrow(p)
-	ExportVarArrow((int)active.sectorIndex)
-	<< std::endl;
-	return result;
-
-// ----------
-	*/
-	
 	assert(discreteFlow.empty());
     return stencilData.HopfLaxRecompute(GetValueCorr,updatedIndex,active,discreteFlow);
     
@@ -332,7 +308,7 @@ void HamiltonFastMarching<Traits>::SetIndex(IndexCRef index) const {
 	
 	if(useFactoring){
 		switch (factoring.method) {
-			case FactoringMethod::None:break;
+			case FactoringMethod::None: break;
 			case FactoringMethod::Static:factoring.SetIndexStatic(index); break;
 			case FactoringMethod::Dynamic:
 			default:

@@ -35,6 +35,10 @@ struct TraitsTTI : TraitsBase<VDimension> {
 template<int VD> struct TraitsTTI<VD>::StencilType
 : Lagrangian2Stencil<OffsetType, ScalarType, DiscreteType> {
 	DiscreteType NSectors() const {assert(false);return 0;}
+	static constexpr int Dimension = VD;
+	static constexpr int nActiveNeigh = (Dimension*(Dimension+1))/2;
+	using CommonStencilType = CommonStencil<OffsetType,ScalarType,nActiveNeigh>;
+	Redeclare3Types(CommonStencilType,DiscreteFlowElement,DiscreteFlowType,RecomputeType);
 	
     struct ActiveNeighFlagType {
 		using SectorIndexType = void;
@@ -92,8 +96,8 @@ struct StencilTTI final
 
 	virtual ScalarType HopfLaxUpdate(FullIndexCRef, OffsetCRef, ScalarType,
 									 ActiveNeighFlagType &) override final;
-	template<typename F> RecomputeType
-	HopfLaxRecompute(const F &, IndexCRef, ActiveNeighFlagType, DiscreteFlowType &);
+	virtual RecomputeType
+	_HopfLaxRecompute(IndexCRef, ActiveNeighFlagType, DiscreteFlowType &) override final;
 
 	virtual DistanceGuess GetGuess(const PointType &) const override;
 	virtual DistanceGuess GetGuess(const IndexType &) const override;

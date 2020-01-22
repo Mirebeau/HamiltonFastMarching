@@ -207,7 +207,7 @@ HopfLaxRecompute(const F & getVal, const MultiplierType & mult,
     for(size_t i=0; i<discreteFlow.size(); ++i){
 		const int ord = orderNeigh[i];
 		assert(ord!=0);
-		const std::array<ScalarType,4> mult2 = {0.,1.,9./4.,121./36.};
+		constexpr std::array<ScalarType,4> mult2 = {0.,1.,9./4.,121./36.};
         quad.Add(discreteFlow[i].weight,mult2[ord]*weights[i]);
     }
     
@@ -222,7 +222,7 @@ HopfLaxRecompute(const F & getVal, const MultiplierType & mult,
         result.width+=weightPosDiff;
 		const int ord = orderNeigh[i];
 		assert(ord!=0);
-		const std::array<ScalarType,4> mult = {0.,1.,3./2.,11./6.};
+		constexpr std::array<ScalarType,4> mult = {0.,1.,3./2.,11./6.};
         discreteFlow[i].weight *= mult[ord];
     }
     const ScalarType weightsSum = std::accumulate(weights.begin(), weights.end(), 0.);

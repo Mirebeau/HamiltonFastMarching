@@ -48,7 +48,7 @@ struct Lagrangian2Stencil {
 			return std::make_unsigned_t<SectorIndexType>(sectorIndex);}
     };
     
-    static const int nActiveNeigh = Dimension;
+    static constexpr int nActiveNeigh = Dimension;
 	using CommonStencilType = CommonStencil<OffsetType,ScalarType,nActiveNeigh>;
 	Redeclare3Types(CommonStencilType,DiscreteFlowElement,DiscreteFlowType,RecomputeType);
 	

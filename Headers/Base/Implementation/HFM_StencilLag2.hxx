@@ -41,6 +41,7 @@ protected:
 	friend struct HamiltonFastMarching<Traits>;
 	virtual ScalarType HopfLaxUpdate(FullIndexCRef, OffsetCRef, ScalarType, ActiveNeighFlagType &) override;
 	template<typename F> RecomputeType HopfLaxRecompute(const F &, IndexCRef, ActiveNeighFlagType, DiscreteFlowType &);
+	virtual RecomputeType _HopfLaxRecompute(IndexCRef,ActiveNeighFlagType,DiscreteFlowType &) = 0;
 	
 	Lagrangian2StencilGeometry geom = Lagrangian2StencilGeometry::None;
 	using OffsetVal3 = CappedVector<std::pair<OffsetType,ScalarType>, 3>;
@@ -222,6 +223,10 @@ template<typename Traits> template<typename Dummy> template<typename F> auto
 HamiltonFastMarching<Traits>::_StencilDataType<SSP::Lag2, Dummy>::
 HopfLaxRecompute(const F & f, IndexCRef index, ActiveNeighFlagType active,
 				 DiscreteFlowType & discreteFlow) -> RecomputeType {
+	
+	if constexpr(std::is_same_v<void,SectorIndexType>){ // -> TTINorm
+		return _HopfLaxRecompute(index, active, discreteFlow);}
+	
 	assert(!active.none());
 	StencilType stencil;
 	SetStencil(index, stencil);
@@ -264,6 +269,5 @@ HopfLaxRecompute(const F & f, IndexCRef index, ActiveNeighFlagType active,
 	
 	return result;
 };
-
 
 #endif /* HFM_StencilLag2_hxx */
