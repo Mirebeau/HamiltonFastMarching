@@ -40,8 +40,11 @@ HamiltonFastMarching<T>::_StencilDataTypeBase {
 protected:
 	friend struct HamiltonFastMarching<Traits>;
 	virtual ScalarType HopfLaxUpdate(FullIndexCRef, OffsetCRef, ScalarType, ActiveNeighFlagType &) override;
-	template<typename F> RecomputeType HopfLaxRecompute(const F &, IndexCRef, ActiveNeighFlagType, DiscreteFlowType &);
-	virtual RecomputeType _HopfLaxRecompute(IndexCRef,ActiveNeighFlagType,DiscreteFlowType &) = 0;
+	template<typename F> RecomputeType
+	HopfLaxRecompute(const F &, IndexCRef, ActiveNeighFlagType, DiscreteFlowType &);
+	virtual RecomputeType // Only in TTI
+	_HopfLaxRecompute(IndexCRef,ActiveNeighFlagType,DiscreteFlowType &) {
+		assert(false); return RecomputeType{};}
 	
 	Lagrangian2StencilGeometry geom = Lagrangian2StencilGeometry::None;
 	using OffsetVal3 = CappedVector<std::pair<OffsetType,ScalarType>, 3>;
