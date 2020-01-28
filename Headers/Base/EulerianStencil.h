@@ -24,6 +24,7 @@ template<typename TDiff, int nSym, int nFor=0, int nM=1> struct
 EulerianStencil {
     typedef TDiff DifferenceType;
     static const int nForward = nFor, nSymmetric = nSym, nMax = nM;
+    Redeclare3Types(DifferenceType, ScalarType,OffsetType,MultiplierType)
 
     // All data
     std::array<std::array<DifferenceType, nSymmetric>, nMax> symmetric;
@@ -40,11 +41,15 @@ EulerianStencil {
     static const int nMaxBits = CeilLog2<nMax>::value;
     
     /// Encodes which neighbors are active at a given point
-    typedef std::bitset<nNeigh+nMaxBits> ActiveNeighFlagType;
+	struct ActiveNeighFlagType : std::bitset<nNeigh+nMaxBits> {
+		using Superclass = std::bitset<nNeigh+nMaxBits>;
+		explicit operator ScalarType() const {return this->to_ullong();}
+		explicit ActiveNeighFlagType(ScalarType a):Superclass((unsigned long long)a){}
+		ActiveNeighFlagType(){}
+	};
     static int GetIMax(ActiveNeighFlagType b);
     static void SetIMax(ActiveNeighFlagType & b, int iMax);
     
-    Redeclare3Types(DifferenceType, ScalarType,OffsetType,MultiplierType)
     typedef QuadraticMax<ScalarType,nMax> QuadType;
     ScalarType HopfLaxUpdate(OffsetType, ScalarType, const MultiplierType &,
                              QuadType &, ActiveNeighFlagType &) const;

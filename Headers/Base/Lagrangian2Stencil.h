@@ -21,12 +21,12 @@ template<> char const * enumStrings<Lagrangian2StencilGeometry>::data[] =
 
 // ----------- Semi-Lagrangian scheme ------------
 
-template<typename TOff, typename TScalar, typename TDiscrete>
+template<typename TOffset, typename TScalar, typename TDiscrete>
 struct Lagrangian2Stencil {
-    typedef TOff OffsetType;
-	typedef TDiscrete DiscreteType;
-	typedef TScalar ScalarType;
-    typedef typename OffsetType::ComponentType ShortType;
+    using OffsetType = TOffset;
+	using DiscreteType = TDiscrete;
+	using ScalarType = TScalar;
+    using ShortType = typename OffsetType::ComponentType;
     static constexpr DiscreteType Dimension = OffsetType::Dimension;
 //	static_assert(Dimension==2,"Two dimensional stencil class");
     
@@ -42,10 +42,9 @@ struct Lagrangian2Stencil {
 		using SectorIndexType = ShortType;
         SectorIndexType sectorIndex;
         ActiveNeighFlagType():sectorIndex(-1){};
-        ActiveNeighFlagType(unsigned long a):sectorIndex(SectorIndexType(a)){};
         bool none() const {return sectorIndex==-1;}
-        unsigned long to_ulong() const {
-			return std::make_unsigned_t<SectorIndexType>(sectorIndex);}
+		explicit ActiveNeighFlagType(ScalarType a):sectorIndex(a){};
+		explicit operator ScalarType() const {return sectorIndex;}		
     };
     
     static constexpr int nActiveNeigh = Dimension;

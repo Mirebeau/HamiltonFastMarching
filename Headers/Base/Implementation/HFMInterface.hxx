@@ -498,11 +498,9 @@ Run_SetupSolver() {
     if(io.HasField("values")){
         pFM->values = io.GetArray<ScalarType, Dimension>("values");}
     
-    typedef ActiveNeighFlagType ActiveFlag;
     if(io.HasField("activeNeighs")){
         pFM->activeNeighs = io.GetArray<ScalarType, Dimension>("activeNeighs")
-        .template Transform<>([](ScalarType a)->ActiveFlag {
-            return ActiveFlag(long(a));});}
+		.template Cast<ActiveNeighFlagType>();}
 }
 
 template<typename T> template<typename Alg> Alg* HFMInterface<T>::
@@ -598,9 +596,7 @@ Run_ExportData() {
         io.SetArray("values", pFM->values);}
     
     if(io.Get<ScalarType>("exportActiveNeighs",0.)) {
-        io.SetArray("activeNeighs",pFM->activeNeighs.template Transform<>(
-    [](ActiveNeighFlagType a)->ScalarType{return ScalarType(a.to_ulong());}
-    ));}
+		io.SetArray("activeNeighs",pFM->activeNeighs.template Cast<ScalarType>());}
     
     if(io.Get<ScalarType>("exportGeodesicFlow",0.)) {
         Array<VectorType, Dimension> flow;

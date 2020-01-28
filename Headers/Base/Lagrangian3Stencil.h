@@ -44,10 +44,15 @@ struct Lagrangian3Stencil {
 		ShortType neighborIndex, sectorIndex;
 		ActiveNeighFlagType():sectorIndex(-1){};
 		bool none() const {return sectorIndex==-1;}
-		ActiveNeighFlagType(long a)
-		:neighborIndex(a & 255), sectorIndex((a>>8) & 255) {}
-		unsigned long to_ulong() const {
-			return (unsigned long)(neighborIndex) | ((unsigned long)(sectorIndex)<<8);}
+		explicit ActiveNeighFlagType(ScalarType a){
+			unsigned long u(a);
+			neighborIndex= u & 255;
+			sectorIndex = (u>>8) & 255;
+		}
+		explicit operator ScalarType() const {
+			using uShort = std::make_unsigned_t<ShortType>;
+			using uLong = unsigned long;
+			return uLong(uShort(neighborIndex)) | uLong(uShort(sectorIndex)<<8);}
 		PrintSelfMacro(ActiveNeighFlagType);
 	};
 

@@ -50,12 +50,8 @@ template<int VD> struct TraitsTTI<VD>::StencilType
 		bool isInterior(){return t_<0;}
 		ScalarType tActive(){return std::abs(t_);}
 		
-		/// Raw (bit-wise) conversion to unsigned long, for export.
-		ActiveNeighFlagType(unsigned long a):t_(*reinterpret_cast<ScalarType*>(&a)){
-			static_assert(sizeof(ScalarType)==sizeof(unsigned long));};
-        unsigned long to_ulong() const {
-			static_assert(sizeof(ScalarType)==sizeof(unsigned long));
-			return *reinterpret_cast<const unsigned long*>(&t_);}
+		explicit ActiveNeighFlagType(ScalarType a):t_(a){}
+        explicit operator ScalarType() const {return t_;}
 	protected:
 		ScalarType t_;
     };
