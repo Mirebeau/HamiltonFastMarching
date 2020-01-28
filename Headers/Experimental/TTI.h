@@ -33,29 +33,27 @@ struct TraitsTTI : TraitsBase<VDimension> {
 };
 
 template<int VD> struct TraitsTTI<VD>::StencilType
-: Lagrangian2Stencil<OffsetType, ScalarType, DiscreteType> {
-	DiscreteType NSectors() const {assert(false);return 0;}
+	: Lagrangian2Stencil<OffsetType, ScalarType, DiscreteType> {
+	DiscreteType NSectors() const { assert(false); return 0; }
 	static constexpr int Dimension = VD;
-	static constexpr int nActiveNeigh = (Dimension*(Dimension+1))/2;
-	using CommonStencilType = CommonStencil<OffsetType,ScalarType,nActiveNeigh>;
-	Redeclare3Types(CommonStencilType,DiscreteFlowElement,DiscreteFlowType,RecomputeType);
-	
-    struct ActiveNeighFlagType {
+	static constexpr int nActiveNeigh = (Dimension * (Dimension + 1)) / 2;
+	using CommonStencilType = CommonStencil<OffsetType, ScalarType, nActiveNeigh>;
+	Redeclare3Types(CommonStencilType, DiscreteFlowElement, DiscreteFlowType, RecomputeType);
+
+	struct ActiveNeighFlagType {
 		using SectorIndexType = void;
-		ActiveNeighFlagType():t_(std::numeric_limits<ScalarType>::infinity()){};
-        bool none() const {return t_==std::numeric_limits<ScalarType>::infinity();}
+		ActiveNeighFlagType() :t_(std::numeric_limits<ScalarType>::infinity()) {};
+		bool none() const { return t_ == std::numeric_limits<ScalarType>::infinity(); }
 
 		ActiveNeighFlagType(ScalarType tActive, bool interior)
-		:t_(interior ? tActive : -tActive){};
-		bool isInterior(){return t_<0;}
-		ScalarType tActive(){return std::abs(t_);}
-		
-		/// Raw (bit-wise) conversion to unsigned long, for export.
-		ActiveNeighFlagType(unsigned long a):t_(*reinterpret_cast<ScalarType*>(&a)){
-			static_assert(sizeof(ScalarType)==sizeof(unsigned long));};
-        unsigned long to_ulong() const {
-			static_assert(sizeof(ScalarType)==sizeof(unsigned long));
-			return *reinterpret_cast<const unsigned long*>(&t_);}
+			:t_(interior ? tActive : -tActive) {};
+		bool isInterior() { return t_ < 0; }
+		ScalarType tActive() { return std::abs(t_); }
+
+		/// Raw (bit-wise) conversion to ScalarType, for export.
+		ScalarType to_scalar() const {return t_;}
+		static ActiveNeighFlagType from_scalar(ScalarType t__) { 
+			ActiveNeighFlagType result; result.t_ = t__; return result;}
 	protected:
 		ScalarType t_;
     };

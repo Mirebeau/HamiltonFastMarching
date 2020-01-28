@@ -40,6 +40,7 @@ EulerianStencil {
     static const int nMaxBits = CeilLog2<nMax>::value;
     
     /// Encodes which neighbors are active at a given point
+//    struct ActiveNeighFlagType;
     typedef std::bitset<nNeigh+nMaxBits> ActiveNeighFlagType;
     static int GetIMax(ActiveNeighFlagType b);
     static void SetIMax(ActiveNeighFlagType & b, int iMax);
@@ -55,7 +56,16 @@ EulerianStencil {
 	HopfLaxRecompute(const F &,const MultiplierType &,
 					 ActiveNeighFlagType, DiscreteFlowType &) const;
 };
+/*
+template<typename TDiff, int nSym, int nFor, int nM>
+struct EulerianStencil<TDiff,nSym,nFor,nM>::
+    ActiveNeighFlagType : std::bitset<nNeigh + nMaxBits> {
+    ScalarType to_scalar(){
+    static
+    }
 
+};
+*/
 // ---- Enhanced offsets, referred to as differences  ---
 /** A Difference is a basic component of a PDE scheme. It is the data of an offset and weight.
  The weight which is either specified directly or as a baseweight and a multiplier index, within [0,VMultSize[.*/

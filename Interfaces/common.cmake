@@ -37,7 +37,7 @@ message(STATUS "Compiled models : ${ModelNames}")
 
 # ---- More options -----
 
-option(OPTIMIZE_FOR_NATIVE "Build with -march=native" ON)
+option(OPTIMIZE_FOR_NATIVE "Build with -march=native" OFF)
 if(OPTIMIZE_FOR_NATIVE)
 	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -march=native")
 endif()
