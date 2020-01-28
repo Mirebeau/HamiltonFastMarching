@@ -334,8 +334,8 @@ template<typename T> void HFMInterface<T>::
 Run_SetupSolver() {
     // ------- Some exports that are independent of the fast marching results -------
     io.Set<ScalarType>("MaxStencilWidth",pFM->MaxStencilWidth());
-    pFM->order = (int)io.template Get<ScalarType>("order",1.);
-    
+    pFM->order = io.template Get<ScalarType>("order",1.);
+
     if(io.HasField("getStencils")) {
         const auto & pts = io.GetVector<PointType>("getStencils");
         std::ostringstream oss;
@@ -502,7 +502,7 @@ Run_SetupSolver() {
     if(io.HasField("activeNeighs")){
         pFM->activeNeighs = io.GetArray<ScalarType, Dimension>("activeNeighs")
         .template Transform<>([](ScalarType a)->ActiveFlag {
-            return ActiveFlag::from_scalar(a);});}
+            return ActiveFlag(long(a));});}
 }
 
 template<typename T> template<typename Alg> Alg* HFMInterface<T>::
@@ -599,7 +599,7 @@ Run_ExportData() {
     
     if(io.Get<ScalarType>("exportActiveNeighs",0.)) {
         io.SetArray("activeNeighs",pFM->activeNeighs.template Transform<>(
-            [](ActiveNeighFlagType a)->ScalarType {return a.to_scalar();}
+    [](ActiveNeighFlagType a)->ScalarType{return ScalarType(a.to_ulong());}
     ));}
     
     if(io.Get<ScalarType>("exportGeodesicFlow",0.)) {
