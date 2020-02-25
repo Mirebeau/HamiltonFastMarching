@@ -592,13 +592,13 @@ Run_ExtractGeodesics() {
 
 template<typename T> void HFMInterface<T>::
 Run_ExportData() {
-    if(io.Get<ScalarType>("exportValues",0.)) {
+    if(io.Get<ScalarType>("exportValues",0.,2)) {
         io.SetArray("values", pFM->values);}
     
-    if(io.Get<ScalarType>("exportActiveNeighs",0.)) {
+    if(io.Get<ScalarType>("exportActiveNeighs",0.,3)) {
 		io.SetArray("activeNeighs",pFM->activeNeighs.template Cast<ScalarType>());}
     
-    if(io.Get<ScalarType>("exportGeodesicFlow",0.)) {
+    if(io.Get<ScalarType>("exportGeodesicFlow",0.,2)) {
         Array<VectorType, Dimension> flow;
         flow.dims=pFM->values.dims;
         flow.resize(pFM->values.size());
@@ -608,7 +608,7 @@ Run_ExportData() {
         }
         io.SetArray<VectorType>("geodesicFlow", flow);
     }
-	if(io.Get<ScalarType>("exportActiveOffsets",0.)) {
+	if(io.Get<ScalarType>("exportActiveOffsets",0.,3)) {
 		// Possible improvement : do simultaneously with exportGeodesicFlow
 		// to avoid recomputing twice.
 		Redeclare3Types(HFM,DiscreteFlowType,OffsetType,ShortType)

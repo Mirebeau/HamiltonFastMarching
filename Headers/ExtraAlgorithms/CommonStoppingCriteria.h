@@ -144,7 +144,7 @@ CommonStoppingCriteria<T>::Setup(HFMI*that){
     
     // Other parameters
     
-    showProgress = io.template Get<ScalarType>("showProgress",showProgress)!=0;
+    showProgress = io.template Get<ScalarType>("showProgress",showProgress,2)!=0;
     if(io.HasField("progressReportLandmarks")){
         progressReportLandmarks = io.template GetVector<ScalarType>("progressReportLandmarks");
         showProgress = !progressReportLandmarks.empty();

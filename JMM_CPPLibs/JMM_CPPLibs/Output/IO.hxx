@@ -9,8 +9,10 @@
 template<typename Base>
 std::string IO_<Base>::GetString(KeyCRef key, const std::string & val, int verb) const {
     if(Base::HasField(key)) return Base::GetString(key);
-    if(this->verbosity>=verb) Msg() << "Field " << key << " defaults to " << val << "\n";
-    this->visitedUnset.erase(key); this->defaulted.insert(key);
+	if(this->verbosity>=verb) {
+		Msg() << "Field " << key << " defaults to " << val << "\n";}
+    this->visitedUnset.erase(key);
+	this->defaulted.insert(key);
     return val;
 }
 
@@ -18,15 +20,18 @@ template<typename Base> template<typename T>
 T IO_<Base>::Get(KeyCRef key) const {
     const auto dimsPtr = this->template GetDimsPtr<T>(key);
     if( !dimsPtr.first.empty() )
-        ExceptionMacro("IO::Get error : Field " << key << " has incorrect dimensions for this object.");
+        ExceptionMacro("IO::Get error : Field " << key
+					   << " has incorrect dimensions for this object.");
     return *dimsPtr.second;
 }
 
 template<typename Base> template<typename T>
 T IO_<Base>::Get(KeyCRef key, const T & val, int verb) const {
     if(this->HasField(key)) return Get<T>(key);
-    if(this->verbosity>=verb) Msg() << "Field " << key << " defaults to " << val << "\n";
-    this->visitedUnset.erase(key); this->defaulted.insert(key);
+	if(this->verbosity >= verb) {
+		Msg() << "Field " << key << " defaults to " << val << "\n";}
+    this->visitedUnset.erase(key);
+	this->defaulted.insert(key);
     return val;
 }
 
