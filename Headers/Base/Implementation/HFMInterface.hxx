@@ -422,7 +422,9 @@ Run_SetupSolver() {
 						const VectorType v=p-q; // toward seed
 						if(v.Norm()>=radius) return;
 						if(!indices.insert(index).second) return; // Already seen
-						const auto & distq = stencil.GetGuess(index);
+						IndexType perIndex = index;
+						if(!pFM->dom.PeriodizeNoBase(perIndex).IsValid()) return; // out
+						const auto & distq = stencil.GetGuess(perIndex);
 						
 						newPoints.push_back(q);
 						if(v.IsNull()){
