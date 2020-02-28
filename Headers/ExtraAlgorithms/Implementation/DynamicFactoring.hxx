@@ -354,17 +354,18 @@ Factoring<T>::
 Setup(HFMI * that){
     auto & io = that->io;
 	pFM = that->pFM.get();
-	// Get the factoring method
 	
+	// Get the factoring method
+	if(io.HasField("factoringRadius")) {method = FactoringMethod::Static;}
 	method=enumFromString<FactoringMethod>
-	(io.GetString("factoringMethod",enumToRealString(method)));
+	(io.GetString("factoringMethod",enumToRealString(method),2));
 	if(0>(int)method){ExceptionMacro("Dynamic factoring error: unrecognized factoringMethod.");}
 	if(method==FactoringMethod::None) {return false;}
 	
 	// Get the factoring point choice
-	if(pFM->order==3) pointChoice=FactoringPointChoice::Both; // Appropriate default for third order
+	if(pFM->order==2) pointChoice=FactoringPointChoice::Both; // Appropriate default for third order
 	pointChoice = enumFromString<FactoringPointChoice>
-	(io.GetString("factoringPointChoice",enumToRealString(pointChoice)));
+	(io.GetString("factoringPointChoice",enumToRealString(pointChoice),2));
 	if(0>(int)pointChoice){
 		ExceptionMacro("Dynamic factoring error: unrecognized factoringPointChoice.");}
 	

@@ -313,7 +313,26 @@ Run() {
 template<typename T> void HFMInterface<T>::
 Run_SetupIO() {
     // Setup input array ordering policy
+	io.SetHelp("verbosity",
+			   "Type: non-negative integer.\n"
+			   "Usage: Sets the amount of messages output by the library.\n"
+			   "Special case: verbosity=0 -> Silent call.");
     io.verbosity = (int)io.Get<ScalarType>("verbosity",io.verbosity);
+	
+	io.SetHelp("keyHelp",
+			   "Type: string, of keys separated by spaces\n"
+			   "Usage: print help of the specified keys\n");
+	if(io.HasField("keyHelp")){
+		std::stringstream ss(io.GetString("keyHelp"));
+		std::istream_iterator<std::string> begin(ss);
+		std::istream_iterator<std::string> end;
+		io.keyHelp.insert(begin,end);
+	}
+	
+	io.SetHelp("arrayOrdering",
+			   "Type: string, either RowMajor, YXZ_RowMajor, ColumnMajor, YXZ_ColumnMajor\n"
+			   "Usage: data ordering of the provided fields (cost, metric, etc)\n");
+	// "Special case: Internally, the input arrays are converted to RowMajor"
     io.arrayOrdering = enumFromString<IO::ArrayOrdering>(io.GetString("arrayOrdering",enumToRealString(io.arrayOrdering)));
     if(static_cast<int>(io.arrayOrdering)==-1) ExceptionMacro("Error : unrecognized array ordering");
     pTime = std::unique_ptr<TimeDependentFields<T> >(new TimeDependentFields<T>);
@@ -353,11 +372,20 @@ Run_SetupSolver() {
         io.SetString("stencils", oss.str());
     }
     
+	io.SetHelp("pointToIndex",
+			   "Type: vector of points. (Input)\n"
+			   "Usage: returns in 'indexFromPoint' the index (in a multidimensional array\n"
+			   "data field) corresponding to a given point (in the PDE domain).\n"
+			   "Special case: index coordinates are rounded if not integer.");
     if(io.HasField("pointToIndex")){
         auto pts = io.GetVector<PointType>("pointToIndex");
         for(PointType & p : pts) p=PointType::CastCoordinates(pFM->dom.IndexFromPoint(stencil.Param().ADim(p)));
         io.SetVector("indexFromPoint", pts);
     }
+	io.SetHelp("indexToPoint",
+			   "Type: vector of points. (Input)\n"
+			   "Usage: returns in 'pointFromIndex' the point (in the PDE domain)"
+			   "corresponding to an index (in a multidimensional array data field).");
     if(io.HasField("indexToPoint")){
         auto pts = io.GetVector<PointType>("indexToPoint");
         for(PointType & p : pts) p=stencil.Param().ReDim(pFM->dom.PointFromIndex(IndexType::CastCoordinates(p)));
@@ -370,9 +398,16 @@ Run_SetupSolver() {
         std::vector<PointType> seedPoints;
         std::vector<ScalarType> seedValues;
 		
+		io.SetHelp("seeds",
+				   "Type: vector of points. (Input)\n"
+				   "Usage: sets the points from which the front propagation starts.");
         if(io.HasField("seeds")){
             seedPoints = io.GetVector<PointType>("seeds");
             for(auto & p : seedPoints) p=stencil.Param().ADim(p);
+			
+			io.SetHelp("seedValues",
+					   "Type: vector of scalars, same length as seeds. (Input)\n"
+					   "Usage: sets the values at which the front propagation starts.");
             if(io.HasField("seedValues")) {
                 seedValues = io.GetVector<ScalarType>("seedValues");
                 if(seedValues.size()!=seedPoints.size())
@@ -380,18 +415,21 @@ Run_SetupSolver() {
             }
             else seedValues.resize(seedPoints.size(),0.);
 			
-			/* The seedRadius option allows to spread seeds on the grid, in addition to
-			 rounding the given position to the nearest grid point.
-			 The grid points within the given radius in pixels of the seed position are
-			 set as seeds for the grid propagation, with appropriate values. If radius is
-			 negative, then we also include those points accessible in one step from the
-			 reverse stencil.  */
+			io.SetHelp("seedRadius",
+R"(Type: scalar. Unit: pixels. (Input)
+Usage: The seedRadius option allows to spread seeds on the grid, instead of
+rounding the given position to the nearest grid point (default).
+The grid points within the given radius in pixels of the seed position are
+set as seeds for the grid propagation, with appropriate values.
+Special case: If radius is negative, then we also include those points
+accessible in one step from the reverse stencil.)");
 			
 			// Setting default issue : factoring is not yet set.
-			// Cannot test pFM->factoring.method == FactoringMethod::None
-			if(io.HasField("factoringMethod") && io.GetString("factoringMethod")!="None"){
-				seedRadius = 1;} // Default value
-			seedRadius = io.Get<ScalarType>("seedRadius",seedRadius);
+			// Thus cannot test pFM->factoring.method == FactoringMethod::None
+			bool factors = io.HasField("factoringRadius");
+			if(io.HasField("factoringMethod")) {
+				factors = io.GetString("factoringMethod")!="None";}
+			seedRadius = io.Get<ScalarType>("seedRadius",factors ? 2. : seedRadius);
 			const bool stencilStep = seedRadius<0;
 			seedRadius = std::abs(seedRadius);
 			
@@ -468,6 +506,12 @@ Run_SetupSolver() {
 			}
         }
         
+		if(HFM::hasBundle){
+			io.SetHelp("seeds_Unoriented",
+R"(Type: vector of points in the *base horizontal domain*. (Input)
+Usage: set the points from which the front propagation starts.
+An unoriented seed is equivalent to a family of standard seeds,
+with the same base position and each possible bundle direction.)");}
         if(HFM::hasBundle && io.HasField("seeds_Unoriented")){
             typedef typename SpecializationsDefault::UnorientedPointType UnorientedPointType;
             const auto uPoints = io.GetVector<UnorientedPointType>("seeds_Unoriented");
@@ -475,6 +519,10 @@ Run_SetupSolver() {
             std::vector<ScalarType> uValues;
             if(io.HasField("seedValues_Unoriented")) uValues = io.GetVector<ScalarType>("seedValues_Unoriented");
             else uValues.resize(uPoints.size(),0.);
+			io.SetHelp("seedValues_Unoriented",
+R"(Type: vector of scalar values. (Input)
+Usage: set the values at which the front propagation
+tarts, for each member of seeds_Unoriented.)");
             if(uValues.size()!=uPoints.size()) ExceptionMacro("Error : Inconsistent size of seedValues_Unoriented.");
 
             std::vector<PointType> equiv;
@@ -497,6 +545,10 @@ Run_SetupSolver() {
     }
     
     // Reinserting data from previous run
+	io.SetHelp("values",
+			   "Type: field of scalars.\n"
+			   "Usage (output): the arrival times of the front propagation.\n"
+			   "Usage (input): reuse data from a previous run.");
     if(io.HasField("values")){
         pFM->values = io.GetArray<ScalarType, Dimension>("values");}
     
@@ -530,7 +582,13 @@ Run_RunSolver() {
         const clock_t elapsed = clock()-top;
         const ScalarType FMCPUTime = ScalarType(elapsed)/CLOCKS_PER_SEC;
         io.Set<ScalarType>("FMCPUTime",FMCPUTime);
-        if(io.verbosity>=1) Msg() << "Fast marching solver completed in " << FMCPUTime << " s.\n";
+		io.SetHelp("FMCPUTime",
+				   "Type: scalar. Unit : seconds.\n"
+				   "Usage (output): the time spent solving the eikonal equation using the\n"
+				   "(generalized) fast marching method. This time excludes all other\n"
+				   "tasks (input/output, computing geodesics, etc)");
+		if(io.verbosity>=1){
+			Msg() << "Fast marching solver completed in " << FMCPUTime << " s.\n";}
     }
     return false;
 }
@@ -539,6 +597,9 @@ template<typename T> void HFMInterface<T>::
 ExportGeodesics(KeyCRef suffix, const std::vector<PointType> & tips){
     if(pGeodesicSolver==nullptr){
         typedef std::unique_ptr<GeodesicSolverInterface> GeoSolverPtr;
+		io.SetHelp("geodesicSolver",
+				   "Type : string, either 'Discrete' or 'ODE'\n"
+				   "Usage (input): select the numerical method for extracting the geodesics.\n");
         std::string geodesicSolverType =
         HFM::DomainType::periodizeUsesBase ? "ODE" : 
         io.GetString("geodesicSolver", "Discrete");
@@ -556,6 +617,12 @@ ExportGeodesics(KeyCRef suffix, const std::vector<PointType> & tips){
     geodesicPoints.reserve((size_t)std::accumulate(geodesicLengths.begin(), geodesicLengths.end(), 0.));
     for(const auto & geo : geodesics) for(const PointType & p : geo) geodesicPoints.push_back(stencil.Param().ReDim(p));
     
+	io.SetHelp("geodesicPoints",
+R"(Type : vector of points. (output)
+Usage : the concatenated points of all the computed geodesics)");
+	io.SetHelp("geodesicLengts",
+R"(Type : vector of non-negative integers. (output)
+Usage : the lengths of all the computed geodesics. Allows to split geodesicPoints.)");
 	const std::string sep = suffix.empty() ? "" : "_";
     io.SetVector("geodesicPoints"+sep+suffix, geodesicPoints);
     io.SetVector("geodesicLengths"+sep+suffix, geodesicLengths);
@@ -563,11 +630,19 @@ ExportGeodesics(KeyCRef suffix, const std::vector<PointType> & tips){
 
 template<typename T> void HFMInterface<T>::
 Run_ExtractGeodesics() {
+	io.SetHelp("tips",
+R"(Type : vector of points. (input)
+Usage : the points from which the minimal geodesic paths must be backtracked)");
     if(io.HasField("tips")){
         std::vector<PointType> tips = io.GetVector<PointType>("tips");
         for(PointType & tip : tips) tip = stencil.Param().ADim(tip);
         ExportGeodesics("",tips);
     }
+	
+	if(HFM::hasBundle) io.SetHelp("tips_Unoriented",
+R"(Type : vector of points in the *base horizontal domain. (input)
+Usage : the points from which the minimal geodesic paths must be backtracked.
+The initial orientation used is the one minimizing distance to the seed.)");
     if(HFM::hasBundle && io.HasField("tips_Unoriented")){
         typedef typename SpecializationsDefault::UnorientedPointType UnorientedPointType;
         const auto indepTips = io.GetVector<UnorientedPointType>("tips_Unoriented");
@@ -594,12 +669,22 @@ Run_ExtractGeodesics() {
 
 template<typename T> void HFMInterface<T>::
 Run_ExportData() {
+	io.SetHelp("exportValues",
+R"(Type : boolean (input)
+Usage : wether or not to export the front arrival times, in the field 'values')");
     if(io.Get<ScalarType>("exportValues",0.,2)) {
         io.SetArray("values", pFM->values);}
     
+	io.SetHelp("activeNeighs",
+R"(Type : unspecified. (input/output)
+Usage (output): save some internal data
+Usage (input): bypass the fast marching algorithm, reusing results from a previous run)");
     if(io.Get<ScalarType>("exportActiveNeighs",0.,3)) {
 		io.SetArray("activeNeighs",pFM->activeNeighs.template Cast<ScalarType>());}
     
+	io.SetHelp("geodesicFlow",
+R"(Type : field of vectors (output)
+Usage : the direction of the minimal geodesic, toward the seed)");
     if(io.Get<ScalarType>("exportGeodesicFlow",0.,2)) {
         Array<VectorType, Dimension> flow;
         flow.dims=pFM->values.dims;

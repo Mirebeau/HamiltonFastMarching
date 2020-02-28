@@ -29,13 +29,14 @@ struct TraitsIO {
     typedef std::string KeyType;
     typedef std::string const & KeyCRef;
     typedef Array<double,1>::DiscreteType DiscreteType;
-    int verbosity=1;
     TraitsIO(const TraitsIO &) = delete;
     TraitsIO(){};
-    enum class SetterTag {User,Compute,Unknown};
-    SetterTag currentSetter = SetterTag::User;
 
+	enum class SetterTag {User,Compute,Unknown};
     enum class ArrayOrdering {RowMajor, ColumnMajor, YXZ_RowMajor, YXZ_ColumnMajor, Ignore};
+
+	SetterTag currentSetter = SetterTag::User;
+    int verbosity=1;
     ArrayOrdering arrayOrdering = ArrayOrdering::RowMajor;
 protected:
     template<size_t d> using DimType = LinearAlgebra::Point<DiscreteType,d>;
@@ -84,9 +85,9 @@ template<typename Base> struct IO_ : Base {
     
     typedef _Msg<false,IO_> Msg;
     typedef _Msg<true,IO_> WarnMsg;
+	
     using Base::GetString;
     std::string GetString(KeyCRef, const std::string &, int=1) const;
-    
     template<typename T> T Get(KeyCRef) const;
     template<typename T> T Get(KeyCRef, const T &, int=1) const;
     template<typename T> std::vector<T> GetVector(KeyCRef) const;

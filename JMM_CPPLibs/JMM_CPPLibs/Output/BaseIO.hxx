@@ -5,6 +5,19 @@
 #ifndef BaseIO_hxx
 #define BaseIO_hxx
 
+// ----- Help related ----
+void BaseIO::SetHelp(KeyCRef key, const std::string & help) {
+	if(!keyHelp.erase(key)){
+		std::ostringstream oss;
+		oss << "----- Help for key : " << key << " -----\n"
+		<< help << "\n------------------------\n";
+		SendMsg(false, oss.str());
+	} else {
+		unusedHelp.push_back(key);
+	}
+}
+
+
 // ---- Data container ----
 
 struct BaseIO::RawElement {
@@ -91,7 +104,21 @@ void BaseIO::UsageReport(){
         SetString("visitedUnset", oss.str());
         if(verbosity>=3) _Msg<false,BaseIO>(this) << "Visited but unset fields : " << oss.str() << "\n";
     }
+	
+	if(!keyHelp.empty()){
+		std::ostringstream oss;
+		oss << "Sorry, no help found for:";
+		for(KeyCRef key : keyHelp) oss << " " << key ;
+		oss << "\n";
+		SendMsg(false, oss.str());
+	}
+	{
+		std::ostringstream oss;
+		for(KeyCRef key : unusedHelp) oss << key << " ";
+		SetString("unusedHelp",oss.str());
+	}
     currentSetter = SetterTag::User;
+	
 }
 
 auto BaseIO::GetSetter(KeyCRef key) const -> SetterTag {
