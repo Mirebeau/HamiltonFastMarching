@@ -314,14 +314,16 @@ template<typename T> void HFMInterface<T>::
 Run_SetupIO() {
     // Setup input array ordering policy
 	io.SetHelp("verbosity",
-			   "Type: non-negative integer.\n"
-			   "Usage: Sets the amount of messages output by the library.\n"
-			   "Special case: verbosity=0 -> Silent call.");
+R"(Type: non-negative integer.
+Usage: Sets the amount of messages output by the library.
+Special case: verbosity=0 -> Silent call.)"
+			   );
     io.verbosity = (int)io.Get<ScalarType>("verbosity",io.verbosity);
 	
 	io.SetHelp("keyHelp",
-			   "Type: string, of keys separated by spaces\n"
-			   "Usage: print help of the specified keys\n");
+R"(Type: string, of keys separated by spaces.
+Usage: print help of the specified keys)"
+			   );
 	if(io.HasField("keyHelp")){
 		std::stringstream ss(io.GetString("keyHelp"));
 		std::istream_iterator<std::string> begin(ss);
@@ -330,8 +332,9 @@ Run_SetupIO() {
 	}
 	
 	io.SetHelp("arrayOrdering",
-			   "Type: string, either RowMajor, YXZ_RowMajor, ColumnMajor, YXZ_ColumnMajor\n"
-			   "Usage: data ordering of the provided fields (cost, metric, etc)\n");
+R"(Type: string, either RowMajor, YXZ_RowMajor, ColumnMajor, YXZ_ColumnMajor.
+Usage: data ordering of the provided fields (cost, metric, etc))"
+			   );
 	// "Special case: Internally, the input arrays are converted to RowMajor"
     io.arrayOrdering = enumFromString<IO::ArrayOrdering>(io.GetString("arrayOrdering",enumToRealString(io.arrayOrdering)));
     if(static_cast<int>(io.arrayOrdering)==-1) ExceptionMacro("Error : unrecognized array ordering");

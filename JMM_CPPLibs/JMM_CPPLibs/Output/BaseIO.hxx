@@ -7,7 +7,7 @@
 
 // ----- Help related ----
 void BaseIO::SetHelp(KeyCRef key, const std::string & help) {
-	if(!keyHelp.erase(key)){
+	if(keyHelp.erase(key)){
 		std::ostringstream oss;
 		oss << "----- Help for key : " << key << " -----\n"
 		<< help << "\n------------------------\n";
