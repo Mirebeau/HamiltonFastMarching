@@ -54,6 +54,8 @@ struct StencilReedsSheppExt2 final
 	Voronoi1Vec<ReductionType> reduc;
 	
     virtual void SetStencil(IndexCRef index, StencilType & stencil) override {
+		// This implementation could be improved, probably, by using a single tensor
+		// (One less offset, and probably smaller offsets.)
         assert(pSpeed); assert(pXi); assert(pKappa);
         const ScalarType
         speed=(*pSpeed)(index),
@@ -165,7 +167,7 @@ struct StencilDubinsExt2 final
         
         reduc(&stencil.forward[0][0], speed*vL);
         reduc(&stencil.forward[1][0], speed*vR);
-    }
+	}
     virtual const ParamInterface & Param() const override {return param;}
     virtual void Setup(HFMI *that) override {
         Superclass::Setup(that);
