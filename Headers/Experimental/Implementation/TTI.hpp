@@ -72,7 +72,6 @@ SetNeighbors(IndexCRef index, std::vector<OffsetType> & neigh) {
 template<int VD> auto StencilTTI<VD>::
 HopfLaxUpdate(FullIndexCRef updated, OffsetCRef acceptedOffset, ScalarType value,
 			  ActiveNeighFlagType & active) -> ScalarType {
-	
 	auto & fm = *(this->pFM);
 	const ScalarType oldValue = fm.values[updated.linear];
 	fm.template SetIndex<true,false>(updated.index); // useFactoring, smallCorrection
@@ -104,9 +103,10 @@ HopfLaxUpdate(FullIndexCRef updated, OffsetCRef acceptedOffset, ScalarType value
 	// Find the minimizer on each interval
 	ScalarType t0 = props.tMin;
 	const ScalarType objSign = -props.optimDirection; // Turns maximization into min.
+	
 	ScalarType updateValue = inf;
 	ScalarType tActive = inf; bool isInterior=false;
-	while(true){
+	while(true){ // Enumerates all optimization intervals
 		ScalarType t1 = t0;
 		const auto nextStep = selling.NextStep(t1);
 		t1=std::min(t1,props.tMax);
@@ -145,7 +145,6 @@ HopfLaxUpdate(FullIndexCRef updated, OffsetCRef acceptedOffset, ScalarType value
 			// Get the update value, and derivative at t0 endpoint
 			const Diff1 val1 =
 			objSign*norm.UpdateValue(Diff1(t1,0), values, selling);
-//			std::cout ExportVarArrow(val1) ExportVarArrow(t1) << std::endl;
 			if(val1.v[0]<=0){ // Minimum over [t0,t1] attained at t1
 				if(val1<updateValue){
 					updateValue=val1.s;
@@ -157,13 +156,12 @@ HopfLaxUpdate(FullIndexCRef updated, OffsetCRef acceptedOffset, ScalarType value
 			// Now, root finding in the interval [t0,t1]
 			ScalarType x0=t0,x1=t1, // Lower and upper bounds for the subinterval
 			x=(val1.v[0]*t0-val0.v[0]*t1)/(val1.v[0]-val0.v[0]),xOld=inf; // Candidate point
-			assert(x0<x && x<x1);
+//			assert(x0<x && x<x1); // Mathematically obvious, and may fail at machine precision
 			while(std::abs(xOld-x)>100*std::numeric_limits<ScalarType>::epsilon()){
 				xOld=x;
 				assert(x0<=x && x<=x1);
 				const Diff2 val =
 				objSign*norm.UpdateValue(Diff2(x,0), values,selling);
-//				std::cout ExportVarArrow(x) ExportVarArrow(val) << std::endl;
 				// Update the sub-interval
 				if(val.v[0]<=0) {x0=x;}
 				else {x1=x;}
