@@ -32,13 +32,13 @@ struct HamiltonFastMarching<T>::_StencilDataType<SSP::Recomp,Dummy>
 	
 	struct RecomputeDataType {StencilType stencil; MultiplierType mult;}; // mult is dummy here
 	RecomputeDataType RecomputeData(IndexCRef);
+	virtual void Initialize(const HFM *) override;
 protected:
 	friend struct HamiltonFastMarching<Traits>;
 	virtual void EraseCache(DiscreteType index) override final {shallowStencilQuads.erase(index);}
 	
 	virtual ScalarType HopfLaxUpdate(FullIndexCRef, OffsetCRef, ScalarType, ActiveNeighFlagType &) override final;
 	template<typename F> RecomputeType HopfLaxRecompute(const F &, IndexCRef, ActiveNeighFlagType, DiscreteFlowType &);	
-	virtual void Initialize(const HFM *) override;
 private:
 	ShallowMap<DiscreteType, std::pair<StencilType, QuadType> > shallowStencilQuads;
 };
@@ -87,24 +87,35 @@ Initialize(const HFM * pFM) {
 	typedef std::pair<DiscreteType,OffsetType> IndexOffsetPair;
 	std::vector<IndexOffsetPair> offsets;
 	offsets.reserve(shallowStencilQuads.size()*HFM::StencilType::nNeigh);
-	
+	printf("capacity %i\n",int(offsets.capacity()));
+
 	IndexType updatedIndex;
 	auto InsertOffset = [pFM,&offsets,&updatedIndex](OffsetType offset, ScalarType w){
 		if(w==0.) return;
 		IndexType acceptedIndex;
-		auto transform = pFM->VisibleOffset(updatedIndex,offset,acceptedIndex);
+		std::cout << offset << std::endl;
+		const DomainTransformType & transform =
+			pFM->VisibleOffset(updatedIndex,offset,acceptedIndex);
+		printf("bla");
 		if(transform.IsValid()){
 			transform.PullVector(offset);
+//			const DiscreteType acceptedLinearIndex =0; // pFM->values.Convert(acceptedIndex);
+	//		printf("acc lin ind %i\n",acceptedLinearIndex);
 			offsets.push_back({pFM->values.Convert(acceptedIndex),offset});
+//			offsets.push_back({0,offset});
 		}
+		printf("blo\n");
 	};
-	
+	std::cout <<"hello world" << std::endl;
+
 	for(DiscreteType linearIndex=0; linearIndex<pFM->values.size(); ++linearIndex){
 		updatedIndex = pFM->values.Convert(linearIndex);
 		if(HFM::DomainType::periodizeUsesBase && !pFM->dom.PeriodizeNoBase(updatedIndex).IsValid())
 			continue;
 		StencilType stencil;
+		printf("%i\n",linearIndex);
 		this->SetStencil(updatedIndex,stencil);
+		printf("%i\n",linearIndex);
 		for(const auto & diffs : stencil.forward)
 			for(const auto & diff : diffs)
 				InsertOffset( diff.offset, diff.baseWeight);
@@ -114,11 +125,14 @@ Initialize(const HFM * pFM) {
 				InsertOffset(-diff.offset, diff.baseWeight);
 			}
 	}
+	std::cout <<"hello world" << std::endl;
+
 	std::sort(offsets.begin(), offsets.end());
 	const auto offsetEnd = std::unique(offsets.begin(), offsets.end());
 	offsets.resize(offsetEnd-offsets.begin());
 	assert(this->reversedOffsets.empty());
 	this->reversedOffsets.insert(offsets,this->dims.Product());
+
 }
 
 #endif /* HFM_StencilRecompute_hxx */

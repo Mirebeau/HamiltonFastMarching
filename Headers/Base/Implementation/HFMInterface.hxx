@@ -295,11 +295,9 @@ HFMInterface<T>::GetIntegralField(KeyCRef s) -> std::unique_ptr<DataSource<E> > 
 // ---------- Running  ---------
 template<typename T> void HFMInterface<T>::
 Run() {
-	
-
     Run_SetupIO();
-    Run_SetupStencil();
-    Run_SetupSolver();
+	Run_SetupStencil();
+	Run_SetupSolver(); 
     Run_SetupExtraAlgorithms();
     if(Run_RunSolver()) return;
 	
@@ -349,6 +347,8 @@ Run_SetupStencil() {
     
     const clock_t top = clock();
     pFM=std::unique_ptr<HFM>(new HFM(stencil));
+	pFM->stencilData.Initialize(pFM.get());
+	
     io.Set<ScalarType>("StencilCPUTime",ScalarType(clock()-top)/CLOCKS_PER_SEC);
 }
 
