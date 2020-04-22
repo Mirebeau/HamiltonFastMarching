@@ -88,6 +88,7 @@ Initialize(const HFM * pFM) {
 	std::vector<IndexOffsetPair> offsets;
 	offsets.reserve(shallowStencilQuads.size()*HFM::StencilType::nNeigh);
 	printf("capacity %i\n",int(offsets.capacity()));
+
 	IndexType updatedIndex;
 	auto InsertOffset = [pFM,&offsets,&updatedIndex](OffsetType offset, ScalarType w){
 		if(w==0.) return;
@@ -112,7 +113,6 @@ Initialize(const HFM * pFM) {
 		if(HFM::DomainType::periodizeUsesBase && !pFM->dom.PeriodizeNoBase(updatedIndex).IsValid())
 			continue;
 		StencilType stencil;
-		printf("sym size %i\n", int(stencil.symmetric[0].size()));
 		printf("%i\n",linearIndex);
 		this->SetStencil(updatedIndex,stencil);
 		printf("%i\n",linearIndex);

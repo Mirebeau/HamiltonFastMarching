@@ -12,9 +12,8 @@ struct TraitsRiemann : TraitsBase<VDimension> {
     Redeclare2Types(Superclass,OffsetType,ScalarType)
     Redeclare1Constant(Superclass,Dimension)
 
-    using ReductionType = typename Superclass::template BasisReduction<Dimension>;
     using DifferenceType = EulerianDifference<OffsetType,ScalarType,0>;
-    using StencilType = EulerianStencil<DifferenceType,ReductionType::KKTDimension>;
+    using StencilType = EulerianStencil<DifferenceType,(Dimension*(Dimension+1))/2>;
 
 	constexpr static const Boundary_ClosedButLast<Dimension, lastBoundary> boundaryConditions{};
     using DomainType = PeriodicGrid<TraitsRiemann>;
@@ -31,7 +30,7 @@ struct StencilRiemann final
 	using ParamType = typename HFM::template _ParamDefault<2,void>; // Distinct scale on each axis
     ParamType param;
 
-	using ReductionType = typename Traits::ReductionType;
+    using ReductionType = typename Traits::template BasisReduction<Dimension>;
     using SymmetricMatrixType = typename ReductionType::SymmetricMatrixType;
     using MetricElementType = SymmetricMatrixType;
     using MetricType = typename Traits::template DataSource<MetricElementType>;
