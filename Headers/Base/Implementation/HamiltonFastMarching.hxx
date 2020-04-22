@@ -173,16 +173,12 @@ Update(FullIndexCRef updated, OffsetCRef offset, ScalarType acceptedValue){
 template<typename T> auto HamiltonFastMarching<T>::
 VisibleOffset(const IndexType & acceptedIndex, const OffsetType & offset,
 			  IndexType & updatedIndex) const -> DomainTransformType {
-	printf("Visible offset0");
     updatedIndex=acceptedIndex+IndexDiff::CastCoordinates(offset);
     DomainTransformType result = dom.Periodize(updatedIndex,acceptedIndex);
-	printf("Visible offset %i\n",int(extras.visible.size()));
-	return result;
     if(!result.IsValid()) return result;
     for(ExtraAlgorithmInterface * p : extras.visible){
         if(!p->Visible(acceptedIndex,offset,updatedIndex)) result.Invalidate();
 	}
-	printf("Visible offset 2-\n");
     return result;
 }
 

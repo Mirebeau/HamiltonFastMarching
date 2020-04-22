@@ -15,10 +15,6 @@ int main(int argc, const char * argv[]) {
     inputPrefix  = argc > 1 ? argv[1] : "input";
     outputPrefix = argc > 2 ? argv[2] : "output";
 
-	IO io(inputPrefix,outputPrefix);
-	Run(io);
-	return EXIT_SUCCESS;
-	
     try {
         IO io(inputPrefix,outputPrefix);
         Run(io);
