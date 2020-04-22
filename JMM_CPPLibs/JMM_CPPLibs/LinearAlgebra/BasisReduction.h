@@ -32,9 +32,10 @@ struct BasisReduction {
     typedef std::array<DiscreteVectorType, Dimension>   BasisType;
     typedef std::array<DiscreteVectorType, Dimension+1> SuperbaseType;
     static const size_t SymDimension = (Dimension*(Dimension+1))/2;
+	static constexpr int KKTDimension = SymDimension; // Differs in dimension 4, see VoronoiReduction
     struct TensorDecompositionType {
-        std::array<DiscreteVectorType,SymDimension> offsets;
-        std::array<ScalarType,SymDimension> weights;
+        std::array<DiscreteVectorType,KKTDimension> offsets;
+        std::array<ScalarType,KKTDimension> weights;
     };
     
     static const BasisType CanonicalBasis();
