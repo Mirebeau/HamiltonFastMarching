@@ -347,7 +347,6 @@ Run_SetupStencil() {
     
     const clock_t top = clock();
     pFM=std::unique_ptr<HFM>(new HFM(stencil));
-	pFM->stencilData.Initialize(pFM.get());
 	
     io.Set<ScalarType>("StencilCPUTime",ScalarType(clock()-top)/CLOCKS_PER_SEC);
 }

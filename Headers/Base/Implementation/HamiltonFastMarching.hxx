@@ -30,7 +30,7 @@ dom(_stencilData.dims), stencilData(_stencilData){
     
     activeNeighs.dims = values.dims;
     activeNeighs.resize(values.size());
-//    stencilData.Initialize(this);
+    stencilData.Initialize(this);
 };
 
 template<typename T> auto HamiltonFastMarching<T>::

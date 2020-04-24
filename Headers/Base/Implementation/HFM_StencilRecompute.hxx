@@ -32,13 +32,13 @@ struct HamiltonFastMarching<T>::_StencilDataType<SSP::Recomp,Dummy>
 	
 	struct RecomputeDataType {StencilType stencil; MultiplierType mult;}; // mult is dummy here
 	RecomputeDataType RecomputeData(IndexCRef);
-	virtual void Initialize(const HFM *) override;
 protected:
 	friend struct HamiltonFastMarching<Traits>;
 	virtual void EraseCache(DiscreteType index) override final {shallowStencilQuads.erase(index);}
 	
 	virtual ScalarType HopfLaxUpdate(FullIndexCRef, OffsetCRef, ScalarType, ActiveNeighFlagType &) override final;
 	template<typename F> RecomputeType HopfLaxRecompute(const F &, IndexCRef, ActiveNeighFlagType, DiscreteFlowType &);	
+	virtual void Initialize(const HFM *) override;
 private:
 	ShallowMap<DiscreteType, std::pair<StencilType, QuadType> > shallowStencilQuads;
 };
