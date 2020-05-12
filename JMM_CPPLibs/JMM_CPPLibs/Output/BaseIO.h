@@ -20,8 +20,6 @@ struct BaseIO : TraitsIO {
     bool EraseField(KeyCRef);
     std::string GetString(KeyCRef) const;
     void SetString(KeyCRef, const std::string &);
-	std::set<std::string> keyHelp;
-	void SetHelp(KeyCRef, const std::string &);
 
     BaseIO(){};
     void UsageReport();
@@ -42,7 +40,6 @@ protected:
         else std::cout << msg;}
     virtual void SendMsg(bool warn, const std::string & msg) const {return StaticSendMsg(warn,msg);}
     template<bool,typename> friend struct _Msg;
-	std::vector<std::string> unusedHelp;
 };
 
 #include "BaseIO.hxx"

@@ -4,6 +4,31 @@
 #ifndef IO_hxx
 #define IO_hxx
 
+
+
+// ----- Help related ----
+template<typename Base>
+void IO_<Base>::SetHelp(KeyCRef key, const std::string & help) {
+
+    if(keyHelp.erase(key)){
+		Msg() << "----- Help for key : " << key << " -----\n"
+        << help << "\n------------------------\n";
+    } else {
+        unusedHelp.push_back(key);
+    }
+}
+
+template<typename Base>
+void IO_<Base>::UsageReport(){
+    Base::UsageReport();
+    
+    if(!keyHelp.empty()){
+        std::ostringstream oss;
+        oss << "Sorry, no help found for:";
+        for(KeyCRef key : keyHelp) oss << " " << key ;
+		Msg() << oss.str() << "\n";
+    }
+}
 // Input
 
 template<typename Base>

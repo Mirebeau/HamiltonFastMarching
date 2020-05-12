@@ -96,7 +96,10 @@ template<typename Base> struct IO_ : Base {
     template<typename T> std::vector<DiscreteType> GetDimensions(KeyCRef,
 					ArrayOrdering=ArrayOrdering::Ignore) const;
 	int GetElementSize(KeyCRef, int) const;
-    
+    void SetHelp(KeyCRef, const std::string &);
+    std::set<std::string> keyHelp;
+    void UsageReport();
+
     // Output
     template<typename T> void Set(KeyCRef, const T &);
     template<typename T> void SetVector(KeyCRef, const std::vector<T> &);
@@ -111,6 +114,7 @@ protected:
     template<typename T, size_t d, typename TI = const T *> struct ReverseTransposeVals;
     
     template<typename T, size_t d> void Set(KeyCRef, DimType<d>, const T*);
+    std::vector<std::string> unusedHelp;
 };
 
 
