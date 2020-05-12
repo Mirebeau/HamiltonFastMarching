@@ -13,13 +13,15 @@ requirements:
     channels:
         - conda-forge
 #        - agd-lbr # Does not seem to work, channel added in conda-build command
-    build:
-        #- {{ compiler('cxx') }}
+    host:
         - python {{PY_VER}}*
+    build:
+        - {{ compiler('cxx') }}
         - setuptools
         - pybind11
         - numpy
         - cmake
+        - git
     run:
         - python {{PY_VER}}*
         - numpy
