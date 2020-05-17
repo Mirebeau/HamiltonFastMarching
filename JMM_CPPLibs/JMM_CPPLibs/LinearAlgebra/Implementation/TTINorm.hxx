@@ -38,7 +38,7 @@ T TTINorm<TS,VD>::Level(const Vector<T,Dimension> & p0) const {
 	if constexpr(Dimension==2){
 		return 1.-(p.ScalarProduct(linear) + 0.5*quadratic.SquaredNorm(p));
 	} else { static_assert(Dimension==3,"Unsupported dimension");
-		Vector<T,2> q{p[0],p[1]+p[2]};
+		Vector<T,2> q{p[0]+p[1],p[2]};
 		return 1.-(q.ScalarProduct(linear) + 0.5*quadratic.SquaredNorm(q));
 	}
 }
@@ -93,9 +93,9 @@ Selling(ScalarType t) const -> SellingPath {
 	// Generate the extremal symmetric matrices
 	const TransformType & A = transform.Inverse();
 	using Sym = SymmetricMatrixType;
-	Sym D0 = Sym::RankOneTensor(A.Row(0));
-	Sym D1 = Dimension==2 ? Sym::RankOneTensor(A.Row(1)) :
-	Sym::RankOneTensor(A.Row(1)) + Sym::RankOneTensor(A.Row(2));
+	Sym D0 = Dimension==2 ? Sym::RankOneTensor(A.Row(0)) : 
+	Sym::RankOneTensor(A.Row(0)) + Sym::RankOneTensor(A.Row(1));
+	Sym D1 = Sym::RankOneTensor(A.Row(Dimension-1));
 	return SellingPath(D0,D1,t);
 }
 
@@ -274,7 +274,7 @@ Gradient(const VectorType & q0) const -> VectorType {
 	
 	const VectorType q1 = transform*q0;
 	using std::sqrt;
-	const Vec2 q{q1[0],Dimension==2 ? q1[1] : sqrt(q1[1]*q1[1]+q1[2]*q1[2])};
+	const Vec2 q{Dimension==2 ? q1[0] : sqrt(q1[0]*q1[0]+q1[1]*q1[1]), q1[Dimension-1]};
 	// Solve analytically the first sqp step
 	const ScalarType q0a=q[0]/a,q1b=q[1]/b;
 	using std::sqrt;
@@ -297,9 +297,9 @@ Gradient(const VectorType & q0) const -> VectorType {
 	
 	if constexpr(Dimension==2){return ttrans*p;}
 	else {
-		const ScalarType n12 = q[1]; // Norm of components 1 and 2 of q1
-		if(n12==0.){return ttrans*VectorType{p[0],0.,0.};}
-		else {return ttrans*VectorType{p[0],p[1]*q1[1]/n12,p[1]*q1[2]/n12};}
+		const ScalarType n01 = q[0]; // Norm of components 1 and 2 of q1
+		if(n01==0.){return ttrans*VectorType{0.,0.,p[1]};}
+		else {return ttrans*VectorType{p[0]*q1[0]/n01,p[0]*q1[1]/n01,p[1]};}
 	}
 	
 	
