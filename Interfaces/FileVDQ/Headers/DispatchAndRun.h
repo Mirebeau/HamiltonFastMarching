@@ -26,6 +26,9 @@ void Run(IO & io){
 		case 6: return RunT<3>(io,GridDimension);
 		case 10:return RunT<4>(io,GridDimension);
 		case 15:return RunT<5>(io,GridDimension);
+#ifdef Voronoi6
+		case 21:return RunT<6>(io,GridDimension);
+#endif
 		default:
 			ExceptionMacro("Error : first dimension " << TensorInternalDimension <<
 						   " of field tensors is incorrect. Should be the number of independent entries of the symmetric matrices, namely (d+1)/2, where 1<=d<=5");

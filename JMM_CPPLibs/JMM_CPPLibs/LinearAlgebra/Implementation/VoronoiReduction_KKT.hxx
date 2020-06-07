@@ -11,10 +11,24 @@
 
 template<typename TS, int VD> auto VoronoiFirstReduction<TS,VD>::
 TensorDecomposition(const SymmetricMatrixType & m,ScalarType tol) -> KKTRelationType {
+#ifdef Voronoi6
+	if constexpr(Dimension<6){
+#endif
     SimplexStateType state(m);
     if(tol>=0){GreedyBasis(state,tol);}
     Minimize(state);
     return KKT(state);
+		
+#ifdef Voronoi6 // Call the agd code (GPU intended)
+	} else {
+		KKTRelationType kkt;
+		OffsetT offsets[SymDimension][Dimension];
+		decomp_m(m.data.data(),kkt.weights.data(),offsets);
+		for(int i=0; i<SymDimension; ++i){
+			for(int j=0; j<Dimension; ++j){kkt.offsets[i][j] = offsets[i][j];}}
+		return kkt;
+	}
+#endif
 }
 
 

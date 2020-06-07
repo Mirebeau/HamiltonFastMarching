@@ -25,7 +25,25 @@
 
 #include "../Macros/ExportArrow.h"
 #include "SymmetricMatrixType.h"
+
+#ifdef Voronoi6
+// Various macros and typedefs to allow executing the "CUDA" code on the CPU.
+#define Scalar_macro
+#define DOUBLE
+typedef double Scalar;
+#define __restrict__
+#include <cmath>
+#include <iostream>
+using std::sqrt; using std::max; using std::min; using std::__clz;
+#define IOSTREAM
+//#include "Eikonal/HFM_CUDA/CUDA/geometry6.h"
+#include "/Users/mirebeau/Dropbox/Programmes/Github/AdaptiveGridDiscretizations/agd/Eikonal/HFM_CUDA/cuda/Geometry6.h"
+#else
+// Linear solver (already included in the "CUDA" case
 #include "Implementation/LinProg/Siedel_Hohmeyer_LinProg.h"
+#endif
+
+
 
 template<typename TScalar,int VDimension>
 struct VoronoiFirstReduction {
