@@ -156,6 +156,7 @@ HopfLaxUpdate(FullIndexCRef full, OffsetCRef acceptedOffset,
 		stencil.Sector(sectors[1],0)
 	};
 	
+	/*
 	// A failed experiment. TODO : remove ?
 	constexpr bool useSecondOrderOnFirstPass = false;
 	if constexpr(useSecondOrderOnFirstPass){ // -----------------------
@@ -187,38 +188,39 @@ HopfLaxUpdate(FullIndexCRef full, OffsetCRef acceptedOffset,
 		}
 		return oldValue;
 		
-	} else { // ------- do not use second order on first pass... -----------
-		auto & fm = *(this->pFM);
-		fm.template SetIndex<true,false>(updatedIndex); // useFactoring, smallCorrection
-		int order=1;
+	} else { 
+	*/
+	// ------- do not use second order on first pass... -----------
+	auto & fm = *(this->pFM);
+	fm.template SetIndex<true,false>(updatedIndex); // useFactoring, smallCorrection
+	int order=1;
 
-		// Get accepted value, with factoring correction
-		OffsetVal3 offsetVal;
-		offsetVal.push_back({acceptedOffset,
-			fm.template GetNeighborValue<true,false,1>(acceptedOffset,order)});
-		assert(order==1);
-		
-		std::array<ShortType, 3> act;
-		act[0] = sectors[0];
-		
-		// Get neighbor values
-		for(int i=0; i<2; ++i){
-			int ord=order;
-			const ScalarType neighVal =
-			fm.template GetNeighborValue<true,false,1>(neighOffsets[i],ord);
-			if(ord==1){
-				act[offsetVal.size()]=sectors[i];
-				offsetVal.push_back({neighOffsets[i],neighVal});
-			}
+	// Get accepted value, with factoring correction
+	OffsetVal3 offsetVal;
+	offsetVal.push_back({acceptedOffset,
+		fm.template GetNeighborValue<true,false,1>(acceptedOffset,order)});
+	assert(order==1);
+	
+	std::array<ShortType, 3> act;
+	act[0] = sectors[0];
+	
+	// Get neighbor values
+	for(int i=0; i<2; ++i){
+		int ord=order;
+		const ScalarType neighVal =
+		fm.template GetNeighborValue<true,false,1>(neighOffsets[i],ord);
+		if(ord==1){
+			act[offsetVal.size()]=sectors[i];
+			offsetVal.push_back({neighOffsets[i],neighVal});
 		}
-		const auto [newValue,newActive] = HopfLaxUpdate(updatedIndex,offsetVal);
-		const ScalarType oldValue = fm.values[full.linear];
-		if(newValue>=oldValue) return oldValue;
-		
-		if constexpr(std::is_same_v<void,SectorIndexType>){assert(false);}
-		else {active.sectorIndex = act[newActive];}
-		return newValue;
 	}
+	const auto [newValue,newActive] = HopfLaxUpdate(updatedIndex,offsetVal);
+	const ScalarType oldValue = fm.values[full.linear];
+	if(newValue>=oldValue) return oldValue;
+	
+	if constexpr(std::is_same_v<void,SectorIndexType>){assert(false);}
+	else {active.sectorIndex = act[newActive];}
+	return newValue;
 }
 
 // HopfLaxRecompute
