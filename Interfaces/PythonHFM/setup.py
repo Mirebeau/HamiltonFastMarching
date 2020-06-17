@@ -61,7 +61,7 @@ class CMakeBuild(build_ext):
 
 setup(
     name=PKG_NAME,
-    version='0.2.8',
+    version='0.2.9',
     author='Jean-Marie Mirebeau',
     author_email='jm.mirebeau@gmail.com',
     description='HFM python wrapper',
