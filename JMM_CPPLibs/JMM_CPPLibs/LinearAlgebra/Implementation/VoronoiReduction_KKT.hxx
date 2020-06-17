@@ -374,7 +374,7 @@ KKT(const SimplexStateType & state) -> KKTRelationType {
 				int next[max_size] = {1,2,3,4,5,6,7,8,9,10,11};
 				int prev[max_size] = {BadIndex,0,1,2,3,4,5,6,7,8,9};
 				
-				dlinprog(&halves[0][0], 0, m, n_vec, d_vec, d, opt, work, next, prev, max_size);
+				linprog(&halves[0][0], 0, m, n_vec, d_vec, d, opt, work, next, prev, max_size);
 
 				// Normalize projective solution
 				assert(opt[5]!=0);
@@ -486,7 +486,7 @@ KKT(const SimplexStateType & state) -> KKTRelationType {
 				int next[max_size] = {1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21};
 				int prev[max_size] = {BadIndex,0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19};
 				
-				dlinprog(&halves[0][0], 0, m, n_vec, d_vec, d, opt, work, next, prev, max_size);
+				linprog(&halves[0][0], 0, m, n_vec, d_vec, d, opt, work, next, prev, max_size);
 				
 				// TODO : check that status is correct
 				// Get the solution, and find the non-zero weights, which should be positive.
