@@ -15,7 +15,7 @@ void PythonIO::PySetArray(KeyCRef key, ndarray arr) {
     for(int i=0; i<ndims; ++i)
         raw.dims[i]=info.shape[i];
     
-    const DiscreteType flattenedLength = raw.FlattenedLength();
+    const DiscreteType flattenedLength = raw.FlattenedLength(true); // Empty field
     raw.data.resize(flattenedLength);
     
     ScalarType * beg = reinterpret_cast<ScalarType*>(info.ptr);

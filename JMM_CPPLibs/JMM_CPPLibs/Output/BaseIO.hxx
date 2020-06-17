@@ -21,8 +21,11 @@ struct BaseIO::RawElement {
     bool IsScalar() const {return !data.empty() && dims.size()==0;}
     void Clear(SetterTag tag) {str.clear(); dims.clear(); data.clear();setter=tag;}
     RawElement(SetterTag tag):setter(tag){};
-    DiscreteType FlattenedLength() const {
-        if(IsString()) {ExceptionMacro("BaseIO::RawElement::FlattenedLength error, field is a string");}
+    DiscreteType FlattenedLength(const bool empty=false) const {
+        /* When the data is empty, and the size is empty, 
+        (a.k.a the field will hold a yet unspecified scalar) 
+        IsString returns a false positive.*/
+        if(!empty && IsString()) {ExceptionMacro("BaseIO::RawElement::FlattenedLength error, field is a string");}
         DiscreteType res=1;
         for(auto dim : dims) res*=dim;
         return res;
