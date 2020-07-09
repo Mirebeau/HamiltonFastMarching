@@ -10,8 +10,7 @@
 
 #include "JMM_CPPLibs/LinearAlgebra/VoronoiReduction.h"
 
-template<size_t TensorDimension> void RunT(IO &, size_t);
-template<size_t TensorDimension,size_t GridDimension> void RunTG(IO &);
+template<size_t TensorDimension> void RunTG(IO &);
 
 void Run(IO & io){
 	io.arrayOrdering = TraitsIO::ArrayOrdering::RowMajor;
@@ -19,15 +18,15 @@ void Run(IO & io){
 	const auto dims = io.GetDimensions<ScalarType>("tensors");
 	if(dims.empty()) ExceptionMacro("Error : field tensors is empty");
 	const size_t TensorInternalDimension = dims.back();
-	const size_t GridDimension = dims.size()-1;
+	if(dims.size()!=2) {ExceptionMacro("Error: expected two dimensional array");}
 	switch (TensorInternalDimension) {
-		case 1: return RunT<1>(io,GridDimension);
-		case 3: return RunT<2>(io,GridDimension);
-		case 6: return RunT<3>(io,GridDimension);
-		case 10:return RunT<4>(io,GridDimension);
-		case 15:return RunT<5>(io,GridDimension);
+		case 1: return RunTG<1>(io);
+		case 3: return RunTG<2>(io);
+		case 6: return RunTG<3>(io);
+		case 10:return RunTG<4>(io);
+		case 15:return RunTG<5>(io);
 #ifdef Voronoi6
-		case 21:return RunT<6>(io,GridDimension);
+		case 21:return RunTG<6>(io);
 #endif
 		default:
 			ExceptionMacro("Error : first dimension " << TensorInternalDimension <<
@@ -35,26 +34,8 @@ void Run(IO & io){
 	}
 }
 
-
-template<size_t TensorDimension> void RunT(IO & io, size_t GridDimension){
-	if(GridDimension==0) return RunTG<TensorDimension,0> (io);
-	else if(GridDimension==1) return RunTG<TensorDimension, 1>(io);
-	else if(GridDimension==TensorDimension) return RunTG<TensorDimension,TensorDimension>(io);
-	else ExceptionMacro("Error : unsupported grid dimension " << GridDimension
-						<< " should be 0,1, or " << TensorDimension);
-	/* // PB with duplicate case if TensorDimension==1
-	switch (GridDimension) {
-		case 0: return RunTG<TensorDimension,0> (io);
-		case 1: return RunTG<TensorDimension,1> (io);
-		case TensorDimension: return RunTG<TensorDimension,TensorDimension>(io);
-		default:
-			ExceptionMacro("Error : unsupported grid dimension " << GridDimension
-						   << " should be 0,1, or " << TensorDimension);
-	}*/
-}
-
-
-template<size_t TensorDimension, size_t GridDimension> void RunTG(IO & io){
+template<size_t TensorDimension> void RunTG(IO & io){
+	const size_t GridDimension = 1;
 	typedef IO::ScalarType ScalarType;
 	typedef VoronoiFirstReduction<ScalarType, TensorDimension> ReductionType;
 	typedef typename ReductionType::SymmetricMatrixType SymmetricMatrixType;
@@ -63,6 +44,9 @@ template<size_t TensorDimension, size_t GridDimension> void RunTG(IO & io){
 	constexpr size_t KKTDimension = ReductionType::KKTDimension;
 	
 	const auto tensors = io.GetArray<SymmetricMatrixType,GridDimension>("tensors");
+	const auto steps = io.GetString("steps","Both");
+	if(steps!="Both" and steps!="Split")
+		ExceptionMacro("Excepted steps to be either 'Both' or 'Split'");
 	ReductionType reduc;
 	
 	LinearAlgebra::Array<ScalarType, GridDimension+1> weights;
@@ -90,6 +74,61 @@ template<size_t TensorDimension, size_t GridDimension> void RunTG(IO & io){
 	io.currentSetter = TraitsIO::SetterTag::Compute;
 	io.SetArray("weights", weights);
 	io.SetArray("offsets", offsets);
+	
+	if(steps=="Both") return;
+	/* Split case : we need also to return the details of the optimization problem
+	 solution. Since this is expected to be an uncommon case, we just recompute.*/
+	
+	typedef typename ReductionType::MatrixType MatrixType;
+	typedef typename ReductionType::SimplexStateType SimplexStateType;
+
+	LinearAlgebra::Array<MatrixType, GridDimension> chg;
+	LinearAlgebra::Array<ScalarType, GridDimension> vertex;
+	LinearAlgebra::Array<ScalarType, GridDimension> objective;
+	const auto dims = tensors.dims; const size_t size = tensors.size();
+	chg.dims = dims; vertex.dims = dims; objective.dims = dims;
+	chg.resize(size); vertex.resize(size); objective.resize(size);
+
+	auto itChg = chg.begin();
+	auto itVertex = vertex.begin();
+	auto itObjective = objective.begin();
+	for(auto itT = tensors.begin(); itT!=tensors.end();
+		++itT,++itChg,++itVertex,++itObjective){
+	if constexpr(TensorDimension<6){
+		SimplexStateType state(*itT);
+//		if(tol>=0){GreedyBasis(state,tol);}
+		reduc.Minimize(state);
+		*itChg = state.a;
+		*itVertex = state.vertex;
+		*itObjective = state.objective;
+	} else {
+#ifdef Voronoi6
+		const SymmetricMatrixType & m = *itT;
+		MatrixType & a = *itChg;
+		// Load the data
+		Voronoi::SimplexStateT state;
+		for(Int i=0; i<symdim; ++i){state.m[i] = m.data.data()[i];}
+
+		// Do the minimization
+		identity_A(state.a);
+		Voronoi::FirstGuess(state);
+		for(int i=0; i<Voronoi::maxiter; ++i){if(!Voronoi::BetterNeighbor(state)){break;}}
+
+		// Export the results
+		for(int i=0; i<ndim; ++i){
+			for(int j=0; j<ndim; ++j){
+				a(i,j) = state.a[i][j];}
+		}
+		*itVertex = state.vertex;
+		*itObjective = state.objective;
+#endif
+	}
+	} // For all tensors
+
+	io.SetArray("chg",chg);
+	io.SetArray("vertex",vertex);
+	io.SetArray("objective",objective);
+	
 }
 
 #endif /* DispatchAndRun_h */

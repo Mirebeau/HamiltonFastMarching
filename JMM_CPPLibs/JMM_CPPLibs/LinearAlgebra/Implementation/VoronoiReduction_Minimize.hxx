@@ -120,7 +120,8 @@ BetterNeighbor(SimplexStateType & state){
             small s = *iwIt;
             const int ind = int(s >> 4);
             s = s & 15;
-            const ScalarType wei = ScalarType(s) - ScalarType(s>=2 ? 1: 2);
+			const ScalarType wei =
+			Dimension==2 ? (ScalarType(s)-8) : (ScalarType(s) - ScalarType(s>=2 ? 1: 2));
             obj += wei*data[ind];
             if(!(((*stopIt)>>stop8)&1)) continue;
             if(obj<bestObj) {

@@ -36,12 +36,12 @@ typedef double Scalar;
 #include <iostream>
 using std::sqrt; using std::max; using std::min; using std::__clz;
 #define IOSTREAM
+#define SIMPLEX_TOL 2e-14
 //#include "Eikonal/HFM_CUDA/CUDA/geometry6.h"
 #include "/Users/mirebeau/Dropbox/Programmes/Github/AdaptiveGridDiscretizations/agd/Eikonal/HFM_CUDA/cuda/Geometry6.h"
-#else
-// Linear solver (already included in the "CUDA" case
-#include "Implementation/LinProg/Siedel_Hohmeyer_LinProg.h"
 #endif
+
+#include "Implementation/LinProg/Siedel_Hohmeyer_LinProg.h"
 
 
 
