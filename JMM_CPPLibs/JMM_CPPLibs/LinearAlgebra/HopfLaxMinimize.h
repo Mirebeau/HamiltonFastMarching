@@ -51,6 +51,7 @@ namespace LinearAlgebra {
     HopfLaxMinimizeInv_NoCheck(const SymmetricMatrixType & m,
                                const VectorType & d,
                                VectorType & g){
+		using std::sqrt;
 		if(VectorType::Dimension==1){
 			const ComponentType invNorm0 = sqrt(m(0,0));
 			g[0]=invNorm0;

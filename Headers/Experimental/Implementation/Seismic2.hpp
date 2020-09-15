@@ -46,8 +46,8 @@ HopfLaxUpdate(IndexCRef index, const OffsetVal3 & offsetVal)
 	int active;
 	ScalarType value;
 	
-	if(useCache){
-		// --- Version caching the gradients (faster) ---
+	if constexpr(Traits::useCache==GradientCachingStrategy::Full) {
+		// --- Version fully caching the gradients (counter productive it seems) ---
 		const DiscreteType linearIndex = this->indexConverter.Convert(index);
 		
 		auto hash = [&offsetVal,&linearIndex,this](int i) -> long {
@@ -98,7 +98,8 @@ HopfLaxUpdate(IndexCRef index, const OffsetVal3 & offsetVal)
 			}
 		}
 		
-	} else if(true) { // --- Recomputation based variant with a bit of local caching ---
+	} else if constexpr(Traits::useCache == GradientCachingStrategy::Local) {
+		// --- Recomputation based variant with a bit of local caching ---
 		
 		// Compute and save gradient at new vertex
 		const VectorType neigh0 = neigh(0);
@@ -136,8 +137,9 @@ HopfLaxUpdate(IndexCRef index, const OffsetVal3 & offsetVal)
 			}
 		}
 		
-	} else { // Never enabled
-		// --- Version with full gradient recomputation --- (most costly)
+	} else if constexpr(Traits::useCache==GradientCachingStrategy::None){
+		// --- Version with full gradient recomputation ---
+		// Most costly for seismic2 norms, ok if gradient is cheap
 		if(offsetVal.size()==1) {
 			value = norm.HopfLax({neigh(0)},Vec<1>{val(0)}).first;
 			active = 0;
@@ -216,7 +218,7 @@ Setup(HFMI * that){
 	Superclass::Setup(that); param.Setup(that);
 	pMetric = that->template GetField<MetricElementType>("metric",false);
 	cosAngleMin = that->io.Get("cosAngleMin", cosAngleMin);
-	if(useCache){
+	if(Traits::useCache!=GradientCachingStrategy::Full){
 		const IndexType dims = this->indexConverter.dims;
 		const size_t front_size_estim = dims.Product()/(*std::max_element(dims.begin(),dims.end()));
 		const size_t active_neighbors_estim = 5*front_size_estim;
@@ -240,7 +242,7 @@ hash(DiscreteType index,OffsetType offset){
 template<typename T> void
 StencilGenericLag2<T>::
 EraseCache(DiscreteType index) {
-	if(!useCache) return;
+	if(Traits::useCache!=GradientCachingStrategy::Full) return;
 	const auto rg = vertexCacheKeys.equal_range(index);
 	for(auto [ind,key] : RangeAccessor{rg.first,rg.second}) {vertexCache.erase(key);}
 	vertexCacheKeys.erase(rg.first,rg.second);

@@ -176,6 +176,7 @@ if(model== #modelName){ \
 
 #include "Experimental/AlignedBillard.h"
 #include "Experimental/TTI.h"
+#include "Experimental/AsymRander.h"
 
 #endif
 /*
@@ -233,6 +234,7 @@ void Run(IO & io){
 #ifdef Custom
 // This custom executable is here to let the user choose the adequate combination of (FastMarchingClass, Model) for his/her application.
 
+	HFMSpecializationMacro(AsymRander2)
 //	HFMSpecializationMacro(TTI2)
 //	HFMSpecializationMacro(TTI3)
 //    HFMSpecializationMacro(IsotropicDiff<2>)

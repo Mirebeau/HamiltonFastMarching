@@ -67,7 +67,8 @@ struct SeismicNorm {
 	std::pair<ComponentType, Vec<2> > HopfLax(Mat<2> const&, Vec<2> const &) const;
 	std::pair<ComponentType, Vec<3> > HopfLax(Mat<3> const&, Vec<3> const &) const;
 	
-	// Optimized variants, avoiding multiple recomputations. Additional arguments are caching data.
+	// Optimized variants, avoiding multiple recomputations.
+	// Additional arguments are caching data (gradient at the optimal point in normalized coords)
 	std::pair<ComponentType, Vec<1> > HopfLax(Mat<1> const&, Vec<1> const &,
 											  VectorType &) const;
 	std::pair<ComponentType, Vec<2> > HopfLax(Mat<2> const&, Vec<2> const &,
@@ -102,7 +103,7 @@ protected:
 	constexpr static const ComponentType
 	constraintBound_GradNorm = 1000*std::numeric_limits<ComponentType>::epsilon(),
 	constraintBound_HopfLax_Edge = 1000*std::numeric_limits<ComponentType>::epsilon();
-*/
+	*/
 	// Internal methods for accelerating GradNorm and _HopfLax_Edge computations
 	using AD2Type = AD2<ComponentType, Dimension>;
 	using AD2SymType = LinearAlgebra::SymmetricMatrix<AD2Type, Dimension>;

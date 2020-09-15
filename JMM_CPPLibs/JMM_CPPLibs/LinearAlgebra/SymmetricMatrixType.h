@@ -87,11 +87,12 @@ vector_space< SymmetricMatrix<TComponent, VDimension>, TComponent>
     static SymmetricMatrix FromUpperTriangle(const MatrixType & mat);
     SymmetricMatrix operator=(ComponentType a); // Dimension 1 only
     
+	/// Returns symmetric matrix M_ij = m.ScalarProduct(a[i],a[j]);*/
     template<typename T, size_t D> SymmetricMatrix<ComponentType,D>
     Gram(const std::array<Vector<T,Dimension>, D> & a) const;
-    template<size_t D> SymmetricMatrix<ComponentType, D> // a^T.m.a
+    template<size_t D> SymmetricMatrix<ComponentType, D> /// a^T.m.a
     Gram(const Matrix<ComponentType,Dimension,D> & a) const;
-    template<size_t D> SymmetricMatrix<ComponentType, D> // a.m.a^T
+    template<size_t D> SymmetricMatrix<ComponentType, D> /// a.m.a^T
     GramT(const Matrix<ComponentType,D,Dimension> & a) const;
     template<typename T, size_t D> static SymmetricMatrix
 	EuclideanGram(const std::array<Vector<T,D>, Dimension> & a);

@@ -17,6 +17,8 @@
 #include "JMM_CPPLibs/LinearAlgebra/ComposedNorm.h"
 #include "JMM_CPPLibs/LinearAlgebra/VectorPairType.h"
 
+enum class GradientCachingStrategy {None,Local,Full};
+
 struct TraitsSeismic2 : TraitsBase<2> {
 	using StencilType = Lagrangian2Stencil<OffsetType,ScalarType,DiscreteType>;
 	using DomainType = PeriodicGrid<TraitsSeismic2>;
@@ -28,6 +30,8 @@ struct TraitsSeismic2 : TraitsBase<2> {
 	using GridScalesType = ScalarType;
 	static NormType MakeNorm(const MetricElementType & m, GridScalesType h){
 		return NormType{(1./square(h))*m};}
+	
+	static constexpr GradientCachingStrategy useCache = GradientCachingStrategy::Local;
 };
 
 struct TraitsSeismicTopographic2 : TraitsBase<2> {
@@ -47,6 +51,8 @@ struct TraitsSeismicTopographic2 : TraitsBase<2> {
 		TransformType a=m.second;
 		for(int i=0; i<Dimension; ++i) {for(int j=0; j<Dimension; ++j) {a(i,j)*=h[j];}}
 		return NormType{m.first, a};}
+	
+	static constexpr GradientCachingStrategy useCache = GradientCachingStrategy::Local;
 };
 
 template<typename TTraits>
@@ -90,7 +96,6 @@ private:
 	
 	// Tentative optimization : avoid recomputing gradients.
 	// Actually counter productive : 50% more cpu time, cost of memory allocations exceeds gains.
-	const bool useCache = false;
 	std::unordered_map<long,VectorType> vertexCache;
 	std::unordered_multimap<DiscreteType,long> vertexCacheKeys;
 	virtual void EraseCache(DiscreteType index) override final;

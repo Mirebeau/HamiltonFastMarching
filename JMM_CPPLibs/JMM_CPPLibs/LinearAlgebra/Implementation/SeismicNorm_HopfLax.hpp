@@ -9,14 +9,27 @@
 #define SeismicNorm_HopfLax_hpp
 
 
-// ********* Hopf Lax operator for seismic norms *********
+/** ********* Hopf Lax operator for seismic norms *********
+
+Input : 
+- neigh : vertices of the simplex on which to do the optimization.
+- l : values of the arrival time at these vertices
+
+Output : 
+- (Scalar value) val : estimated arrival time at the center of the stencil.
+- (Vector value) w   : coefficients of the geodesic flow.
+
+By construction, w >= 0, and 
+sum_i w_i neigh_i is a unit vector, for the norm of interest, the geodesic flow.
+*/
 
 // ------ Single vertex --------
 
 template<typename TC, size_t VD> auto SeismicNorm<TC, VD>::
 HopfLax(Mat<1> const& neigh, Vec<1> const& l)
 const -> std::pair<ComponentType,Vec<1> > {
-	return {Norm(neigh[0])+l[0], {1.}};
+	const ScalarType norm0 = Norm(neigh[0]);
+	return {norm0+l[0], {1./norm0}};
 }
 
 
