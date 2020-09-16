@@ -5,7 +5,7 @@ SET(StandardModelNames "Isotropic2;Isotropic3;Diagonal2;Diagonal3;Riemann2;Riema
 
 # Also, Seismic3SIMD, which requires additional libraries
 
-Set(ExperimentalModelNames "Seismic2;SeismicTopographic2;Seismic3;SeismicTopographic3;AlignedBillard;Riemann4;Riemann5;Elastica2_9;ElasticaExt2_5;ReedsSheppExt2;ReedsSheppForwardExt2;RiemannDiff2;RiemannLifted2_Periodic;Rander2;AsymmetricQuadratic2;AsymmetricQuadratic3;AsymmetricQuadratic3p1;Riemann3_Periodic" CACHE STRING "ExperimentalModelNames")
+Set(ExperimentalModelNames "Seismic2;SeismicTopographic2;Seismic3;SeismicTopographic3;AlignedBillard;Riemann4;Riemann5;Elastica2_9;ElasticaExt2_5;ReedsSheppExt2;ReedsSheppForwardExt2;RiemannDiff2;RiemannLifted2_Periodic;Rander2;AsymmetricQuadratic2;AsymmetricQuadratic3;AsymmetricQuadratic3p1;Riemann3_Periodic;AsymRander2" CACHE STRING "ExperimentalModelNames")
 Set(CustomModelNames "" CACHE STRING "CustomModelNames")
 
 option(IncludeStandardModels "IncludeStandardModels" TRUE)

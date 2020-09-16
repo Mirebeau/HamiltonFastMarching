@@ -133,6 +133,7 @@ SetNeighbors(IndexCRef index, std::vector<OffsetType> & stencil) {
 		
 		SternBrocotRefine(pred, stencil, tmp_stencil);
 		 */
+		
 		SternBrocotRefine_AcuteBound(norm, cosAngleMin, stencil,
 									 tmp_stencil, tmp_stencil_vec, tmp_stencil_scal);
 

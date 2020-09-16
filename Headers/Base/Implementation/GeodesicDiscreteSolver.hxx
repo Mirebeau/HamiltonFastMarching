@@ -30,6 +30,8 @@ GeodesicDiscreteSolver<Traits>::Run(HFMI * that, const std::vector<PointType> & 
             << "geodesicVolumeBound increased to " << effectiveVolumeBound;}
         result.push_back(std::move(geodesic));
     }
+	std::cout << "Ended Geodesic Discrete Solver" << std::endl;
+	
     return result;
 }
 
@@ -115,7 +117,12 @@ GeodesicDiscrete(std::vector<PointType> & geodesic) const {
 	
     while(!geo.empty() && weightSum>weightSumLowerBound){
 		
-//		std::cout << weightSum << std::endl;
+		std::cout << "Discrete geo run : "
+		ExportVarArrow(weightSum)
+		ExportVarArrow(geo.size())
+		ExportVarArrow(indexAvg)
+		<< std::endl;
+		
         // Extract and erase point with largest value.
         const auto it = --geo.end(); // point with largest value
 		const auto [value,index] = it->first;
@@ -168,6 +175,17 @@ GeodesicDiscrete(std::vector<PointType> & geodesic) const {
         steps.push_back({value,step});
         stepNorm+=step.Norm();
 		
+        DiscreteFlowType flow2;
+		std::cout
+		ExportVarArrow(indexAvg)
+		ExportVarArrow(indexSum)
+		ExportVarArrow(weightSum)
+		ExportVarArrow(flow)
+		ExportVarArrow(perIndex)
+		ExportVarArrow(fm.Recompute(perIndex,flow2))
+		<< std::endl;
+		
+								 
         if(geo.size()==1){ // If geodesic concentrates at a seed or around a wall corner.
 			if(flow.empty()) break; // At seed
             geodesic.push_back(indexAvg+HalfVec);

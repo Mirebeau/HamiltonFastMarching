@@ -166,6 +166,7 @@ HopfLaxUpdate(IndexCRef index, const OffsetVal3 & offsetVal)
 template<typename T> auto StencilGenericLag2<T>::
 HopfLaxRecompute(IndexCRef index, DiscreteFlowType & flow)
 -> RecomputeType {
+	
 	assert(!flow.empty());
 	const NormType & norm = GetNorm(index);
 
@@ -180,6 +181,9 @@ HopfLaxRecompute(IndexCRef index, DiscreteFlowType & flow)
 		return flow[i].weight;
 	};
 
+	if(index == IndexType{115,115}){
+		std::cout << "In HopfLaxRecompute, " << flow << std::endl;
+	}
 	
 	if(flow.size()==1){
 		const auto & [value,weights] = norm.HopfLax({neigh(0)},Vec<1>{w(0)});
@@ -191,6 +195,13 @@ HopfLaxRecompute(IndexCRef index, DiscreteFlowType & flow)
 		const ScalarType width = weights[0]*abs(value-w(0))+weights[1]*abs(value-w(1));
 		w(0)=weights[0]; w(1)=weights[1];
 		assert(weights.Sum()>0);
+		if(index == IndexType{115,115}){
+			std::cout
+			ExportVarArrow(value)
+			ExportVarArrow(weights)
+			<< std::endl;
+		}
+
 		return {value,width/weights.Sum()};
 	}
 }
@@ -209,7 +220,7 @@ SetNeighbors(IndexCRef index, std::vector<OffsetType> & stencil){
 	
 	SternBrocotRefine(pred, stencil, tmp_stencil);
 	*/
-	
+		
 	SternBrocotRefine_AcuteBound(norm, cosAngleMin, stencil, tmp_stencil, tmp_stencil_vec, tmp_stencil_scal);
 }
 

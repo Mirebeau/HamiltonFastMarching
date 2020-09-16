@@ -84,6 +84,8 @@ const std::string ModelNameString=STRING(ModelName);
 
 #define AlignedBillard_AlignedBillard 1
 
+#define AsymRander2_AsymRander2 1
+
 // **** Include the correct header ****
 // Standard specializations
 #if PPCAT(Isotropic_,ModelName)
@@ -146,6 +148,8 @@ using StencilSeismic3SIMD = StencilSeismic3;
 #include "Experimental/TTI.h"
 using StencilTTI2 = StencilTTI<2>;
 using StencilTTI3 = StencilTTI<3>;
+#elif PPCAT(AsymRander2_,ModelName)
+#include "Experimental/AsymRander.h"
 #elif PPCAT(AlignedBillard_,AlignedBillard)
 #include "Experimental/AlignedBillard.h"
 // Very experimental specializations

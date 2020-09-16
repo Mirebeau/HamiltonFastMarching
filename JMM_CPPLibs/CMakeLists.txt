@@ -31,6 +31,7 @@ set(LinearAlgebra_Headers
 	${LinearAlgebra_Dir}/AnisotropicGeometry.h
 	${LinearAlgebra_Dir}/ComposedNorm.h
 	${LinearAlgebra_Dir}/TTINorm.h
+	${LinearAlgebra_Dir}/AsymRanderNorm.h
 	PARENT_SCOPE
 	)
 

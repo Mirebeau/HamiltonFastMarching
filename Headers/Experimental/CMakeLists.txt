@@ -11,6 +11,7 @@ set(Experimental_Headers
 	${CMAKE_CURRENT_SOURCE_DIR}/Seismic3.h
 	${CMAKE_CURRENT_SOURCE_DIR}/AlignedBillard.h
 	${CMAKE_CURRENT_SOURCE_DIR}/TTI.h
+	${CMAKE_CURRENT_SOURCE_DIR}/AsymRander.h
 	PARENT_SCOPE
 	)
 
