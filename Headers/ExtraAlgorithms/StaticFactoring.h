@@ -59,6 +59,7 @@ struct StaticFactoring {
 	
 	/// Correction to apply to a finite difference at the given position, with the given offset, and order.
 	ScalarType Correction(const OffsetType & off, int order) const {
+		if(Disabled()) return 0.;
 	/* Input guarantees :
 		- the factorization applies to the current index
 		- ind + i * offset is in the domain, for all 0<=i <=order.
@@ -73,7 +74,7 @@ struct StaticFactoring {
 		// Note : the gradient and offset associated to same position ind, so there is no
 		// need for transform.PullVector etc
 		const ScalarType deriv =
-		- gradients(index).ScalarProduct(VectorType::CastCoordinates(offset));
+		gradients(index).ScalarProduct(VectorType::CastCoordinates(offset));
 		
 		if(order==1) {return deriv + (values(index) - values(ind_));}
 		
@@ -132,9 +133,10 @@ StaticFactoring<T>::Setup(HFMI * that){
 	if(values.dims!=dims || gradients.dims!=dims || mask.dims!=dims){
 		ExceptionMacro("Static factoring error : inconsistent data dimension.")}
 		
-	// Rescale the gradients
+	// Rescale the gradients. The gradient is a co-vector, which must be adimensionized.
+	// This amounts to re-dimensioning a vector.
 	const auto & param = fm.stencilData.Param();
-	for(VectorType & g : gradients) {g = param.ADim(g);}
+	for(VectorType & g : gradients) {g = param.ReDim(g);}
 	return true;
 }
 
