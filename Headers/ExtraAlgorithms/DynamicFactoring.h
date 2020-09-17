@@ -20,7 +20,7 @@
 
  */
 
-/*
+/**
  In some rare edge cases, factorization could be slightly less effective than anticipated due to implementation:
 - Seed on the boundary of a domain equipped with periodic boundary conditions. (Additional h^2 error)
 - Eulerian models with wide initialization around seed, used with dynamic factoring. (Additional h or h^2 error)

@@ -159,8 +159,10 @@ const -> ScalarType {
 	const auto & dist = factoringCenters[guess.centerIndex].second;
 	const auto & transform = guess.transform;
 
-	VectorType pulledBase = guess.base; transform.PullVector(pulledBase);
-	VectorType pulledOffset = VectorType::CastCoordinates(offset); transform.PullVector(pulledOffset);
+	VectorType pulledBase = guess.base;
+	transform.PullVector(pulledBase);
+	VectorType pulledOffset = VectorType::CastCoordinates(offset);
+	transform.PullVector(pulledOffset);
 	
 	auto Value = [&pulledBase,&dist](const VectorType & off) -> ScalarType {
 		const VectorType v=pulledBase-off;

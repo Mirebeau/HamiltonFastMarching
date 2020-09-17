@@ -100,12 +100,6 @@ struct HamiltonFastMarching {
 
     using ParamInterface = ParamInterface_<PointType,VectorType>;
     using MultiplierType = typename DifferenceType::MultiplierType;
-
-/*    static constexpr StencilStoragePolicy policy =
-    DifferenceType::multSize>0 ? StencilStoragePolicy::Share :
-    DifferenceType::multSize==0 ? StencilStoragePolicy::Recomp :
-	Dimension==2 ? StencilStoragePolicy::Lag2 :
-	StencilStoragePolicy::Lag3;*/
 	
 	struct _StencilDataTypeBase;
     template<StencilStoragePolicy, typename Dummy> struct _StencilDataType;
@@ -114,7 +108,6 @@ struct HamiltonFastMarching {
     StencilDataType & stencilData;
     
     // Default domain parametrization (Currently used in all instantiations)
-/*    static constexpr bool hasBundle = (0<Traits::nStencilDependencies) && (Traits::nStencilDependencies<Dimension);*/
     template<int hasBundle_, typename Dummy> struct _ParamDefault;
     using ParamDefault = _ParamDefault<int(hasBundle),void>;
     
