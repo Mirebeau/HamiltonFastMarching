@@ -116,13 +116,6 @@ GeodesicDiscrete(std::vector<PointType> & geodesic) const {
 	const ScalarType weightSumLowerBound = 1e-5;
 	
     while(!geo.empty() && weightSum>weightSumLowerBound){
-		
-		std::cout << "Discrete geo run : "
-		ExportVarArrow(weightSum)
-		ExportVarArrow(geo.size())
-		ExportVarArrow(indexAvg)
-		<< std::endl;
-		
         // Extract and erase point with largest value.
         const auto it = --geo.end(); // point with largest value
 		const auto [value,index] = it->first;
@@ -174,17 +167,6 @@ GeodesicDiscrete(std::vector<PointType> & geodesic) const {
         const VectorType step = indexAvg-oldIndexAvg;
         steps.push_back({value,step});
         stepNorm+=step.Norm();
-		
-        DiscreteFlowType flow2;
-		std::cout
-		ExportVarArrow(indexAvg)
-		ExportVarArrow(indexSum)
-		ExportVarArrow(weightSum)
-		ExportVarArrow(flow)
-		ExportVarArrow(perIndex)
-		ExportVarArrow(fm.Recompute(perIndex,flow2))
-		<< std::endl;
-		
 								 
         if(geo.size()==1){ // If geodesic concentrates at a seed or around a wall corner.
 			if(flow.empty()) break; // At seed

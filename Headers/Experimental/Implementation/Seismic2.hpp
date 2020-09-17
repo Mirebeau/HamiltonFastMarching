@@ -180,10 +180,6 @@ HopfLaxRecompute(IndexCRef index, DiscreteFlowType & flow)
 		assert(i<flow.size());
 		return flow[i].weight;
 	};
-
-	if(index == IndexType{115,115}){
-		std::cout << "In HopfLaxRecompute, " << flow << std::endl;
-	}
 	
 	if(flow.size()==1){
 		const auto & [value,weights] = norm.HopfLax({neigh(0)},Vec<1>{w(0)});
@@ -195,13 +191,6 @@ HopfLaxRecompute(IndexCRef index, DiscreteFlowType & flow)
 		const ScalarType width = weights[0]*abs(value-w(0))+weights[1]*abs(value-w(1));
 		w(0)=weights[0]; w(1)=weights[1];
 		assert(weights.Sum()>0);
-		if(index == IndexType{115,115}){
-			std::cout
-			ExportVarArrow(value)
-			ExportVarArrow(weights)
-			<< std::endl;
-		}
-
 		return {value,width/weights.Sum()};
 	}
 }
