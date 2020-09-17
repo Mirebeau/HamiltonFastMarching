@@ -58,13 +58,14 @@ struct StaticFactoring {
 	}
 	
 	/// Correction to apply to a finite difference at the given position, with the given offset, and order.
-	ScalarType Correction(const OffsetType & offset, int order) const {
+	ScalarType Correction(const OffsetType & off, int order) const {
 	/* Input guarantees :
 		- the factorization applies to the current index
 		- ind + i * offset is in the domain, for all 0<=i <=order.
 	 */
 		const DomainType & dom = pFM->dom;
 		const IndexType index  = currentIndex;
+		const IndexDiff offset = IndexDiff::CastCoordinates(off);
 		IndexType ind_ = index + order*offset; // Last index of Finite Difference
 		if(subdomain && !(mask.InRange(ind_))){return 0;} // Out of domain FD
 		else {dom.Periodize(ind_,index);}
@@ -84,7 +85,7 @@ struct StaticFactoring {
 		IndexType ind2 = index + 2*offset;
 		if(!subdomain) dom.Periodize(ind2,index);
 		if(order==3) {return deriv
-			+ ((11./6.)*values(index)-3.*Value(ind1)+1.5*Value(ind2)-(1./3.)*Value(ind_));}
+			+ ((11./6.)*values(index)-3.*values(ind1)+1.5*values(ind2)-(1./3.)*values(ind_));}
 		
 		assert(false); // Order must be 1, 2 or 3.
 	}
@@ -99,7 +100,7 @@ protected:
 template<typename T> bool
 StaticFactoring<T>::Setup(HFMI * that){
 	IO & io = that->io;
-	pFM = that->pFM;
+	pFM = that->pFM.get();
 	const HFM & fm = *that->pFM;
 	recompute_default = fm.order>1 || ! HFM::factorFirstPass;
 
@@ -123,16 +124,16 @@ StaticFactoring<T>::Setup(HFMI * that){
 
 	io.SetHelp("factoringIndexShift","Shift used for the source factorization data");
 	subdomain = io.HasField("factoringIndexShift");
-	indexShift = !subdomain ? IndexType::Constant(0) :
-		IndexType::CastCoordinates(io.Get<PointType>("factoringIndexShift"));
+	indexShift = !subdomain ? IndexDiff::Constant(0) :
+		IndexDiff::CastCoordinates(io.Get<VectorType>("factoringIndexShift"));
 	
 	// Check data
-	const IndexType dims= subdomain ? values.dims : fm.dims;
+	const IndexType dims= subdomain ? values.dims : fm.values.dims;
 	if(values.dims!=dims || gradients.dims!=dims || mask.dims!=dims){
 		ExceptionMacro("Static factoring error : inconsistent data dimension.")}
 		
 	// Rescale the gradients
-	const auto & param = fm.stencilData.GetParam();
+	const auto & param = fm.stencilData.Param();
 	for(VectorType & g : gradients) {g = param.ADim(g);}
 	return true;
 }

@@ -194,6 +194,10 @@ const -> RecomputeType {
     const ActiveNeighFlagType active = activeNeighs[updatedLinearIndex];
     if(active.none()) return {values[updatedLinearIndex],0.};
 	
+	
+#if StaticFact
+	factoring.SetIndex(updatedIndex);
+#else
 	// First order scheme, without factorisation, used for dynamic factoring pre-process.
 	auto GetValue1 = [this,&updatedIndex](OffsetType offset, int & ord) -> ScalarType {
 		IndexType acceptedIndex = updatedIndex+IndexDiff::CastCoordinates(offset);
@@ -202,8 +206,7 @@ const -> RecomputeType {
 		ord=1;
 		return values(acceptedIndex);
 	};
-	
-	
+
 	switch(factoring.method){
 		case FactoringMethod::Static: factoring.SetIndexStatic(updatedIndex); break;
 		case FactoringMethod::Dynamic:
@@ -216,6 +219,7 @@ const -> RecomputeType {
 		case FactoringMethod::None:
 		default: break;
 	}
+#endif
 	
 	// Used in criteria for ditching the high order scheme
 	const ScalarType oldValue = values[updatedLinearIndex];
@@ -304,6 +308,9 @@ void HamiltonFastMarching<Traits>::SetIndex(IndexCRef index) const {
 		tmp.value = values(index);
 	}
 	
+#if StaticFact
+	if(useFactoring){factoring.SetIndex(index);}
+#else
 	if(useFactoring){
 		switch (factoring.method) {
 			case FactoringMethod::None: break;
@@ -313,6 +320,7 @@ void HamiltonFastMarching<Traits>::SetIndex(IndexCRef index) const {
 				assert(false);
 		}
 	}
+#endif
 }
 
 template<typename Traits> template<bool useFactoring, bool smallCorrection, int maxOrder>
