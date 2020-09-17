@@ -135,27 +135,6 @@ const -> std::pair<ScalarType,VectorType> {
 	const PointType vals = norms+l;
 	if(vals[0]<vals[1]) return {vals[0],{1./norms[0],0.}};
 	else {return {vals[1],{0.,1./norms[1]}};}
-	
-	/*
-	 VectorType const n01 = neigh[1]-neigh[0];
-	 ScalarType const l01 = l[1]-l[0];
-	 assert(l01==l01);
-	 
-	 // Check the first vertex
-	 VectorType const g0 = Gradient(neigh[0]);
-	 ScalarType const d0 = g0.ScalarProduct(n01)+l01;
-	 if(d0>=0) {
-		 const ScalarType norm0 = g0.ScalarProduct(neigh[0]);
-		 return {norm0+l[0],Vec<2>{1./norm0,0.}}; }
-	 //neigh[0].ScalarProduct(g0)
-	 
-	 // Check the second vertex
-	 VectorType const g1 = Gradient(neigh[1]);
-	 ScalarType const d1 = g1.ScalarProduct(n01)+l01;
-	 if(d1<=0) {
-		 const ScalarType norm1 = g1.ScalarProduct(neigh[1]);
-		 return {norm1+l[1],Vec<2>{0.,1./norm1}}; }
-*/
 }
 
 template<typename TScalar, size_t VDimension> auto
