@@ -40,18 +40,19 @@ struct StaticFactoring {
 	bool NeedsRecompute(IndexType ind) const {
 		if(Disabled()) return false;
 		if(subdomain){
-			ind+=indexShift;
+			ind-=indexShift;
 			if( ! mask.InRange(ind) ) {return false;}
 		}
 		return mask(ind) && recompute_default;
 	}
 	
 	/// Returns wether factorization is active at given point, and sets the index if appropriate
-	bool SetIndex(IndexCRef ind) {
+	bool SetIndex(IndexCRef ind) {active=_SetIndex(ind); return active;}
+	bool _SetIndex(IndexCRef ind) {
 		if(Disabled()) return false; // No factorization applied
 		currentIndex = ind;
 		if(subdomain){
-			currentIndex += indexShift;
+			currentIndex -= indexShift;
 			if( ! mask.InRange(currentIndex) ) {return false;}
 		}
 		return mask(currentIndex);
@@ -59,7 +60,7 @@ struct StaticFactoring {
 	
 	/// Correction to apply to a finite difference at the given position, with the given offset, and order.
 	ScalarType Correction(const OffsetType & off, int order) const {
-		if(Disabled()) return 0.;
+		if(!active) return 0.;
 	/* Input guarantees :
 		- the factorization applies to the current index
 		- ind + i * offset is in the domain, for all 0<=i <=order.
@@ -94,6 +95,7 @@ struct StaticFactoring {
     bool Setup(HFMI *);
 protected:
 	IndexType currentIndex; // Shifted if needed
+	bool active=false; // Wether factorization applies at the current index
 	const HFM * pFM; // Reference domain, for periodization
 };
 
