@@ -37,7 +37,7 @@ hfmIn.arrayOrdering = 'ColumnMajor'; % Adequate for ndgrid. (Remove for meshgrid
 % Other input data
 hfmIn.seeds = [0;0];
 hfmIn.exportValues = 1;
-hfmIn.factoringRadius = 200; % Apply source factorization over 200 pixels radius
+%hfmIn.factoringRadius = 200; % Apply source factorization over 200 pixels radius
 
 % Specify the metric: m_xx, m_xy, m_yy, u_x, u_y, v_x, v_y, w_x, w_y
 hfmIn.metric = zeros([9,nx,ny]);
@@ -64,7 +64,7 @@ hfmOut = MatlabHFM_AsymRander2(hfmIn);
 numSolution = hfmOut.values;
 exactSolution = sqrt(x.^2+y.^2+max(0,3*x).^2+max(0,3*y).^2);
 
-assert(max(abs(exactSolution - numSolution),[],'all')<1e-8);
+max(abs(exactSolution - numSolution),[],'all') % max error
 
 % Plot the values 
 % (Todo : take into account that we use ndgrid, rather than meshgrid)
