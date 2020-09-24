@@ -86,10 +86,9 @@ struct StaticFactoring {
 		
 		IndexType ind2 = index + 2*offset;
 		if(!subdomain) dom.Periodize(ind2,index);
-		if(order==3) {return deriv
-			+ ((11./6.)*values(index)-3.*values(ind1)+1.5*values(ind2)-(1./3.)*values(ind_));}
-		
-		assert(false); // Order must be 1, 2 or 3.
+		assert(order==3); // Order must be 1, 2 or 3.
+		return deriv
+		+ ((11./6.)*values(index)-3.*values(ind1)+1.5*values(ind2)-(1./3.)*values(ind_));
 	}
 	
     bool Setup(HFMI *);

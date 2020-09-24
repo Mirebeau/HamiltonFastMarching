@@ -428,7 +428,7 @@ accessible in one step from the reverse stencil.)");
 			
 			// Setting default issue : factoring is not yet set.
 			// Thus cannot test pFM->factoring.method == FactoringMethod::None
-			bool factors = io.HasField("factoringRadius");
+			bool factors = io.HasField("factoringValues");
 			if(io.HasField("factoringMethod")) {
 				factors = io.GetString("factoringMethod")!="None";}
 			seedRadius = io.Get<ScalarType>("seedRadius",factors ? 2. : seedRadius);
