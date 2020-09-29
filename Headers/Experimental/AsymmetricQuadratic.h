@@ -237,7 +237,7 @@ struct StencilAsymmetricQuadratic3p1 : HamiltonFastMarching<TraitsAsymmetricQuad
         if(io.HasField("dualMetric")){
             pDualMetric = that->GetField<MetricElementType>("dualMetric");
         } else if(io.HasField("metric")) {
-            pMetric = that->GetField<MetricElementType>("dualMetric");
+            pMetric = that->GetField<MetricElementType>("metric");
         } else {
             pHalfDisk = that->GetField<HalfDiskElementType>("halfDisk");
             epsRev=that->io.Get<ScalarType>("epsRev",reduc.eps/1.5);
