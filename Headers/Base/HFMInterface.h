@@ -32,7 +32,6 @@ template<typename TTraits> struct HFMInterface {
     std::vector<std::unique_ptr<ExtraAlgorithmInterface> > extras;
     std::unique_ptr<TimeDependentFields<Traits> > pTime;
     std::unique_ptr<GeodesicSolverInterface> pGeodesicSolver;
-	ScalarType seedRadius=0;
 	
     HFMInterface(IO & _io, StencilDataType & _stencil) :io(_io), stencil(_stencil) {};
     virtual void Run();
@@ -77,9 +76,7 @@ Run_SetupExtraAlgorithms(){
     SetupSingleAlgorithm<VoronoiDiagram<T> >();
     auto pVar = SetupSingleAlgorithm<FirstVariation<T> >();
     if(!pTime->ImplementIn(pFM.get())) pTime.reset();
-    if(pVar && pTime) pVar->pCurrentTime = &(pTime->currentTime);
-	
-	pFM->factoring.Setup(this);
+    if(pVar && pTime) pVar->pCurrentTime = &(pTime->currentTime);	
 }
 
 #include "Implementation/HFMInterface.hxx"

@@ -21,7 +21,7 @@ template<typename T>
 struct StaticFactoring {
 	typedef T Traits;
     typedef HamiltonFastMarching<Traits> HFM;
-    Redeclare15Types(HFM,IndexCRef,FullIndexCRef,DiscreteFlowType,OffsetType,
+    Redeclare16Types(HFM,IndexCRef,FullIndexCRef,DiscreteFlowType,OffsetType,OffsetCRef,
 					 ScalarType,DiscreteType,IndexType,IndexDiff,DomainTransformType,
 					 VectorType,HFMI,PointType,DistanceGuess,DiscreteFlowElement,DomainType)
 	Redeclare1Constant(HFM,Dimension)
@@ -51,11 +51,13 @@ struct StaticFactoring {
 	ScalarType Correction(const OffsetType & off, int order) const;
 	
     bool Setup(HFMI *);
+	ScalarType seedRadius;
 protected:
 	IndexType currentIndex; // Shifted if needed
 	bool active=false; // Wether factorization applies at the current index
 	const HFM * pFM; // Reference domain, for periodization
 //	void SetFactor(); // Sets the factor from the metric
+	void SetSeeds(HFMI *);
 };
 
 #include "Implementation/StaticFactoring.hxx"

@@ -44,15 +44,13 @@ protected:
         return result;
     };
     template<bool b=( HFM::policy==SSP::Lag2 || HFM::policy==SSP::Lag3 ), typename Dummy=void> struct ValueVariationHelper;
-    
-//    template<bool b=HFM::hasMultiplier, typename Dummy=void> struct MultArrayIO;
 };
 
 // --------- Setup ---------
 template<typename T> void FirstVariation<T>::Setup(HFMI*that){
 	auto & io = that->io;
 	if(io.HasField("inspectSensitivity") || io.HasField("costVariation") || io.HasField("seedValueVariation")){
-		if(that->seedRadius!=0)
+		if(that->pFM->factoring.seedRadius!=0)
 			WarnMsg() << "First variation warning : spread seeds are not supported.\n";
 	}
 }
