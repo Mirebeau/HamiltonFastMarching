@@ -96,6 +96,7 @@ protected:
 	IndexType currentIndex; // Shifted if needed
 	bool active=false; // Wether factorization applies at the current index
 	const HFM * pFM; // Reference domain, for periodization
+//	void SetFactor(); // Sets the factor from the metric
 };
 
 
@@ -103,7 +104,7 @@ template<typename T> bool
 StaticFactoring<T>::Setup(HFMI * that){
 	IO & io = that->io;
 	pFM = that->pFM.get();
-	const HFM & fm = *that->pFM;
+	const HFM & fm = *pFM;
 	recompute_default = fm.order>1 || ! HFM::factorFirstPass;
 
 	// Import data (mask, values, gradient, indexShift), which is computed off site.
@@ -141,4 +142,46 @@ StaticFactoring<T>::Setup(HFMI * that){
 	return true;
 }
 
+/*
+template<typename T> void
+StaticFactoring<T>::SetFactor(){
+	// This function sets the factor if it is not provided by the user
+	const HFM & fm = *pFM;
+	const auto & dom = fm.dom;
+	const auto & stencil = fm.stencil;
+	
+	// Reshape the arrays
+	const ScalarType NaN = std::numeric_limits<ScalarType>::quiet_Nan();
+	const IndexType dims=fm.values.dims;
+	const DiscreteType size = fm.values.size();
+	values.dims = dims;    values.resize(size,NaN);
+	gradients.dims = dims; gradients.resize(size,VectorType::Constant(NaN));
+	mask.dims = dims;      mask.resize(size,true);
+
+	// Basic factorization : for each point, evaluate the gradient, deduce the norm
+	if(fm.seeds.size()!=1)
+	const PointType seed; assert(false); // TODO
+	const auto & distSeed = stencil.GetGuess(seed);
+	
+	//TODO : it would be preferable to do this in parallel. However, a convenient
+	//implementation requires C++ 20, which is not widely supported yet.
+	// https://stackoverflow.com/a/52834495/12508258 
+	for(int i=0; i<size; ++i){
+		const PointType p = dom.PointFromIndex(values.Convert(i));
+		const VectorType v = p-seed;
+		const VectorType g = distSeed.Gradient(v);
+		gradients[i] = g;
+		values[i] = g.ScalarProduct(v);
+	}
+	
+	assert(false);
+	for(int i=0; i<size; ++i){
+		const PointType p = dom.PointFromIndex(values.Convert(i));
+		const VectorType v = p-seed;
+		const auto distp =
+	}
+	
+
+}
+*/
 #endif /* StaticFactoring_h */

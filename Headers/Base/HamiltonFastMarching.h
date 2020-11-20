@@ -21,13 +21,7 @@
 #include "JMM_CPPLibs/Macros/TemplateLog2.h"
 
 template<typename T> struct HFMInterface;
-
-#define StaticFact 1
-#if StaticFact
 template<typename T> struct StaticFactoring;
-#else
-template<typename T> struct Factoring;
-#endif
 
 enum class FactoringMethod {None, Static, Dynamic};
 enum class StencilStoragePolicy {Share,Recomp,Lag2,Lag3};
@@ -123,11 +117,7 @@ struct HamiltonFastMarching {
     struct ExtraAlgorithmPtrs;
     ExtraAlgorithmPtrs extras;
 
-#if StaticFact
 	using FactoringType = StaticFactoring<Traits>;
-#else
-	using FactoringType = Factoring<Traits>;
-#endif
 	mutable FactoringType factoring;
     
     HamiltonFastMarching(StencilDataType &);

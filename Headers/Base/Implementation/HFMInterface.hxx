@@ -414,8 +414,9 @@ Run_SetupSolver() {
                 seedValues = io.GetVector<ScalarType>("seedValues");
                 if(seedValues.size()!=seedPoints.size())
                     ExceptionMacro("Error : Inconsistent size of seedValues.")
-            }
-            else seedValues.resize(seedPoints.size(),0.);
+			} else {
+				seedValues.resize(seedPoints.size(),0.);
+			}
 			
 			io.SetHelp("seedRadius",
 R"(Type: scalar. Unit: pixels. (Input)
@@ -438,7 +439,7 @@ accessible in one step from the reverse stencil.)");
 			if(seedRadius>0){
 				std::vector<PointType> newPoints;
 				std::vector<ScalarType> newValues;
-				std::vector<VectorType> newGradients;
+//				std::vector<VectorType> newGradients;
 				// Avoid repetition of spreaded points, for a given seed point
 				std::set<IndexType> indices;
 				
@@ -467,18 +468,8 @@ accessible in one step from the reverse stencil.)");
 						const auto & distq = stencil.GetGuess(perIndex);
 						
 						newPoints.push_back(q);
-						if(v.IsNull()){
-							newValues.push_back(value);
-							newGradients.push_back(VectorType::Constant(0.));
-						} else {
-							const VectorType grad=0.5*(distp.Gradient(v)+distq.Gradient(v));
-							//  equivalent to 0.5*(distp.Norm(v)+distq.Norm(v)),
-							// by Euler's identity
-							const ScalarType norm = v.ScalarProduct(grad);
-							newValues.push_back(value+norm);
-							newGradients.push_back(stencil.Param().ADim(grad));
-						}
-					};
+						newValues.push_back(value + 0.5*(distp.Norm(v)+distq.Norm(v)));
+					}; // insert
 					
 					const IndexType pIndex = dom.IndexFromPoint(p);
 					insert(pIndex,inf);
@@ -504,7 +495,7 @@ accessible in one step from the reverse stencil.)");
 				for(const PointType & p : seedPoints) {seedPointsRedim.push_back(stencil.Param().ReDim(p));}
 				io.SetVector("spreadedSeeds", seedPointsRedim);
 				io.SetVector("spreadedSeedValues", seedValues);
-				io.SetVector("spreadedSeedGradients", newGradients);
+//				io.SetVector("spreadedSeedGradients", newGradients);
 			}
         }
         
