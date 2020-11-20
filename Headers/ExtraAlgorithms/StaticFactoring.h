@@ -50,14 +50,16 @@ struct StaticFactoring {
 	 */
 	ScalarType Correction(const OffsetType & off, int order) const;
 	
-    bool Setup(HFMI *);
+    void Setup(HFMI *);
 	ScalarType seedRadius;
 protected:
 	IndexType currentIndex; // Shifted if needed
 	bool active=false; // Wether factorization applies at the current index
 	const HFM * pFM; // Reference domain, for periodization
-//	void SetFactor(); // Sets the factor from the metric
-	void SetSeeds(HFMI *);
+	void ComputeFactor(HFMI*); // Sets the factor from the metric
+	void ImportFactor(HFMI*);  // Imports a given factor
+	void SetSeeds(HFMI*);
+	PointType seed;
 };
 
 #include "Implementation/StaticFactoring.hxx"

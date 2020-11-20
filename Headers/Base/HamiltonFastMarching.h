@@ -116,9 +116,7 @@ struct HamiltonFastMarching {
     struct ExtraAlgorithmInterface;
     struct ExtraAlgorithmPtrs;
     ExtraAlgorithmPtrs extras;
-
-	using FactoringType = StaticFactoring<Traits>;
-	mutable FactoringType factoring;
+	mutable StaticFactoring<Traits> factoring;
     
     HamiltonFastMarching(StencilDataType &);
 	

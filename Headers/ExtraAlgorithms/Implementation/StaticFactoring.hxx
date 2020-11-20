@@ -60,16 +60,27 @@ Correction(const OffsetType & off, int order) const -> ScalarType {
 }
 
 
-template<typename T> bool StaticFactoring<T>::
+template<typename T> void StaticFactoring<T>::
 Setup(HFMI * that){
 	IO & io = that->io;
 	pFM = that->pFM.get();
 	const HFM & fm = *pFM;
 	recompute_default = fm.order>1 || ! HFM::factorFirstPass;
 
-	// Import data (mask, values, gradient, indexShift), which is computed off site.
-	
-	if( ! io.HasField("factoringValues") ){ return false;}
+	const bool
+	import = io.HasField("factoringValues"),
+	compute = io.HasField("factoringRadius");
+	if(import && compute){
+		ExceptionMacro("StaticFactoring error : factoringValues (import)"
+		" and factoringRadius (compute) both specified.")}
+	if(import){ImportFactor(that);}
+	SetSeeds(that);
+	if(compute){ComputeFactor(that);}
+}
+
+template<typename T> void StaticFactoring<T>::
+ImportFactor(HFMI * that){
+	IO & io = that->io;
 	io.SetHelp("factoringValues","Values used in additive source factorization");
 	values = io.GetArray<ScalarType,Dimension> ("factoringValues");
 	
@@ -91,73 +102,129 @@ Setup(HFMI * that){
 		IndexDiff::CastCoordinates(io.Get<VectorType>("factoringIndexShift"));
 	
 	// Check data
-	const IndexType dims= subdomain ? values.dims : fm.values.dims;
+	const IndexType dims= subdomain ? values.dims : pFM->values.dims;
 	if(values.dims!=dims || gradients.dims!=dims || mask.dims!=dims){
 		ExceptionMacro("Static factoring error : inconsistent data dimension.")}
 		
 	// Rescale the gradients. The gradient is a co-vector, which must be adimensionized.
 	// This amounts to re-dimensioning a vector.
-	const auto & param = fm.stencilData.Param();
+	const auto & param = pFM->stencilData.Param();
 	for(VectorType & g : gradients) {g = param.ReDim(g);}
-	return true;
 }
 
-/*
 template<typename T> void StaticFactoring<T>::
-SetFactor(){
+ComputeFactor(HFMI * that){
 	// This function sets the factor if it is not provided by the user
 	const HFM & fm = *pFM;
 	const auto & dom = fm.dom;
-	const auto & stencil = fm.stencil;
+	const auto & stencil = fm.stencilData;
+	auto & io = that->io;
+	
+	
+	io.SetHelp("factoringRadius", "Radius, in pixels, where to use source factorization");
+	const DiscreteType factoringRadius = io.template Get<ScalarType>("factoringRadius",10);
+	
+	IndexType dims;
+	if(factoringRadius<0){
+		subdomain=false;
+		dims = fm.values.dims;
+		indexShift=IndexDiff::Constant(0);
+	} else {
+		subdomain=true;
+		IndexType bottom,top;
+		const IndexType dimax = fm.values.dims;
+		for(int i=0; i<Dimension; ++i){
+			bottom[i] = std::max(0,(DiscreteType)floor(seed[i]-factoringRadius));
+			top[i]    = std::min(dimax[i]-1,(DiscreteType)ceil(seed[i]+factoringRadius));
+		}
+		indexShift = IndexDiff::FromOrigin(bottom);
+		dims = top-bottom;
+	}
 	
 	// Reshape the arrays
-	const ScalarType NaN = std::numeric_limits<ScalarType>::quiet_Nan();
-	const IndexType dims=fm.values.dims;
-	const DiscreteType size = fm.values.size();
+	const ScalarType NaN = std::numeric_limits<ScalarType>::quiet_NaN();
+	const DiscreteType size = dims.Product();
 	values.dims = dims;    values.resize(size,NaN);
-	gradients.dims = dims; gradients.resize(size,VectorType::Constant(NaN));
+	gradients.dims = dims; gradients.resize(size,VectorType::Constant(0.));
 	mask.dims = dims;      mask.resize(size,true);
 
-	// Basic factorization : for each point, evaluate the gradient, deduce the norm
-	if(fm.seeds.size()!=1)
-	const PointType seed; assert(false); // TODO
-	const auto & distSeed = stencil.GetGuess(seed);
-	
-	//TODO : it would be preferable to do this in parallel. However, a convenient
-	//implementation requires C++ 20, which is not widely supported yet.
-	// https://stackoverflow.com/a/52834495/12508258
-	for(int i=0; i<size; ++i){
-		const PointType p = dom.PointFromIndex(values.Convert(i));
-		const VectorType v = p-seed;
-		const VectorType g = distSeed.Gradient(v);
-		gradients[i] = g;
-		values[i] = g.ScalarProduct(v);
-	}
-	
-	assert(false);
-	for(int i=0; i<size; ++i){
-		const PointType p = dom.PointFromIndex(values.Convert(i));
-		const VectorType v = p-seed;
-		const auto distp =
-	}
-	
+	   io.SetHelp("factoringPointChoice", "Choice of source factorization (Key,Both)");
+	   const std::string choice
+	   = io.GetString("factoringPointChoice", fm.order<3 ? "Key" : "Both");
 
+	const auto & seedDist = stencil.GetGuess(seed);
+		
+	if(choice=="Key"){
+		// Basic factorization.
+		//TODO : it would be preferable to do this loop in parallel. However, a convenient
+		//implementation requires C++ 20, which is not widely supported yet.
+		// https://stackoverflow.com/a/52834495/12508258
+		for(int i=0; i<size; ++i){
+			const PointType p = dom.PointFromIndex(values.Convert(i));
+			const VectorType v = p-seed;
+			const VectorType g = seedDist.Gradient(v);
+			gradients[i] = g;
+			values[i] = v.IsNull() ? 0. : g.ScalarProduct(v);
+		}
+	} else if(choice=="Both"){
+		// Not parallelisable as is
+		for(int pi=0; pi<size; ++pi){
+			const IndexType pIndex = values.Convert(pi);
+			const PointType p = dom.PointFromIndex(pIndex);
+			const VectorType v = p-seed;
+			const VectorType seedG = seedDist.Gradient(v);
+			const auto & pDist = stencil.GetGuess(pIndex);
+			const VectorType pG = pDist.Gradient(v);
+			const VectorType g = 0.5*(pG+seedG);
+			values[pi] = v.IsNull() ? 0. : g.ScalarProduct(v);
+			
+			gradients[pi]+=g;
+			// Differentiate w.r.t position using centered finite differences,
+			// except at boundary
+			for(int k=0; k<Dimension; ++k){
+				for(int eps=-1; eps<=1; eps+=2){
+					IndexType qIndex = pIndex;
+					qIndex[k]+=eps;
+					ScalarType qVal = pDist.Norm(dom.PointFromIndex(qIndex)-seed);
+					if(mask.InRange(qIndex)){
+						const DiscreteType qi = values.Convert(qIndex);
+						qIndex[k]+=eps; if(!mask.InRange(qIndex)) qVal/=2;
+						gradients[qi][k] += eps * qVal /2.;
+					} else {
+						gradients[pi][k] += eps * qVal /4.;
+					}
+				} // for eps
+			} // for k
+		} // for pi
+	} else {
+		ExceptionMacro("StaticFactoring error : Unsupported factoringPointChoice"
+					   << choice << ".");
+	}
 }
-*/
+
 
 template<typename T> void StaticFactoring<T>::
 SetSeeds(HFMI * that) {
-	const auto & io = that->io;
-	const auto & stencil = pFM->stencil;
+	auto & io = that->io;
+	const auto & stencil = pFM->stencilData;
 	std::vector<PointType> seedPoints;
 	std::vector<ScalarType> seedValues;
+	
+	const bool compute = io.HasField("factoringRadius");
+	const bool disabled = Disabled() && ! compute; // Only ImportFactor run
 	
 	io.SetHelp("seeds",
 			   "Type: vector of points. (Input)\n"
 			   "Usage: sets the points from which the front propagation starts.");
+	
 	if(io.HasField("seeds")){
 		seedPoints = io.template GetVector<PointType>("seeds");
 		for(auto & p : seedPoints) p=stencil.Param().ADim(p);
+		if(compute){
+			if(seedPoints.size()==1){seed=seedPoints[0];}
+			else {ExceptionMacro("Exactly one seed point must be specified for computing "
+								 "the factor, found "<< seedPoints.size() << ".");}
+		}
 		
 		io.SetHelp("seedValues",
 				   "Type: vector of scalars, same length as seeds. (Input)\n"
@@ -179,19 +246,13 @@ SetSeeds(HFMI * that) {
 				   Special case: If radius is negative, then we also include those points
 				   accessible in one step from the reverse stencil.)");
 		
-		// Setting default issue : factoring is not yet set.
-		// Thus cannot test pFM->factoring.method == FactoringMethod::None
-		bool factors = io.HasField("factoringValues");
-		if(io.HasField("factoringMethod")) {
-			factors = io.GetString("factoringMethod")!="None";}
-		seedRadius = io.template Get<ScalarType>("seedRadius",factors ? 2. : seedRadius);
+		seedRadius = io.template Get<ScalarType>("seedRadius",disabled? 2.: seedRadius);
 		const bool stencilStep = seedRadius<0;
 		seedRadius = std::abs(seedRadius);
 		
 		if(seedRadius>0){
 			std::vector<PointType> newPoints;
 			std::vector<ScalarType> newValues;
-			//				std::vector<VectorType> newGradients;
 			// Avoid repetition of spreaded points, for a given seed point
 			std::set<IndexType> indices;
 			
@@ -247,7 +308,6 @@ SetSeeds(HFMI * that) {
 			for(const PointType & p : seedPoints) {seedPointsRedim.push_back(stencil.Param().ReDim(p));}
 			io.SetVector("spreadedSeeds", seedPointsRedim);
 			io.SetVector("spreadedSeedValues", seedValues);
-			//				io.SetVector("spreadedSeedGradients", newGradients);
 		}
 	}
 	
@@ -262,6 +322,8 @@ SetSeeds(HFMI * that) {
 	if(HFM::hasBundle && io.HasField("seeds_Unoriented")){
 		using UnorientedPointType = typename SpecializationsDefault::UnorientedPointType ;
 		const auto uPoints = io.template GetVector<UnorientedPointType>("seeds_Unoriented");
+		if(compute && ! uPoints.empty()){
+			ExceptionMacro("Factor computation incompatible with unoriented seed points");}
 		
 		std::vector<ScalarType> uValues;
 		if(io.HasField("seedValues_Unoriented")){
@@ -277,7 +339,7 @@ SetSeeds(HFMI * that) {
 		
 		std::vector<PointType> equiv;
 		for(int i=0; i<uPoints.size(); ++i){
-			SpecializationsDefault::PadAdimEquiv(this,uPoints[i],equiv);
+			SpecializationsDefault::PadAdimEquiv(that,uPoints[i],equiv);
 			seedPoints.insert(seedPoints.end(),equiv.begin(),equiv.end());
 			seedValues.resize(seedValues.size()+equiv.size(),uValues[i]);
 		}
@@ -288,7 +350,7 @@ SetSeeds(HFMI * that) {
 		if(!pFM->dom.PeriodizeNoBase(seedIndex).IsValid()){
 			WarnMsg() << "Error : seed " << stencil.Param().ReDim(seedPoints[i]) << " is out of range.\n";
 			continue;}
-		pFM->seeds.insert({seedIndex,seedValues[i]});
+		that->pFM->seeds.insert({seedIndex,seedValues[i]});
 	}
 	if(pFM->seeds.empty() && !seedPoints.empty())
 		ExceptionMacro("Error : seeds incorrectly set");
