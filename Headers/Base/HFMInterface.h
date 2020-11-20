@@ -10,7 +10,6 @@
 #include "GeodesicODESolver.h"
 #include "GeodesicDiscreteSolver.h"
 #include "ExtraAlgorithms/TimeDependentFields.h"
-#include "ExtraAlgorithms/DynamicFactoring.h"
 #include "ExtraAlgorithms/StaticFactoring.h"
 
 template<typename TTraits> struct HFMInterface {
