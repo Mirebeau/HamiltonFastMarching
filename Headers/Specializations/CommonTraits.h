@@ -60,7 +60,8 @@ template<int VDim> struct TraitsBase {
         virtual ReturnType operator()(const IndexType &) const = 0;
     };
     
-    typedef LinearAlgebra::SymmetricMatrix<ScalarType,Dimension> DistanceGuess;
+	// Likely hidden in child class
+	using DistanceGuess = LinearAlgebra::SymmetricMatrix<ScalarType,Dimension>;
 };
 // Linker wants the following two lines for some obscure reason.
 template<int VD> constexpr const typename TraitsBase<VD>::StencilDepType_None TraitsBase<VD>::stencilDependencies;

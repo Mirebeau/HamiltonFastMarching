@@ -148,29 +148,43 @@ ComputeFactor(HFMI * that){
 	gradients.dims = dims; gradients.resize(size,VectorType::Constant(0.));
 	mask.dims = dims;      mask.resize(size,true);
 
-	   io.SetHelp("factoringPointChoice", "Choice of source factorization (Key,Both)");
-	   const std::string choice
-	   = io.GetString("factoringPointChoice", fm.order<3 ? "Key" : "Both");
+	io.SetHelp("factoringPointChoice", "Choice of source factorization (Key,Both)");
+	const std::string choice
+	= io.GetString("factoringPointChoice", fm.order<3 ? "Seed" : "Both");
 
 	const auto & seedDist = stencil.GetGuess(seed);
 		
-	if(choice=="Key"){
-		// Basic factorization.
+	if(choice=="Seed" || choice=="Key"){ // Synonyms here
+		// Factorization dist_{x_0}(x-x_0), where x_0 is the seed
 		//TODO : it would be preferable to do this loop in parallel. However, a convenient
 		//implementation requires C++ 20, which is not widely supported yet.
 		// https://stackoverflow.com/a/52834495/12508258
 		for(int i=0; i<size; ++i){
-			const PointType p = dom.PointFromIndex(values.Convert(i));
+			const PointType p = dom.PointFromIndex(values.Convert(i) + indexShift);
 			const VectorType v = p-seed;
 			const VectorType g = seedDist.Gradient(v);
 			gradients[i] = g;
 			values[i] = v.IsNull() ? 0. : g.ScalarProduct(v);
 		}
 	} else if(choice=="Both"){
+		// Factorization (dist_{x_0}(x-x_0) + dist_{x}(x-x_0)) / 2
 		// Not parallelisable as is
+		
+		// Issue : the bilinear interpolation of the metric at the seed defeats the
+		// purpose of this factorization choice, which is third order accuracy.
+		// Also the use of centered finite differences for the distance gradient w.r.t
+		// position may not be accurate enough for third order accuracy.
+		// Therefore, using 'Both' choice in the c++ code is discouraged at this point,
+		// and this call should be intercepted by the Python interface, which uses higher
+		// interpolation methods (third order splines). See dictIn.SetFactor
+		
+		WarnMsg() << "factoringPointChoice = 'Both' yields a factor that is "
+		"best computed in Python, via dictIn.SetFactor, "
+		"which uses higher order interpolation methods.";
+		
 		for(int pi=0; pi<size; ++pi){
-			const IndexType pIndex = values.Convert(pi);
-			const PointType p = dom.PointFromIndex(pIndex);
+			const IndexType pIndex = values.Convert(pi) ;
+			const PointType p = dom.PointFromIndex(pIndex + indexShift);
 			const VectorType v = p-seed;
 			const VectorType seedG = seedDist.Gradient(v);
 			const auto & pDist = stencil.GetGuess(pIndex);
@@ -178,27 +192,42 @@ ComputeFactor(HFMI * that){
 			const VectorType g = 0.5*(pG+seedG);
 			values[pi] = v.IsNull() ? 0. : g.ScalarProduct(v);
 			
+			// We need to differentiate
+			// p,v -> (dist_{x_0}(v) + dist_{p}(v)) / 2
+			// w.r.t p,v, defined as p=x, v = x-x_0
+			
+			// Differentiating w.r.t v
 			gradients[pi]+=g;
-			// Differentiate w.r.t position using centered finite differences,
-			// except at boundary
+			
+			// Differentiating w.r.t p using
+			// centered finite differences in interior,
+			// and first order finite diff along boundary
 			for(int k=0; k<Dimension; ++k){
 				for(int eps=-1; eps<=1; eps+=2){
 					IndexType qIndex = pIndex;
 					qIndex[k]+=eps;
-					ScalarType qVal = pDist.Norm(dom.PointFromIndex(qIndex)-seed);
 					if(mask.InRange(qIndex)){
-						const DiscreteType qi = values.Convert(qIndex);
-						qIndex[k]+=eps; if(!mask.InRange(qIndex)) qVal/=2;
-						gradients[qi][k] += eps * qVal /2.;
+						const PointType q = dom.PointFromIndex(qIndex + indexShift);
+						ScalarType qVal = pDist.Norm(q-seed)/2.;
+						const DiscreteType qi = gradients.Convert(qIndex);
+						qIndex[k]+=eps;
+						if(mask.InRange(qIndex)) qVal/=2; // True iff centered finite diff
+						gradients[qi][k] -= eps * qVal;
 					} else {
-						gradients[pi][k] += eps * qVal /4.;
+						gradients[pi][k] += eps * pG.ScalarProduct(v)/2.; // Non centered diff
 					}
 				} // for eps
 			} // for k
 		} // for pi
 	} else {
-		ExceptionMacro("StaticFactoring error : Unsupported factoringPointChoice"
+		ExceptionMacro("StaticFactoring error : Unsupported factoringPointChoice "
 					   << choice << ".");
+	}
+	if(io.template Get<ScalarType>("exportFactoring",0.)){
+		io.template SetArray<ScalarType,Dimension>("factoringValues",values);
+		io.template SetArray<VectorType,Dimension>("factoringGradients",gradients);
+		if(subdomain) io.template Set<VectorType>("factoringIndexShift",
+												  VectorType::CastCoordinates(indexShift));
 	}
 }
 
@@ -246,7 +275,7 @@ SetSeeds(HFMI * that) {
 				   Special case: If radius is negative, then we also include those points
 				   accessible in one step from the reverse stencil.)");
 		
-		seedRadius = io.template Get<ScalarType>("seedRadius",disabled? 2.: seedRadius);
+		seedRadius = io.template Get<ScalarType>("seedRadius",disabled ? 0. : 2.);
 		const bool stencilStep = seedRadius<0;
 		seedRadius = std::abs(seedRadius);
 		

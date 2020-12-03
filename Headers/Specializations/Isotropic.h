@@ -6,6 +6,7 @@
 #define Isotropic_h
 
 #include "CommonTraits.h"
+#include "JMM_CPPLibs/LinearAlgebra/DiagonalNorm.h"
 
 // ------------- Isotropic metrics ------------
 template<size_t VDimension>
@@ -17,6 +18,7 @@ struct TraitsIsotropic : TraitsBase<VDimension> {
     using DifferenceType = EulerianDifference<OffsetType,ScalarType,1>;
     using StencilType = EulerianStencil<DifferenceType,Dimension>;
     using DomainType = PeriodicGrid<TraitsIsotropic>;
+	using DistanceGuess = LinearAlgebra::DiagonalNorm<ScalarType,Dimension>;
 };
 
 template<size_t VDimension>
@@ -42,16 +44,17 @@ HamiltonFastMarching<TraitsIsotropic<VDimension> >::StencilDataType {
     virtual const ParamInterface & Param() const override {return param;}
     virtual void Setup(HFMI *that) override {Superclass::Setup(that); param.Setup(that);}
     virtual DistanceGuess GetGuess(const PointType & p) const override {
-		return Rescale(MapWeightedSum<ScalarType>(*this->pMultSource,this->pFM->dom.Neighbors(p)));}
+		return Rescale(MapWeightedSum<ScalarType>(
+				*this->pMultSource,this->pFM->dom.Neighbors(p)));}
 	virtual DistanceGuess GetGuess(const IndexType & index) const override {
 		return Rescale((*this->pMultSource)(index));}
 protected:
 	DistanceGuess Rescale(ScalarType s) const {
-		VectorType diag;
-		for(int i=0; i<Dimension; ++i) diag[i]=square(param.gridScales[i]/s);
-		return DistanceGuess::Diagonal(diag);
+		DistanceGuess diag;
+		const PointType h = param.gridScales;
+		for(int i=0; i<Dimension; ++i) diag.d[i] = h[i]/s;
+		return diag;
 	}
-	
 };
 
 // ----------- Diagonal metrics ------------
@@ -64,8 +67,8 @@ struct TraitsDiagonal : TraitsBase<VDimension> {
 
     using DifferenceType = EulerianDifference<OffsetType,ScalarType,Dimension>;
     using StencilType = EulerianStencil<DifferenceType,Dimension>;
-    
     using DomainType = PeriodicGrid<TraitsDiagonal>;
+	using DistanceGuess = LinearAlgebra::DiagonalNorm<ScalarType,Dimension>;
 };
 
 template<size_t VDimension>
@@ -99,10 +102,11 @@ struct StencilDiagonal final
 			MapWeightedSum<VectorType>(vecSpeeds,this->pFM->dom.Neighbors(p))));}
 protected:
 	DistanceGuess GuessFromSpeeds(const PointType & s) const {
+		DistanceGuess diag;
 		const PointType h = param.gridScales;
-		VectorType diag;
-		for(int i=0; i<Dimension; ++i) diag[i] = square(h[i]/s[i]);
-		return DistanceGuess::Diagonal(diag);}
+		for(int i=0; i<Dimension; ++i) diag.d[i] = h[i]/s[i];
+		return diag;
+	}
 };
 
 #endif /* Isotropic_h */

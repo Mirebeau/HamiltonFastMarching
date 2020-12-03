@@ -32,6 +32,7 @@ set(LinearAlgebra_Headers
 	${LinearAlgebra_Dir}/ComposedNorm.h
 	${LinearAlgebra_Dir}/TTINorm.h
 	${LinearAlgebra_Dir}/AsymRanderNorm.h
+	${LinearAlgebra_Dir}/DiagonalNorm.h
 	PARENT_SCOPE
 	)
 

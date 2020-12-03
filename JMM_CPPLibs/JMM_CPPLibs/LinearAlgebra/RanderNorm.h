@@ -12,12 +12,11 @@ namespace LinearAlgebra {
 template<typename TScalar, size_t VDimension>
 struct RanderNorm {
     
-    typedef TScalar ScalarType;
+    using ScalarType = TScalar;
     static const size_t Dimension = VDimension;
 
-    typedef Vector<ScalarType,Dimension> VectorType;
-    typedef SymmetricMatrix<ScalarType,Dimension> SymmetricMatrixType;
-    
+    using VectorType = Vector<ScalarType,Dimension>;
+    using SymmetricMatrixType = SymmetricMatrix<ScalarType,Dimension>;
     
     SymmetricMatrixType m;
     VectorType w;
@@ -40,9 +39,7 @@ template<typename TS, size_t VD>
 std::ostream & operator << (std::ostream & os, const RanderNorm<TS,VD> & norm){
     return os << "{" << norm.m << "," << norm.w << "}";
 }
-
-
 	
-}
+} // namespace Linear Algebra
 
 #endif
