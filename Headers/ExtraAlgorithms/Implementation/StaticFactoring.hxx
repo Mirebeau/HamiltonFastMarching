@@ -162,9 +162,9 @@ ComputeFactor(HFMI * that){
 		for(int i=0; i<size; ++i){
 			const PointType p = dom.PointFromIndex(values.Convert(i) + indexShift);
 			const VectorType v = p-seed;
-			const VectorType g = seedDist.Gradient(v);
+			const VectorType g=v.IsNull()? VectorType::Constant(0.): seedDist.Gradient(v);
 			gradients[i] = g;
-			values[i] = v.IsNull() ? 0. : g.ScalarProduct(v);
+			values[i] = g.ScalarProduct(v);
 		}
 	} else if(choice=="Both"){
 		// Factorization (dist_{x_0}(x-x_0) + dist_{x}(x-x_0)) / 2
@@ -188,9 +188,9 @@ ComputeFactor(HFMI * that){
 			const VectorType v = p-seed;
 			const VectorType seedG = seedDist.Gradient(v);
 			const auto & pDist = stencil.GetGuess(pIndex);
-			const VectorType pG = pDist.Gradient(v);
+			const VectorType pG = v.IsNull() ? VectorType::Constant(0.):pDist.Gradient(v);
 			const VectorType g = 0.5*(pG+seedG);
-			values[pi] = v.IsNull() ? 0. : g.ScalarProduct(v);
+			values[pi] = g.ScalarProduct(v);
 			
 			// We need to differentiate
 			// p,v -> (dist_{x_0}(v) + dist_{p}(v)) / 2
