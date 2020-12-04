@@ -154,7 +154,10 @@ ComputeFactor(HFMI * that){
 
 	const auto & seedDist = stencil.GetGuess(seed);
 		
-	if(choice=="Seed" || choice=="Key"){ // Synonyms here
+	// Note : asymmetric norms in Python and c++ are defined with opposite asymmetry,
+	// aka norm_python(v) = norm_c++(-v). This is taken into account below.
+	
+	if(choice=="Seed" || choice=="Key"){ // "Seed" and "Key" are synonyms here
 		// Factorization dist_{x_0}(x-x_0), where x_0 is the seed
 		//TODO : it would be preferable to do this loop in parallel. However, a convenient
 		//implementation requires C++ 20, which is not widely supported yet.
@@ -162,7 +165,9 @@ ComputeFactor(HFMI * that){
 		for(int i=0; i<size; ++i){
 			const PointType p = dom.PointFromIndex(values.Convert(i) + indexShift);
 			const VectorType v = p-seed;
-			const VectorType g=v.IsNull()? VectorType::Constant(0.): seedDist.Gradient(v);
+			// " - grad( - v) " is because of the different orientation convention between c++ and Python, for asymmetric norms
+			const VectorType g = v.IsNull()? VectorType::Constant(0.):
+				-seedDist.Gradient(-v);
 			gradients[i] = g;
 			values[i] = g.ScalarProduct(v);
 		}
@@ -186,9 +191,11 @@ ComputeFactor(HFMI * that){
 			const IndexType pIndex = values.Convert(pi) ;
 			const PointType p = dom.PointFromIndex(pIndex + indexShift);
 			const VectorType v = p-seed;
-			const VectorType seedG = seedDist.Gradient(v);
 			const auto & pDist = stencil.GetGuess(pIndex);
-			const VectorType pG = v.IsNull() ? VectorType::Constant(0.):pDist.Gradient(v);
+			const VectorType seedG = v.IsNull()?VectorType::Constant(0.):
+				-seedDist.Gradient(-v);
+			const VectorType pG = v.IsNull()?VectorType::Constant(0.):
+				-pDist.Gradient(-v);
 			const VectorType g = 0.5*(pG+seedG);
 			values[pi] = g.ScalarProduct(v);
 			
@@ -208,7 +215,7 @@ ComputeFactor(HFMI * that){
 					qIndex[k]+=eps;
 					if(mask.InRange(qIndex)){
 						const PointType q = dom.PointFromIndex(qIndex + indexShift);
-						ScalarType qVal = pDist.Norm(q-seed)/2.;
+						ScalarType qVal = pDist.Norm(-(q-seed))/2.;
 						const DiscreteType qi = gradients.Convert(qIndex);
 						qIndex[k]+=eps;
 						if(mask.InRange(qIndex)) qVal/=2; // True iff centered finite diff
