@@ -13,6 +13,11 @@ Setup(HFMI * that) {
 	Superclass::Setup(that);
 	param.Setup(that);
 	pMetric = that->template GetField<MetricElementType>("metric",false);
+	auto & io = that->io;
+	io.SetHelp("nmix","Number of ellipsoids defining the envelope of the TTI metric. "
+			   "Special value nmix=0 : newton-like optimization (default).");
+	if(io.HasField("nmix")){nmix = io.template Get<ScalarType>("nmix");}
+	if(nmix<0){ExceptionMacro("Expect non-negative nmix, found " << nmix);}
 }
 
 template<int VD> auto StencilTTI<VD>::
@@ -70,8 +75,92 @@ SetNeighbors(IndexCRef index, std::vector<OffsetType> & neigh) {
 }
 
 template<int VD> auto StencilTTI<VD>::
+HopfLaxUpdate_nmix(FullIndexCRef updated, OffsetCRef acceptedOffset, ScalarType value,
+				   ActiveNeighFlagType & active) -> ScalarType {
+//	std::cout << "Hi there" << std::endl;
+	auto & fm = *(this->pFM);
+	const ScalarType oldValue = fm.values[updated.linear];
+	fm.template SetIndex<true,false>(updated.index); // useFactoring, smallCorrection
+
+	const NormType norm = GetGuess(updated.index);
+	const auto props = norm.Props();
+	const bool mix_is_min = props.optimDirection==-1;
+	const ScalarType inf = std::numeric_limits<ScalarType>::infinity();
+
+	const TransformType & A = norm.transform.Inverse();
+	using Sym = SymmetricMatrixType;
+	const Sym D0 = Dimension==2 ? Sym::RankOneTensor(A.Row(0)) :
+	Sym::RankOneTensor(A.Row(0)) + Sym::RankOneTensor(A.Row(1));
+	const Sym D1 = Sym::RankOneTensor(A.Row(Dimension-1));
+	
+	ScalarType tOpt, solOpt = mix_is_min ? inf : -inf;
+	
+	for(int imix = 0; imix<nmix; ++imix){
+		const ScalarType t =
+		nmix==1 ? (props.tMin+props.tMax)/2 :
+		props.tMin + (props.tMax-props.tMin)* imix/ScalarType(nmix-1);
+		const Sym D = (1-t)*D0+t*D1;
+		const ScalarType mult = norm.Multiplier(t);
+		const auto & decomp = ReductionType::TensorDecomposition(D);
+
+		// Get the neighbor values
+		const int KKTDim = ReductionType::KKTDimension;
+		std::array<ScalarType,KKTDim> val;
+		for(int k=0; k<KKTDim; ++k){
+			int orderp=1,orderm=1;
+			const auto offset = OffsetType::CastCoordinates(decomp.offsets[k]);
+			const ScalarType
+			valp = fm.template GetNeighborValue<true,false,1>( offset,orderp),
+			valm = fm.template GetNeighborValue<true,false,1>(-offset,orderm);
+			val[k] = std::min(orderp ? valp : inf, orderm ? valm : inf);
+		}
+		
+		// Sort and solve
+		std::array<ScalarType,KKTDim> indices;
+		for(int i=0; i<KKTDim; ++i) {indices[i]=i;}
+		std::sort(indices.begin(),indices.end(),
+				  [&val](int i,int j){return val[i]<val[j];});
+		const ScalarType valMin=val[indices[0]];
+		if(valMin==inf) continue;
+			
+		using std::sqrt; using std::max;
+		ScalarType a(0),b(0),c(-mult),sol(inf);
+		int r=0;
+		for(; r<KKTDim; ++r){
+			const int i = indices[r];
+			// Optimization opportinity : first loop yiels v=0 (but w!=0)
+			const ScalarType v = val[i] - valMin;
+			if(v>=sol) break;
+			
+			const ScalarType w = decomp.weights[i], wv=w*v, wvv=wv*v;
+			a+=w;
+			b+=wv;
+			c+=wvv;
+			
+			if(a<=mult*1e-10) {continue;}
+			const ScalarType delta = b*b-a*c;
+			assert(delta>=0.);
+			sol = (b+sqrt(delta))/a;
+		}
+		sol+=valMin;
+		
+		// Extremize
+		if(mix_is_min == (sol<solOpt)) {tOpt = t; solOpt=sol;}
+	}
+	
+	const ScalarType newValue = solOpt;
+	if(newValue<oldValue) {
+		active = ActiveNeighFlagType(tOpt,true);
+		return newValue;
+	} else {
+		return oldValue;
+	}
+}
+
+template<int VD> auto StencilTTI<VD>::
 HopfLaxUpdate(FullIndexCRef updated, OffsetCRef acceptedOffset, ScalarType value,
 			  ActiveNeighFlagType & active) -> ScalarType {
+	if(nmix>0) {return HopfLaxUpdate_nmix(updated,acceptedOffset,value,active);}
 	auto & fm = *(this->pFM);
 	const ScalarType oldValue = fm.values[updated.linear];
 	fm.template SetIndex<true,false>(updated.index); // useFactoring, smallCorrection
@@ -296,11 +385,12 @@ _HopfLaxRecompute(IndexCRef index, ActiveNeighFlagType active,
 		const int i=indices[r_];
 		const ScalarType v = values[i]-valMin;
 		const ScalarType w0 = (1-t)*selling.weights0[i]+t*selling.weights1[i];
+		assert(w0>=-1e-10);
+		assert(sol-v>=-1e-10);
 		weightSum += w0;
-		const ScalarType wd =  (sol-v) * w0;
-		assert(wd>=0.);
+		const ScalarType wd = std::max(0.,(sol-v) * w0);
 		result.width += wd;
-		const ScalarType w = (sol-v) * w0 * multOrder[orders[i]]; // No square multOrder
+		const ScalarType w = wd * multOrder[orders[i]]; // No square multOrder
 		const OffsetType offset = OffsetType::CastCoordinates(selling.offsets[i]);
 		discreteFlow.push_back({offset*signs[i],w});
 	}

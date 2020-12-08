@@ -92,6 +92,9 @@ struct StencilTTI final
 
 	virtual ScalarType HopfLaxUpdate(FullIndexCRef, OffsetCRef, ScalarType,
 									 ActiveNeighFlagType &) override final;
+	ScalarType HopfLaxUpdate_nmix(FullIndexCRef, OffsetCRef, ScalarType,
+									 ActiveNeighFlagType &);
+
 	virtual RecomputeType
 	_HopfLaxRecompute(IndexCRef, ActiveNeighFlagType, DiscreteFlowType &) override final;
 
@@ -104,7 +107,7 @@ protected:
 	virtual RecomputeType HopfLaxRecompute(IndexCRef,DiscreteFlowType &)
 	override final {assert(false); return RecomputeType{};}
 
-
+	int nmix=0; // nmix=0 : Newton-like optimization. nmix>=1 : finite envelope.
 };
 
 #include "Implementation/TTI.hpp"

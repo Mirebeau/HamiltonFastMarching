@@ -239,7 +239,7 @@ NextStep(ScalarType & t) const -> std::pair<int,int> {
 		for(int j=i+1; j<=Dimension; ++j,++r) {
 			const ScalarType s0 = weights0[r], s1=weights1[r];
 //			std::cout ExportVarArrow((1.-tMin)*s0+tMin*s1) << std::endl;
-			assert((1.-tMin)*s0+tMin*s1 >= -1000*eps); //Expect obtuse superbase initially
+			assert((1.-tMin)*s0+tMin*s1 >= -1e-11); //Expect obtuse superbase initially
 			if(s1>=s0) continue; // Continue if vectors become more obtuse
 			const ScalarType tRoot = s0/(s0-s1);
 			assert(tRoot>=tMin-1000*eps); //Expect obtuse superbase initially

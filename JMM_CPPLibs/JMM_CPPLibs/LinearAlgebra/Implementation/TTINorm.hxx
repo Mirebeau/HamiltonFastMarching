@@ -93,9 +93,9 @@ Selling(ScalarType t) const -> SellingPath {
 	// Generate the extremal symmetric matrices
 	const TransformType & A = transform.Inverse();
 	using Sym = SymmetricMatrixType;
-	Sym D0 = Dimension==2 ? Sym::RankOneTensor(A.Row(0)) : 
+	const Sym D0 = Dimension==2 ? Sym::RankOneTensor(A.Row(0)) :
 	Sym::RankOneTensor(A.Row(0)) + Sym::RankOneTensor(A.Row(1));
-	Sym D1 = Sym::RankOneTensor(A.Row(Dimension-1));
+	const Sym D1 = Sym::RankOneTensor(A.Row(Dimension-1));
 	return SellingPath(D0,D1,t);
 }
 
@@ -108,13 +108,14 @@ UpdateValue(const T & t, const NeighborValuesType & val,
 	std::sort(indices.begin(),indices.end(),
 			  [&val](int i,int j){return val[i]<val[j];});
 	const ScalarType valMin=val[indices[0]];
+	const ScalarType inf = std::numeric_limits<ScalarType>::infinity();
+	if(valMin==inf) return T(inf);
 	
 	// Get the multiplier
 	// TODO : optimization opportunity in Multiplier(t)
 	const T & mult = Multiplier(t);
 	
 	// Compute the update, solving ax^2-2bx+c=0
-	const ScalarType inf = std::numeric_limits<ScalarType>::infinity();
 	using std::sqrt; using std::max;
 	ScalarType a(0),b(0),c(-RemoveAD(mult)),sol(inf);
 	int r=0;
@@ -131,7 +132,7 @@ UpdateValue(const T & t, const NeighborValuesType & val,
 		b+=wv;
 		c+=wvv;
 		
-		if(a <= 100*std::abs(c)*std::numeric_limits<ScalarType>::epsilon()){continue;}
+		if(a <= RemoveAD(mult)*1e-10){continue;}
 		const ScalarType delta = b*b-a*c;
 		assert(delta>=0.);
 		sol = (b+sqrt(delta))/a;

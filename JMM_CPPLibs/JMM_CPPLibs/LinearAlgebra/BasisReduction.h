@@ -56,7 +56,7 @@ struct BasisReduction {
 		SuperbaseType sb;
 		std::array<DiscreteVectorType,SymDimension> offsets;
 		std::array<ScalarType,SymDimension> weights0,weights1;
-		SellingPath(const SymmetricMatrixType &, const SymmetricMatrixType &, ScalarType=0.);
+		SellingPath(const SymmetricMatrixType &, const SymmetricMatrixType &, ScalarType);
 		
 		// Next step, with a lower and upper bound.
 		// Returns pair corresponding to the previously obtuse pair.
