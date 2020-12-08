@@ -268,7 +268,7 @@ SetSeeds(HFMI * that) {
 		if(io.HasField("seedValues")) {
 			seedValues = io.template GetVector<ScalarType>("seedValues");
 			if(seedValues.size()!=seedPoints.size())
-				ExceptionMacro("Error : Inconsistent size of seedValues.")
+				ExceptionMacro("Error : Inconsistent size of seedValues.");
 				} else {
 					seedValues.resize(seedPoints.size(),0.);
 				}
