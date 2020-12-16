@@ -30,7 +30,6 @@ GeodesicDiscreteSolver<Traits>::Run(HFMI * that, const std::vector<PointType> & 
             << "geodesicVolumeBound increased to " << effectiveVolumeBound;}
         result.push_back(std::move(geodesic));
     }
-	std::cout << "Ended Geodesic Discrete Solver" << std::endl;
 	
     return result;
 }
