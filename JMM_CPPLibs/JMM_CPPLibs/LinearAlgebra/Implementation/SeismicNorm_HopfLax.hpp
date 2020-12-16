@@ -258,8 +258,6 @@ const -> std::pair<ComponentType, VectorType> {
 	const size_t newtonIt = 8;
 	const ComponentType lambda = det.Newton(0., newtonIt);
 	// TODO : compare with meaningful value
-	
-	
 	assert(std::abs(det(lambda))<1e-6);
 	
 	typedef DifferentiationType<ComponentType, VectorType> DiffType;
@@ -277,7 +275,7 @@ const -> std::pair<ComponentType, VectorType> {
 	assert(std::abs(constraint.s) < 1e-6);
 	// TODO compare with meaningful value
 	
-	const VectorType weights = V.Transpose()*constraint.v /
+	VectorType weights = V.Transpose()*constraint.v /
 		zopt_raw.ScalarProduct(constraint.v);
 	// Get position of optimal neighbor
 	// (barycentric coefficients, normalized to reproduce unit flow)
@@ -285,19 +283,18 @@ const -> std::pair<ComponentType, VectorType> {
 	
 	// TODO : check normalization, ...
 	
-	//if (!weights.IsNonNegative()) {
-	//	return { std::numeric_limits<ComponentType>::infinity(), VectorType::Constant(0) }; }
-	
-	
 	// Check that inf is indeed attained in interior, as expected
 	// Issue : we can actually get some very small negative values
-	//	assert(weights.IsNonNegative());
 	
 	// Check consistency
 	assert((V.Inverse()*GradNorm(V.Transpose().Inverse()*weights)
 			+l-(lambda+guess)*VectorType::Constant(1)
 			).Norm()<1e-6);
 	
+	for(int i=0; i<Dimension; ++i){
+		assert(weights[i]>=-1e-6);
+		weights[i] = std::max(ComponentType(0),weights[i]);
+	}
 	return { lambda+guess, weights };
 }
 
@@ -332,7 +329,8 @@ const -> std::pair<ComponentType,Vec<2> > {
 		 */
 		
 		const AD2Type c =
-		(useMetilOptimization && Dimension==3) ? AD2Constraint_Metil(p) :
+		(useMetilOptimization && Dimension==3) ?
+		AD2Constraint_Metil(p) :
 		AD2Constraint(p,constraint_tmp);
 		
 		// Finding a line along which the KKT relations lie.
@@ -415,18 +413,20 @@ const -> std::pair<ComponentType,Vec<2> > {
 	
 	const ScalarType normalization = p.ScalarProduct(constraint.v);
 	auto const gram = Sym2::EuclideanGram(v);
-	Vec<2> const weights = -
+	Vec<2> weights = // -
 	gram.Inverse()*Vec<2>{v[0].ScalarProduct(constraint.v),
 		v[1].ScalarProduct(constraint.v)} / normalization;
+	if(weights.Sum()<0) weights*=-1;
 	
-	// Weights should be positive .. up to numerical precision
-	//assert(weights.IsNonNegative());
+	// Weights should be non-negative .. up to numerical precision
 	if constexpr(isSimple) {
-		assert(weights[0]/weights.Sum() > -1e-6 && weights[1]/weights.Sum() > -1e-6);}
+		assert(weights[0]/weights.Sum() > -1e-6
+			   && weights[1]/weights.Sum() > -1e-6);}
 	
 	// Should be zero ... up to numerical precision
 	if constexpr(isSimple) {assert((GradNorm(V*weights)-p).Norm()<1e-6);}
 	
+	for(int i=0; i<2; ++i) {weights[i]=std::max(ComponentType(0),weights[i]);}
 	return {val,weights};
 	
 }

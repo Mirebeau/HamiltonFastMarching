@@ -134,7 +134,12 @@ const -> std::pair<ComponentType,Vec<3> > {
 	 VectorType edgePos;
 	 std::array<VectorType,3> edgeGrad;
 	 */
-	
+
+	/* The i-th edge has vertices neigh[i] and neigh[j], j=i+1
+	 Minimum along this edge is attained at
+	 (1-edgePos[i])*neigh[i]+edgePos[i]*neigh[j],
+	 The gradient of the norm at this minimum is edgeGrad[i]
+	 */
 	const auto & edgeGrad = edgeCacheIn;
 	const auto & edgePos = edgeCacheIn2;
 	std::pair<ComponentType,Vec<3> > result;
@@ -209,8 +214,19 @@ const -> std::pair<ComponentType,Vec<3> > {
 	if(edgeExtremize(2,d20,d02)) return result;
 	
 	// Now we are building the guess for the face update
-	// Find a relation between the gradients
+	// c2 will store the barycentric coordinates of the guess w.r.t neighbors
+	VectorType c2 = VectorType::Constant(0);
 	
+	// First, check wether one of the vertices is a good guess
+	const ScalarType tol=1e-3;
+	if     (edgePos[1]>=1-tol && edgePos[2]<=tol){c2[2]=1;} 
+	else if(edgePos[2]>=1-tol && edgePos[0]<=tol){c2[0]=1;}
+	else if(edgePos[0]>=1-tol && edgePos[1]<=tol){c2[1]=1;}
+	else {
+	/* Otherwise, determine the guess by finding a relation between the gradients
+	computed at the edge minimizers.
+	If the minimized function was quadratic, this would be the minimum.*/
+
 	VectorType const a{
 		edgeGrad[0].ScalarProduct(n01)+l01,
 		edgeGrad[1].ScalarProduct(n01)+l01,
@@ -226,8 +242,7 @@ const -> std::pair<ComponentType,Vec<3> > {
 	// c should be non-negative, but this is hard to control
 	// due to floating point errors in degenerate cases.
 	//assert(c.IsNonNegative());
-	
-	VectorType c2 = VectorType::Constant(0);
+
 	for(int i=0; i<3; ++i){
 		int const j=(i+1)%3;
 		c2[i]+=c[i]*(1-edgePos[i]);
@@ -238,23 +253,35 @@ const -> std::pair<ComponentType,Vec<3> > {
 	c2/=c2.Sum();
 	
 	// c2 should be non-negative, up to floating point errors
-	assert(*std::min_element(c2.begin(),c2.end()) >= -1e-6);
 	
 	/*
-	 if(*std::min_element(c.begin(),c.end()) < -1e-6){
-	 std::cout << "In hopf lax "
-	 ExportArrayArrow(neigh)
-	 ExportVarArrow(l)
-	 ExportVarArrow(edgePos)
-	 ExportVarArrow(c2)
-	 << std::endl;
+	 if(*std::min_element(c2.begin(),c2.end()) < -1e-6){
+		 std::cout << "In hopf lax "
+		 ExportArrayArrow(neigh)
+		 ExportVarArrow(l)
+		 ExportVarArrow(edgePos)
+		 ExportVarArrow(c2)
+		 ExportVarArrow(c)
+		 ExportVarArrow(a)
+		 ExportVarArrow(b)
+		 ExportArrayArrow(edgeGrad)
+		 ExportVarArrow(l01)
+		 ExportVarArrow(l12) << "\n"
+		 ExportVarArrow(d01)
+		 ExportVarArrow(d10)
+		 ExportVarArrow(d02)
+		 ExportVarArrow(d20)
+		 ExportVarArrow(d12)
+		 ExportVarArrow(d21)
+		 << std::endl;
 	 }*/
-	
+
+	assert(*std::min_element(c2.begin(),c2.end()) >= -1e-6);
+
 	// Express in terms of the triangle vertices
-	
-	VectorType const guessPt =
-	c2[0]*neigh[0]+c2[1]*neigh[1]+c2[2]*neigh[2];
-	
+	}
+		
+	const VectorType guessPt = c2[0]*neigh[0]+c2[1]*neigh[1]+c2[2]*neigh[2];
 	ComponentType const guessVal = Norm(guessPt)+c2.ScalarProduct(l);
 	return _HopfLax_Face(neigh, l, guessVal);
 	
