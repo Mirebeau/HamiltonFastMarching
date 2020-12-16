@@ -69,7 +69,7 @@ Setup(HFMI * that){
 
 	const bool
 	import = io.HasField("factoringValues"),
-	compute = io.HasField("factoringRadius");
+	compute = io.HasField("factoringRadius") && io.Get<ScalarType>("factoringRadius",0)!=0;
 	if(import && compute){
 		ExceptionMacro("StaticFactoring error : factoringValues (import)"
 		" and factoringRadius (compute) both specified.")}
