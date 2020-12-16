@@ -1,4 +1,4 @@
-% The cost for these model takes the form C(xi x'')/speed, where speed=speed(x,x') is constant or state dependent, and xi is constant.
+% The cost for these models takes the form C(xi x'')/speed, where speed=speed(x,x') is constant or state dependent, and xi is constant.
 % The function C is model dependent: 
 % - C(s)=sqrt(1+s^2) for the ReedsSheppForward2 model. The ReedsShepp2 model is similar but allows cusps.
 % - C(s)=1+s^2 for Elastica2<5>.

@@ -15,7 +15,7 @@
 % The dual metric, defined in the co-tangent space, has a similar form.
 % F^*(v)^2 = <v,D v> + <eta,v>_+^2.
 
-% This type of metric can be used to approximate'HalfDisk models', which unit ball 
+% This type of metric can be used to approximate 'HalfDisk models', whose unit ball 
 % is a half disk, or half ellipse, up to a small relaxation parameter.
 
 % There are three ways to specify the metric:
@@ -30,7 +30,7 @@ nGeo=8;
 modelName = 'AsymmetricQuadratic2';
 metricType = 'Dual'; % Primal % Dual
 
-% By default, we do use Matlab's convention of ordering the axes as y, x, z, 
+% By default, we do use Matlab's' convention of ordering the axes as y, x, z, 
 % (and relying on ColumnMajor array data indexation).
 % use input.arrayOrdering = 'ColumnMajor' for standard axes ordering.
 
@@ -112,7 +112,7 @@ arrGeo = (epsGeo/2):epsGeo:(1-epsGeo/2);
 x=reshape(x,[numel(x),1]); y=reshape(y,[numel(y),1]);
 input.tips = [x,y]'; % where the geodesics end. This will select the angle t for which the geodesic is the shortest.
 input.exportValues=1; % distance table, of size [n,n] (minimum of the previous one over directions)
-input.sndOrder=1;
+input.order=2;
 output=eval(['MatlabHFM_' modelName '(input)']);
 
 clf;

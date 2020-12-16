@@ -1,4 +1,4 @@
-% Copyright Jean-Marie Mirebeau, University Paris-Sud, CNRS, University Paris-Saclay
+% Copyright Jean-Marie Mirebeau, University Paris-Sud, CNRS, University Paris-Saclay, 2020
 
 if verLessThan('matlab','8.1')
     cxxFlags = ['CXXFLAGS="-std=c++17" ' ...
@@ -37,4 +37,5 @@ fprintf(['\nPlease execute the function compileModelsHFM(binary_Dir,standardMode
 'In case of need, replace standardModelsHFM with experimentalModelsHFM, or any list of desired models.\n']);
 
 %For me : binary_Dir = '/Users/mirebeau/Dropbox/Programmes/MATLAB/MexBin';
+% or : binary_Dir = 'C:\Users\jmmir\Documents\bin\MatlabHFM';
 %For debug : compileHFM(binary_Dir,'Custom','Custom')
