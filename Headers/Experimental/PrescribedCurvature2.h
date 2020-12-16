@@ -153,7 +153,7 @@ struct StencilDubinsExt2 final
 	Voronoi1Vec<ReductionType> reduc;
 	
     virtual void SetStencil(IndexCRef index, StencilType & stencil) override {
-        assert(pSpeed); assert(pXi); assert(pKappa);
+        assert(pSpeed); assert(pXi); // pKappa, pTheta can be nullptr
         const ScalarType
         speed=(*pSpeed)(index),
 		xi=(*pXi)(index),
