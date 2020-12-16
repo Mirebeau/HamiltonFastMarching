@@ -440,7 +440,11 @@ Run_RunSolver() {
 				   "(generalized) fast marching method. This time excludes all other\n"
 				   "tasks (input/output, computing geodesics, etc)");
 		if(io.verbosity>=1){
-			Msg() << "Fast marching solver completed in " << FMCPUTime << " s.\n";}
+			Msg() << "Fast marching solver completed in " << FMCPUTime << " s.\n";
+#ifndef NDEBUG
+			Msg() << "(Code executed in Debug mode, explaining slow compute time)\n";
+#endif
+		}
     }
     return false;
 }
