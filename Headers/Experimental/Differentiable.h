@@ -17,6 +17,7 @@
  */
 
 #include "Specializations/CommonTraits.h"
+#include "JMM_CPPLibs/LinearAlgebra/DiagonalNorm.h"
 
 // ------------- Isotropic metric, everywhere differentiable implementation ------------
 template<size_t VDimension>
@@ -29,22 +30,25 @@ struct TraitsIsotropicDiff : TraitsBase<VDimension> {
     typedef EulerianStencil<DifferenceType,0,2*Dimension> StencilType;
     
     typedef PeriodicGrid<TraitsIsotropicDiff> DomainType;
+	using DistanceGuess = LinearAlgebra::DiagonalNorm<ScalarType,Dimension>;
 };
 
 template<size_t VDimension>
 struct StencilIsotropicDiff : HamiltonFastMarching<TraitsIsotropicDiff<VDimension> >::StencilDataType {
     typedef HamiltonFastMarching<TraitsIsotropicDiff<VDimension> > HFM;
     typedef typename HFM::StencilDataType Superclass;
-    Redeclare5Types(HFM,ParamDefault,IndexType,StencilType,ParamInterface,HFMI)
+    Redeclare8Types(HFM,ParamDefault,IndexType,StencilType,ParamInterface,HFMI,
+					DistanceGuess,PointType,ScalarType)
     Redeclare1Constant(HFM,Dimension)
-    ParamDefault param;
+	using ParamType = typename HFM::template _ParamDefault<2,void>; // Distinct scale on each axis
+    ParamType param;
     
     virtual void SetStencil(const IndexType & index, StencilType & stencil) override {
         int n=0;
         for(int i=0; i<Dimension; ++i){
             for(int s=-1; s<=1; s+=2){
                 auto & diff = stencil.forward[0][n]; ++n;
-                diff.baseWeight=1./square(param.gridScale);
+                diff.baseWeight=1./square(param.gridScales[i]);
                 diff.offset.fill(0);
                 diff.offset[i]=s;
             }
@@ -53,6 +57,21 @@ struct StencilIsotropicDiff : HamiltonFastMarching<TraitsIsotropicDiff<VDimensio
     }
     virtual const ParamInterface & Param() const override {return param;}
     virtual void Setup(HFMI *that) override {Superclass::Setup(that); param.Setup(that);}
+
+	
+	virtual DistanceGuess GetGuess(const PointType & p) const override {
+		return Rescale(MapWeightedSum<ScalarType>(
+				*this->pMultSource,this->pFM->dom.Neighbors(p)));}
+	virtual DistanceGuess GetGuess(const IndexType & index) const override {
+		return Rescale((*this->pMultSource)(index));}
+
+	protected:
+	DistanceGuess Rescale(ScalarType s) const {
+		DistanceGuess diag;
+		const PointType h = param.gridScales;
+		for(int i=0; i<Dimension; ++i) diag.d[i] = h[i]/s;
+		return diag;
+	}
 };
 
 
