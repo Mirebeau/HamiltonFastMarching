@@ -10,10 +10,10 @@
 NotebookFileLineBreakTest
 NotebookFileLineBreakTest
 NotebookDataPosition[       157,          7]
-NotebookDataLength[     23950,        616]
-NotebookOptionsPosition[     23542,        597]
-NotebookOutlinePosition[     23902,        613]
-CellTagsIndexPosition[     23859,        610]
+NotebookDataLength[     30482,        757]
+NotebookOptionsPosition[     30073,        738]
+NotebookOutlinePosition[     30431,        754]
+CellTagsIndexPosition[     30388,        751]
 WindowFrame->Normal*)
 
 (* Beginning of Notebook Content *)
@@ -26,31 +26,114 @@ Cell["Common definitions for Hamilton Fast Marching", "Title",
 
 Cell["\<\
 The following definitions are required for the mathematica example files
-Important: Please correctly setup the directory containing the FileHFM \
-executable !\
+
+Important: there are several alternative ways to call the HFM library.
+- Option 1. Compile the HFM library from source. 
+Precisely, you need to compile HamiltonFastMarching/Interfaces/FileHFM, using \
+CMake
+
+- Option 2. Use anaconda to install the \
+\[OpenCurlyQuote]agd\[CloseCurlyQuote] and \[OpenCurlyQuote]hfm\
+\[CloseCurlyQuote] libraries.
+>>> conda install -c agd-hfm agd
+>>> conda install -c agd-hfm hfm
+
+- Option 3. (GPU code) Have a cuda capable machine, the agd library installed \
+with pip.
+>>> pip install agd
+>>> pip install (relevant version of the cupy package, depends on your cuda \
+toolkit)
+
+THEN : please modify the following cell, depending on use case.\
 \>", "Text",
  CellChangeTimes->{
   3.696873289898459*^9, {3.699380315019144*^9, 3.699380385776102*^9}, {
    3.6993805332465754`*^9, 3.6993805473324213`*^9}, {3.699380580213957*^9, 
-   3.699380688131352*^9}, {3.6993807281014233`*^9, 3.699380750658681*^9}}],
+   3.699380688131352*^9}, {3.6993807281014233`*^9, 3.699380750658681*^9}, {
+   3.822065907792203*^9, 3.8220659673753157`*^9}, {3.8220660348371897`*^9, 
+   3.822066078689646*^9}, {3.822066115346827*^9, 3.8220663300147657`*^9}, {
+   3.822066377526857*^9, 3.8220666581829147`*^9}, {3.822068959362891*^9, 
+   3.822068971023325*^9}, {3.822069010262352*^9, 3.8220690207739353`*^9}}],
 
 Cell[BoxData[
- RowBox[{
+ RowBox[{" ", 
   RowBox[{"(*", 
-   RowBox[{"!!", " ", 
-    RowBox[{"To", " ", 
-     RowBox[{"user", ":", " ", 
-      RowBox[{"Change", " ", 
-       RowBox[{"this", " ", "!!"}]}]}]}]}], "*)"}], "\[IndentingNewLine]", 
+   RowBox[{
+    RowBox[{"!!", " ", 
+     RowBox[{"To", " ", 
+      RowBox[{"user", ":", " ", 
+       RowBox[{"Modify", " ", "this", " ", 
+        RowBox[{"cell", " ", "!!"}], " ", "Fill", " ", "one", " ", 
+        "option"}]}]}]}], ",", " ", 
+    RowBox[{"comment", " ", "others"}]}], "*)"}], "\[IndentingNewLine]", 
+  "\[IndentingNewLine]", 
+  RowBox[{"(*", " ", 
+   RowBox[{
+   "Option", " ", "1.", " ", "Please", " ", "correctly", " ", "setup", " ", 
+    "the", " ", "directory", " ", "containing", " ", "the", " ", "FileHFM", 
+    " ", 
+    RowBox[{"executable", "!"}]}], " ", "*)"}], "\[IndentingNewLine]", 
+  RowBox[{"(*", 
+   RowBox[{
+    RowBox[{
+    "binDirectoryHFM", " ", "=", " ", 
+     "\"\</Users/mirebeau/bin/HamiltonFastMarching/FileHFM/Release\>\""}], 
+    ";"}], "*)"}], "\[IndentingNewLine]", "\[IndentingNewLine]", 
+  RowBox[{"(*", " ", 
+   RowBox[{
+   "Option", " ", "2.", " ", "Please", " ", "indicate", " ", "the", " ", 
+    "python", " ", "executable", " ", "from", " ", "the", " ", "correct", " ",
+     "conda", " ", 
+    RowBox[{"environment", "."}]}], " ", "*)"}], "\[IndentingNewLine]", 
   RowBox[{
    RowBox[{
-   "binDirectoryHFM", " ", "=", " ", 
-    "\"\</Users/mirebeau/bin/HamiltonFastMarching/FileHFM/Release\>\""}], 
-   ";"}]}]], "Input",
+    RowBox[{
+    "pythonAGDxHFM", "=", 
+     "\"\</Users/mirebeau/opt/miniconda3/envs/agd-hfm_dev/bin/python\>\""}], 
+    ";"}], "\[IndentingNewLine]", "\[IndentingNewLine]", 
+   RowBox[{"(*", " ", 
+    RowBox[{
+    "Option", " ", "3.", " ", "Please", " ", "indicate", " ", "the", " ", 
+     "python", " ", "executable", " ", "from", " ", "the", " ", "correct", 
+     " ", 
+     RowBox[{"environment", "."}]}], " ", "*)"}], "\[IndentingNewLine]", 
+   RowBox[{"(*", 
+    RowBox[{
+     RowBox[{
+     "pythonAGDxGPU", " ", "=", " ", 
+      "\"\</Users/mirebeau/opt/miniconda3/envs/agd-hfm_dev/bin/python\>\""}], 
+     ";"}], "*)"}], "\[IndentingNewLine]", "\[IndentingNewLine]", 
+   RowBox[{"If", "[", 
+    RowBox[{
+     RowBox[{"1", "!=", 
+      RowBox[{"Plus", "@@", 
+       RowBox[{"Boole", "/@", 
+        RowBox[{"{", 
+         RowBox[{
+          RowBox[{"ValueQ", "[", "binDirectoryHFM", "]"}], ",", 
+          RowBox[{"ValueQ", "[", "pythonAGDxHFM", "]"}], ",", 
+          RowBox[{"ValueQ", "[", "pythonAGDxGPU", "]"}]}], "}"}]}]}]}], ",", 
+     "\[IndentingNewLine]", " ", 
+     RowBox[{
+      RowBox[{"Clear", "[", "binDirectoryHFM", "]"}], ";", " ", 
+      RowBox[{"Clear", "[", "pythonAGDxHFM", "]"}], ";", 
+      RowBox[{"Clear", "[", "pythonAGDxGPU", "]"}], ";", 
+      "\[IndentingNewLine]", 
+      RowBox[{
+      "Throw", "[", 
+       "\"\<Please choose exactly one option, and comment others !\>\"", 
+       "]"}]}]}], "]"}]}]}]], "Input",
  CellChangeTimes->{{3.699386983914554*^9, 3.699386986480248*^9}, {
    3.7017725659010487`*^9, 3.701772568283402*^9}, {3.729539345011047*^9, 
    3.7295393462929087`*^9}, 3.7353693109055643`*^9, 3.7463838665613823`*^9, {
-   3.746383923658345*^9, 3.7463839402168217`*^9}, 3.74638398208211*^9}],
+   3.746383923658345*^9, 3.7463839402168217`*^9}, 3.74638398208211*^9, {
+   3.8220660810670023`*^9, 3.822066106249743*^9}, {3.822066336672887*^9, 
+   3.822066365276065*^9}, {3.822066667368487*^9, 3.822066810044203*^9}, {
+   3.8220668455907907`*^9, 3.822066917597385*^9}, {3.822066967779986*^9, 
+   3.822067017985198*^9}, {3.8220671339994097`*^9, 3.8220671696227503`*^9}, {
+   3.8220672519639273`*^9, 3.8220674020186653`*^9}, {3.822068448226151*^9, 
+   3.822068473350833*^9}, {3.822068528232136*^9, 3.822068579265912*^9}, {
+   3.822068614483383*^9, 3.822068624223678*^9}, 3.822069063789455*^9}],
 
 Cell[BoxData[{
  RowBox[{
@@ -134,23 +217,61 @@ Cell[BoxData[{
       RowBox[{"{", 
        RowBox[{
         RowBox[{"refDir", "=", 
-         RowBox[{"Directory", "[", "]"}]}], ",", "out", ",", "geo"}], "}"}], 
-      ",", "\[IndentingNewLine]", 
+         RowBox[{"Directory", "[", "]"}]}], ",", "out", ",", "geo", ",", 
+        RowBox[{"params2", "=", "params"}]}], "}"}], ",", 
+      "\[IndentingNewLine]", 
       RowBox[{
-       RowBox[{"SetDirectory", "[", "binDirectoryHFM", "]"}], ";", 
+       RowBox[{"If", "[", 
+        RowBox[{
+         RowBox[{"ValueQ", "[", "binDirectoryHFM", "]"}], ",", 
+         RowBox[{"SetDirectory", "[", "binDirectoryHFM", "]"}], ",", 
+         "\[IndentingNewLine]", 
+         RowBox[{
+          RowBox[{"AppendTo", "[", 
+           RowBox[{"params2", ",", 
+            RowBox[{"\"\<model\>\"", "\[Rule]", 
+             RowBox[{"StringTake", "[", 
+              RowBox[{"exec", ",", 
+               RowBox[{"{", 
+                RowBox[{"9", ",", 
+                 RowBox[{"StringLength", "[", "exec", "]"}]}], "}"}]}], 
+              "]"}]}]}], "]"}], ";", "\[IndentingNewLine]", 
+          RowBox[{"Export", "[", 
+           RowBox[{
+           "\"\<AGDxHFMxGPU.py\>\"", ",", "pythonScriptAGDxHFMxGPU", ",", 
+            "\"\<String\>\""}], " ", "]"}], ";"}]}], "]"}], ";", 
        "\[IndentingNewLine]", 
        RowBox[{"If", "[", 
         RowBox[{
+         RowBox[{"ValueQ", "[", "pythonAGDxGPU", "]"}], ",", 
+         RowBox[{"AppendTo", "[", 
+          RowBox[{"params2", ",", 
+           RowBox[{"\"\<mode\>\"", "\[Rule]", "\"\<gpu_transfer\>\""}]}], 
+          "]"}]}], "]"}], ";", "\[IndentingNewLine]", "\[IndentingNewLine]", 
+       RowBox[{"If", "[", 
+        RowBox[{
          RowBox[{"RulesToRaw", "[", 
-          RowBox[{"params", ",", "\"\<input\>\""}], "]"}], ",", 
-         "\[IndentingNewLine]", 
+          RowBox[{"params2", ",", "\"\<input\>\""}], "]"}], ",", 
          RowBox[{
           RowBox[{"Print", "[", "\"\<Failed to export params\>\"", "]"}], ";", 
           RowBox[{"Return", "[", "]"}], ";"}]}], "]"}], ";", 
        "\[IndentingNewLine]", 
-       RowBox[{"Run", "[", 
-        RowBox[{"execPrefix", "<>", "exec", "<>", "\"\< > log.txt\>\""}], 
-        "]"}], ";", "\[IndentingNewLine]", 
+       RowBox[{"Which", "[", 
+        RowBox[{
+         RowBox[{"ValueQ", "[", "binDirectoryHFM", "]"}], ",", 
+         RowBox[{"Run", "[", 
+          RowBox[{"execPrefix", "<>", "exec", "<>", "\"\< > log.txt\>\""}], 
+          "]"}], ",", "\[IndentingNewLine]", 
+         RowBox[{"ValueQ", "[", "pythonAGDxHFM", "]"}], ",", 
+         RowBox[{"Run", "[", 
+          RowBox[{
+          "pythonAGDxHFM", "<>", "\"\< AGDxHFMxGPU.py > log.txt\>\""}], "]"}],
+          ",", "\[IndentingNewLine]", 
+         RowBox[{"ValueQ", "[", "pythonAGDxGPU", "]"}], ",", 
+         RowBox[{"Run", "[", 
+          RowBox[{
+          "pythonAGDxGPU", "<>", "\"\< AGDxHFMxGPU.py > log.txt\>\""}], 
+          "]"}]}], "]"}], ";", "\[IndentingNewLine]", 
        RowBox[{"out", "=", 
         RowBox[{"RawToRules", "[", "\"\<output\>\"", "]"}]}], ";", 
        "\[IndentingNewLine]", 
@@ -177,7 +298,21 @@ Cell[BoxData[{
                RowBox[{"\"\<geodesicLengths\>\"", "/.", "out"}], "]"}]}], 
              "]"}]}]}], "]"}]}], "]"}], ";", "\[IndentingNewLine]", 
        RowBox[{"Return", "[", "out", "]"}], ";"}]}], "\[IndentingNewLine]", 
-     "]"}]}], ";"}], "\[IndentingNewLine]", "\[IndentingNewLine]", 
+     "]"}]}], ";"}], "\[IndentingNewLine]"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{
+   RowBox[{
+   "pythonScriptAGDxHFMxGPU", " ", "=", " ", 
+    "\"\<\nfrom agd import Eikonal\nfrom agd.Eikonal.FileIO import \
+RawToFiles,FilesToRaw\nimport numpy as np\nhfmIn = \
+Eikonal.dictIn(FilesToRaw('input'))\nhfmOut = hfmIn.Run()\nfor key,value in \
+list(hfmOut.items()):\n  if np.isscalar(value) or \
+isinstance(value,np.ndarray): continue\n  if key.startswith('geodesics'):\n   \
+suffix = key[len('geodesics'):]\n   hfmOut['geodesicPoints'+suffix] = \
+np.concatenate(value,axis=1).T\n   hfmOut['geodesicLengths'+suffix] = \
+np.array([g.shape[1] for g in value])\n   hfmOut.pop(key)\n\
+RawToFiles(hfmOut,'output')\n\>\""}], ";"}], "\[IndentingNewLine]", 
+  "\[IndentingNewLine]", 
   RowBox[{"(*", " ", 
    RowBox[{
     RowBox[{
@@ -592,11 +727,17 @@ string|Numeric|Array\\n\>\"", ",",
    3.700204129348976*^9}, 3.7004562988277903`*^9, {3.701774367564468*^9, 
    3.7017743997212267`*^9}, 3.7017745837881813`*^9, {3.720184242947942*^9, 
    3.720184279651361*^9}, {3.720184623142488*^9, 3.720184624857038*^9}, {
-   3.720184660800836*^9, 3.720184661590372*^9}}]
+   3.720184660800836*^9, 3.720184661590372*^9}, {3.82206747946039*^9, 
+   3.8220675875887337`*^9}, {3.822067624380321*^9, 3.82206774802499*^9}, {
+   3.822067779721209*^9, 3.8220678173102417`*^9}, {3.8220678524323473`*^9, 
+   3.8220678547301817`*^9}, 3.822067886567631*^9, {3.8220679820670357`*^9, 
+   3.822068172689911*^9}, {3.822068285263472*^9, 3.822068406817543*^9}, {
+   3.822068665834375*^9, 3.822068674743737*^9}, 3.8220688449504766`*^9, {
+   3.822068889780941*^9, 3.822068891881242*^9}, 3.822068936802479*^9}]
 }, Open  ]]
 },
-WindowSize->{343, 259},
-WindowMargins->{{Automatic, 349}, {31, Automatic}},
+WindowSize->{931, 656},
+WindowMargins->{{Automatic, 18}, {Automatic, 0}},
 FrontEndVersion->"11.0 for Mac OS X x86 (32-bit, 64-bit Kernel) (September \
 21, 2016)",
 StyleDefinitions->"Default.nb"
@@ -613,10 +754,10 @@ CellTagsIndex->{}
 (*NotebookFileOutline
 Notebook[{
 Cell[CellGroupData[{
-Cell[579, 22, 177, 2, 260, "Title"],
-Cell[759, 26, 425, 8, 106, "Text"],
-Cell[1187, 36, 674, 16, 138, "Input"],
-Cell[1864, 54, 21662, 540, 5393, "Input"]
+Cell[579, 22, 177, 2, 92, "Title"],
+Cell[759, 26, 1316, 29, 296, "Text"],
+Cell[2078, 57, 3449, 78, 306, "Input"],
+Cell[5530, 137, 24527, 598, 2511, "Input"]
 }, Open  ]]
 }
 ]
