@@ -56,7 +56,7 @@ struct TraitsSeismicTopographic2 : TraitsBase<2> {
 };
 
 template<typename TTraits>
-struct StencilGenericLag2 final
+struct StencilGenericLag2 
 : HamiltonFastMarching<TTraits>::StencilDataType {
 	using Traits = TTraits;
 	using HFM = HamiltonFastMarching<Traits>;
@@ -86,7 +86,7 @@ struct StencilGenericLag2 final
 	virtual void Setup(HFMI *) override;
 	virtual DistanceGuess GetGuess(const PointType & p) const override;
 	virtual DistanceGuess GetGuess(const IndexType & index) const override {return GetNorm(index);}
-private:
+protected:
 	NormType GetNorm(IndexCRef index) const; // Includes rescaling by h
 	
 	std::vector<OffsetType> tmp_stencil;
