@@ -10,10 +10,10 @@
 NotebookFileLineBreakTest
 NotebookFileLineBreakTest
 NotebookDataPosition[       157,          7]
-NotebookDataLength[     30482,        757]
-NotebookOptionsPosition[     30073,        738]
-NotebookOutlinePosition[     30431,        754]
-CellTagsIndexPosition[     30388,        751]
+NotebookDataLength[     30548,        758]
+NotebookOptionsPosition[     30139,        739]
+NotebookOutlinePosition[     30497,        755]
+CellTagsIndexPosition[     30454,        752]
 WindowFrame->Normal*)
 
 (* Beginning of Notebook Content *)
@@ -73,24 +73,24 @@ Cell[BoxData[
     "the", " ", "directory", " ", "containing", " ", "the", " ", "FileHFM", 
     " ", 
     RowBox[{"executable", "!"}]}], " ", "*)"}], "\[IndentingNewLine]", 
-  RowBox[{"(*", 
+  RowBox[{
    RowBox[{
     RowBox[{
     "binDirectoryHFM", " ", "=", " ", 
      "\"\</Users/mirebeau/bin/HamiltonFastMarching/FileHFM/Release\>\""}], 
-    ";"}], "*)"}], "\[IndentingNewLine]", "\[IndentingNewLine]", 
-  RowBox[{"(*", " ", 
-   RowBox[{
-   "Option", " ", "2.", " ", "Please", " ", "indicate", " ", "the", " ", 
-    "python", " ", "executable", " ", "from", " ", "the", " ", "correct", " ",
-     "conda", " ", 
-    RowBox[{"environment", "."}]}], " ", "*)"}], "\[IndentingNewLine]", 
-  RowBox[{
-   RowBox[{
-    RowBox[{
-    "pythonAGDxHFM", "=", 
-     "\"\</Users/mirebeau/opt/miniconda3/envs/agd-hfm_dev/bin/python\>\""}], 
     ";"}], "\[IndentingNewLine]", "\[IndentingNewLine]", 
+   RowBox[{"(*", " ", 
+    RowBox[{
+    "Option", " ", "2.", " ", "Please", " ", "indicate", " ", "the", " ", 
+     "python", " ", "executable", " ", "from", " ", "the", " ", "correct", 
+     " ", "conda", " ", 
+     RowBox[{"environment", "."}]}], " ", "*)"}], "\[IndentingNewLine]", 
+   RowBox[{"(*", 
+    RowBox[{
+     RowBox[{
+     "pythonAGDxHFM", "=", 
+      "\"\</Users/mirebeau/opt/miniconda3/envs/agd-hfm_dev/bin/python\>\""}], 
+     ";"}], "*)"}], "\[IndentingNewLine]", "\[IndentingNewLine]", 
    RowBox[{"(*", " ", 
     RowBox[{
     "Option", " ", "3.", " ", "Please", " ", "indicate", " ", "the", " ", 
@@ -133,7 +133,8 @@ Cell[BoxData[
    3.822067017985198*^9}, {3.8220671339994097`*^9, 3.8220671696227503`*^9}, {
    3.8220672519639273`*^9, 3.8220674020186653`*^9}, {3.822068448226151*^9, 
    3.822068473350833*^9}, {3.822068528232136*^9, 3.822068579265912*^9}, {
-   3.822068614483383*^9, 3.822068624223678*^9}, 3.822069063789455*^9}],
+   3.822068614483383*^9, 3.822068624223678*^9}, 3.822069063789455*^9, {
+   3.8242706315531597`*^9, 3.8242706392945023`*^9}}],
 
 Cell[BoxData[{
  RowBox[{
@@ -756,8 +757,8 @@ Notebook[{
 Cell[CellGroupData[{
 Cell[579, 22, 177, 2, 92, "Title"],
 Cell[759, 26, 1316, 29, 296, "Text"],
-Cell[2078, 57, 3449, 78, 306, "Input"],
-Cell[5530, 137, 24527, 598, 2511, "Input"]
+Cell[2078, 57, 3515, 79, 364, "Input"],
+Cell[5596, 138, 24527, 598, 2511, "Input"]
 }, Open  ]]
 }
 ]
