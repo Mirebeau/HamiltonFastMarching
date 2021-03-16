@@ -61,7 +61,7 @@ const std::string ModelNameString=STRING(ModelName);
 #define Differentiable_IsotropicDiff4   1
 #define Differentiable_RiemannDiff2     1
 
-//#define AsymmetricQuadratic_AsymmetricQuadratic2    1 // Now use semi-lag scheme
+//#define AsymmetricQuadratic_AsymmetricQuadratic2    1 // Now use semi-lag scheme QuadLinLag2
 #define AsymmetricQuadratic_AsymmetricQuadratic3    1
 #define AsymmetricQuadratic_AsymmetricQuadratic4    1
 #define AsymmetricQuadratic_AsymmetricQuadratic3p1  1

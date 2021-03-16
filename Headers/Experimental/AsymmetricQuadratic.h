@@ -7,6 +7,7 @@
 
 #include "Specializations/CommonTraits.h"
 #include "JMM_CPPLibs/LinearAlgebra/VectorPairType.h"
+#include "JMM_CPPLibs/LinearAlgebra/AsymmetricQuadraticNorm.h"
 
 /*******
  This file implements hamiltonians of 'asymmetric quadratic' type. That is of the form
@@ -53,6 +54,83 @@
  
 ********/
 
+// ------- Asymmetric quadratic model --------
+
+template<size_t VDimension>
+struct TraitsAsymmetricQuadratic : TraitsBase<VDimension> {
+    typedef TraitsBase<VDimension> Superclass;
+    Redeclare3Types(Superclass,DiscreteType,ScalarType,OffsetType)
+    Redeclare1Constant(Superclass,Dimension)
+    static const DiscreteType SymDimension = (Dimension*(Dimension+1))/2;
+    static const DiscreteType nSymmetric=SymDimension, nForward=SymDimension;
+	using DifferenceType = EulerianDifference<OffsetType, ScalarType, 0>;
+	using StencilType = EulerianStencil<DifferenceType,nSymmetric,nForward>;
+	using DomainType = PeriodicGrid<TraitsAsymmetricQuadratic>;
+};
+
+template<size_t VDimension>
+struct StencilAsymmetricQuadratic : HamiltonFastMarching<TraitsAsymmetricQuadratic<VDimension> >::StencilDataType {
+    typedef HamiltonFastMarching<TraitsAsymmetricQuadratic<VDimension> > HFM;
+    typedef typename HFM::StencilDataType Superclass;
+    Redeclare6Types(HFM,ParamDefault,ScalarType,Traits,VectorType,IndexType,PointType)
+    Redeclare4Types(HFM,StencilType,ParamInterface,HFMI,IndexCRef)
+    Redeclare1Constant(HFM,Dimension)
+	using ParamType = typename HFM::template _ParamDefault<2,void>; // Distinct scale on each axis
+    ParamType param;
+
+    using ReductionType = typename Traits::template BasisReduction<Dimension>;
+    using SymmetricMatrixType = typename ReductionType::SymmetricMatrixType;
+    using MetricElementType = LinearAlgebra::VectorPair<SymmetricMatrixType, VectorType>;
+    using MetricType = typename Traits::template DataSource<MetricElementType>;
+    std::unique_ptr<MetricType> pMetric;
+    std::unique_ptr<MetricType> pDualMetric;
+	using NormType = LinearAlgebra::AsymmetricQuadraticNorm<ScalarType,Dimension>;
+
+	Voronoi1Vec<ReductionType> reduc{0.3};
+	ScalarType epsRev = 0.2;
+	PointType invh; // Inverse grid scales
+	
+    virtual void SetStencil(IndexCRef index, StencilType & stencil) override {
+		const NormType & norm = GetDualNorm(index);
+        Voronoi1Mat<ReductionType>(&stencil.symmetric[0][0],norm.m);
+        reduc(&stencil.forward[0][0],norm.w);
+    }
+    
+    virtual const ParamInterface & Param() const override {return param;}
+    virtual void Setup(HFMI *that) override {
+        auto & io = that->io;
+        Superclass::Setup(that);
+        param.Setup(that);
+		for(int i=0; i<Dimension; ++i) invh[i] = 1/param.gridScales[i];
+        reduc.eps = io.template Get<ScalarType>("eps",reduc.eps);
+        if(io.HasField("dualMetric")){
+            pDualMetric = that->template GetField<MetricElementType>("dualMetric");
+        } else {
+            pMetric = that->template GetField<MetricElementType>("metric");
+        }
+    }
+	
+private:
+	NormType GetDualNorm(IndexCRef index) const {
+		assert(pMetric || pDualMetric);
+		const MetricElementType met = pMetric ? ((*pMetric)(index)) : ((*pDualMetric)(index));
+		NormType dualNorm{met.first,met.second};
+		if(pMetric) dualNorm = dualNorm.DualNorm();
+		
+		for(int i=0; i<Dimension; ++i){
+			dualNorm.w[i]*=invh[i];
+			for(int j=0; j<=i; ++j){
+				dualNorm.m(i,j)*=invh[i]*invh[j];
+			}
+		}
+		return dualNorm;
+	}
+};
+
+
+// ------- Three dimensional lifted model with one additional radius dimension ---------
+// This is not a very much used model. Code fairly outdated.
+
 namespace AsymmetricNorm {
 // TODO a distinct grid scale for the radius dimension in AsymmetricQuadratic3p1.
 
@@ -84,87 +162,6 @@ void HalfDisk(ScalarType r, ScalarType delta, SymmetricMatrixType & D, VectorTyp
     
 }
 
-// ------- Asymmetric quadratic model --------
-
-template<size_t VDimension>
-struct TraitsAsymmetricQuadratic : TraitsBase<VDimension> {
-    typedef TraitsBase<VDimension> Superclass;
-    Redeclare3Types(Superclass,DiscreteType,ScalarType,OffsetType)
-    Redeclare1Constant(Superclass,Dimension)
-    static const DiscreteType SymDimension = (Dimension*(Dimension+1))/2;
-    static const DiscreteType nSymmetric=SymDimension, nForward=SymDimension;
-	using DifferenceType = EulerianDifference<OffsetType, ScalarType, 0>;
-	using StencilType = EulerianStencil<DifferenceType,nSymmetric,nForward>;
-	using DomainType = PeriodicGrid<TraitsAsymmetricQuadratic>;
-};
-
-template<size_t VDimension>
-struct StencilAsymmetricQuadratic : HamiltonFastMarching<TraitsAsymmetricQuadratic<VDimension> >::StencilDataType {
-    typedef HamiltonFastMarching<TraitsAsymmetricQuadratic<VDimension> > HFM;
-    typedef typename HFM::StencilDataType Superclass;
-    Redeclare5Types(HFM,ParamDefault,ScalarType,Traits,VectorType,IndexType)
-    Redeclare4Types(HFM,StencilType,ParamInterface,HFMI,IndexCRef)
-    Redeclare1Constant(HFM,Dimension)
-    ParamDefault param;
-	
-    typedef typename Traits::template BasisReduction<Dimension> ReductionType;
-    typedef typename ReductionType::SymmetricMatrixType SymmetricMatrixType;
-    typedef LinearAlgebra::VectorPair<SymmetricMatrixType, VectorType> MetricElementType;
-    typedef typename Traits::template DataSource<MetricElementType> MetricType;
-    std::unique_ptr<MetricType> pMetric;
-    std::unique_ptr<MetricType> pDualMetric;
-
-	Voronoi1Vec<ReductionType> reduc{0.3};
-	ScalarType epsRev = 0.2;
-	
-    typedef LinearAlgebra::VectorPair<VectorType, ScalarType> HalfDiskElementType;
-    typedef typename Traits::template DataSource<HalfDiskElementType>  HalfDiskType;
-    std::unique_ptr<HalfDiskType> pHalfDisk;
-
-
-    virtual void SetStencil(IndexCRef index, StencilType & stencil) override {
-        MetricElementType met;
-        if(pMetric){
-            met = (*pMetric)(index);
-            AsymmetricNorm::Dualize(met.first,met.second);
-        } else if(pHalfDisk){
-            const HalfDiskElementType & halfDisk = (*pHalfDisk)(index);
-            met.second = halfDisk.first;
-            AsymmetricNorm::HalfDisk(halfDisk.second,epsRev,met.first,met.second);
-        } else {
-            assert(pDualMetric);
-            met = (*pDualMetric)(index);
-        }
-		auto & symmetric = stencil.symmetric[0];
-		auto & forward = stencil.forward[0];
-        Voronoi1Mat<ReductionType>(&symmetric[0],met.first);
-        reduc(&forward[0],met.second);
-        
-        const ScalarType hm2 = 1/square(param.gridScale);
-        for(auto & diff: symmetric) diff.baseWeight*=hm2;
-        for(auto & diff: forward)   diff.baseWeight*=hm2;
-    }
-    
-    virtual const ParamInterface & Param() const override {return param;}
-    virtual void Setup(HFMI *that) override {
-        auto & io = that->io;
-        Superclass::Setup(that);
-        param.Setup(that);
-        reduc.eps = io.template Get<ScalarType>("eps",reduc.eps);
-        if(io.HasField("dualMetric")){
-            pDualMetric = that->template GetField<MetricElementType>("dualMetric");
-        } else if(io.HasField("metric")) {
-            pMetric = that->template GetField<MetricElementType>("metric");
-        } else {
-            pHalfDisk = that->template GetField<HalfDiskElementType>("halfDisk");
-            epsRev=that->io.template Get<ScalarType>("epsRev",reduc.eps/1.5);
-        }
-    }
-};
-
-
-// ------- Three dimensional lifted model with one additional radius dimension ---------
-
 struct TraitsAsymmetricQuadratic3p1 : TraitsBase<4> {
     using DifferenceType = EulerianDifference<OffsetType,ScalarType,0>;
 	using StencilType = EulerianStencil<DifferenceType,6+1,6>; // nSymmetric=6+1, nForward=6;
@@ -192,11 +189,7 @@ struct StencilAsymmetricQuadratic3p1 : HamiltonFastMarching<TraitsAsymmetricQuad
 	
 	ScalarType epsRev = 0.2;
 	Voronoi1Vec<ReductionType> reduc{0.3};
-    
-    typedef LinearAlgebra::VectorPair<VectorType, ScalarType> HalfDiskElementType;
-    typedef Traits::DataSource<HalfDiskElementType>  HalfDiskType;
-    std::unique_ptr<HalfDiskType> pHalfDisk;
-    
+        
     typedef Traits::DataSource<ScalarType> BundleCostType;
     std::unique_ptr<BundleCostType> pBundleCost;
     
@@ -205,10 +198,6 @@ struct StencilAsymmetricQuadratic3p1 : HamiltonFastMarching<TraitsAsymmetricQuad
         if(pMetric){
             met = (*pMetric)(index);
             AsymmetricNorm::Dualize(met.first,met.second);
-        } else if(pHalfDisk){
-            const HalfDiskElementType & halfDisk = (*pHalfDisk)(index);
-            met.second = halfDisk.first;
-            AsymmetricNorm::HalfDisk(halfDisk.second,epsRev,met.first,met.second);
         } else {
             assert(pDualMetric);
             met = (*pDualMetric)(index);
@@ -236,11 +225,8 @@ struct StencilAsymmetricQuadratic3p1 : HamiltonFastMarching<TraitsAsymmetricQuad
         reduc.eps = io.Get<ScalarType>("eps",reduc.eps);
         if(io.HasField("dualMetric")){
             pDualMetric = that->GetField<MetricElementType>("dualMetric");
-        } else if(io.HasField("metric")) {
-            pMetric = that->GetField<MetricElementType>("metric");
         } else {
-            pHalfDisk = that->GetField<HalfDiskElementType>("halfDisk");
-            epsRev=that->io.Get<ScalarType>("epsRev",reduc.eps/1.5);
+            pMetric = that->GetField<MetricElementType>("metric");
         }
         pBundleCost = that->GetField<ScalarType>("bundleCost");
     }
