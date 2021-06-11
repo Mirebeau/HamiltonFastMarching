@@ -77,7 +77,6 @@ SetNeighbors(IndexCRef index, std::vector<OffsetType> & neigh) {
 template<int VD> auto StencilTTI<VD>::
 HopfLaxUpdate_nmix(FullIndexCRef updated, OffsetCRef acceptedOffset, ScalarType value,
 				   ActiveNeighFlagType & active) -> ScalarType {
-//	std::cout << "Hi there" << std::endl;
 	auto & fm = *(this->pFM);
 	const ScalarType oldValue = fm.values[updated.linear];
 	fm.template SetIndex<true,false>(updated.index); // useFactoring, smallCorrection
@@ -170,21 +169,29 @@ HopfLaxUpdate(FullIndexCRef updated, OffsetCRef acceptedOffset, ScalarType value
 	const NormType norm = GetGuess(updated.index);
 	const auto props = norm.Props();
 	auto selling = norm.Selling(props.tMin);
+	static const int SymDim = SymmetricMatrixType::InternalDimension;
+
+	/*
+	static bool speak = true;
+	if(speak){
+		std::cout ExportVarArrow(props.optimDirection) << std::endl;
+		speak=false;
+	}*/
 	
+	/*
 	// Test if the provided offset is within the stencil
 	int acceptedPos = -1;
 	using DVec = DiscreteVectorType;
 	const DVec offsetp = DVec::CastCoordinates(acceptedOffset);
 	const DVec offsetm = -offsetp;
 	
-	static const int SymDim = SymmetricMatrixType::InternalDimension;
 	for(int i=0; i<SymDim; ++i){
 		const DVec & e = selling.offsets[i];
 		if(e==offsetp || e==offsetm){
 			acceptedPos = i;
 			break;
 		}
-	}
+	}*/
 	
 	// Prepare the array for holding the neighbor values
 	NeighborValuesType values;
@@ -195,6 +202,8 @@ HopfLaxUpdate(FullIndexCRef updated, OffsetCRef acceptedOffset, ScalarType value
 	ScalarType t0 = props.tMin;
 	const ScalarType objSign = -props.optimDirection; // Turns maximization into min.
 	
+//	if(updated.linear==304){std::cout << "Hi there" << std::endl;}
+	
 	ScalarType updateValue = inf;
 	ScalarType tActive = inf; bool isInterior=false;
 	while(true){ // Enumerates all optimization intervals
@@ -202,9 +211,17 @@ HopfLaxUpdate(FullIndexCRef updated, OffsetCRef acceptedOffset, ScalarType value
 		const auto nextStep = selling.NextStep(t1);
 		t1=std::min(t1,props.tMax);
 		
+/*		if(updated.linear==304){
+			std::cout
+			ExportVarArrow(t0)
+			ExportVarArrow(t1)
+			<< std::endl;
+		}*/
+		
 		// Minimize over interval [t0,t1]
 		do{
-			if(acceptedPos==-1) break;
+//			if(updated.linear==304){std::cout ExportVarArrow(acceptedPos) << std::endl;}
+//			if(acceptedPos==-1) break;
 			// Fill the missing neighbor values
 			for(int r=0; r<SymDim; ++r){
 				if(values[r]==-inf){
@@ -225,7 +242,25 @@ HopfLaxUpdate(FullIndexCRef updated, OffsetCRef acceptedOffset, ScalarType value
 			
 			// Get the update value, and derivative at t0 endpoint
 			const Diff1 val0 =
-			objSign*norm.UpdateValue(Diff1(t0,0), values,selling);
+			objSign*norm.UpdateValue(Diff1(t0,0), values, selling);
+			// Get the update value, and derivative at t0 endpoint
+			
+			/*
+			if(updated.linear==304){
+				const Diff1 val1 =
+				objSign*norm.UpdateValue(Diff1(t1,0), values, selling);
+
+				std::cout
+				ExportVarArrow(val0)
+				ExportVarArrow(val1)
+				ExportVarArrow(updateValue)
+				ExportVarArrow(tActive)
+				ExportVarArrow(t0)
+				ExportVarArrow(t1)
+				<< std::endl;
+			}*/
+
+
 			if(val0.v[0]>=0){ // Minimum over [t0,t1] attained at t0
 				if(val0<updateValue){
 					updateValue = val0.s;
@@ -233,7 +268,7 @@ HopfLaxUpdate(FullIndexCRef updated, OffsetCRef acceptedOffset, ScalarType value
 				}
 				break;
 			}
-			// Get the update value, and derivative at t0 endpoint
+			
 			const Diff1 val1 =
 			objSign*norm.UpdateValue(Diff1(t1,0), values, selling);
 			if(val1.v[0]<=0){ // Minimum over [t0,t1] attained at t1
@@ -244,6 +279,7 @@ HopfLaxUpdate(FullIndexCRef updated, OffsetCRef acceptedOffset, ScalarType value
 				break;
 			}
 
+			
 			// Now, root finding in the interval [t0,t1]
 			ScalarType x0=t0,x1=t1, // Lower and upper bounds for the subinterval
 			x=(val1.v[0]*t0-val0.v[0]*t1)/(val1.v[0]-val0.v[0]),xOld=inf; // Candidate point
@@ -275,13 +311,15 @@ HopfLaxUpdate(FullIndexCRef updated, OffsetCRef acceptedOffset, ScalarType value
 		if(t1==props.tMax) break;
 		t0 = t1;
 		selling.MakeStep(nextStep);
+		
 		// Update the accepted position
 		const auto [i,j] = nextStep;
 		const int r = ReductionType::LinearizeIndices(i,j);
 		values[r] = -inf;
+		/*
 		if(acceptedPos==r){acceptedPos=-1;}
 		const DVec & e = selling.offsets[r];
-		if(acceptedPos==-1 && (e==offsetp || e==offsetm)){acceptedPos=r;}
+		if(acceptedPos==-1 && (e==offsetp || e==offsetm)){acceptedPos=r;}*/
 		
 		// Update the values
 		if constexpr(Dimension==3){
@@ -291,6 +329,28 @@ HopfLaxUpdate(FullIndexCRef updated, OffsetCRef acceptedOffset, ScalarType value
 		}
 	}
 	
+/*
+	// DEBUG
+	nmix = 30;
+	const ScalarType otherValue = HopfLaxUpdate_nmix(updated,acceptedOffset,value,active);
+	nmix = 0;
+	const ScalarType diff = otherValue*objSign - updateValue; // Should be nonneg
+	
+	if(diff<-1e-9){
+		std::cout
+		ExportVarArrow(updated)
+		ExportVarArrow(diff)
+		ExportVarArrow(isInterior)
+		ExportVarArrow(otherValue)
+		ExportVarArrow(updateValue)
+		ExportVarArrow(tActive)
+		ExportVarArrow(active.tActive())
+		ExportVarArrow(updateValue)
+		<< std::endl;
+		
+	}
+	assert(diff>=-1e-9);
+*/
 	const ScalarType newValue = objSign*updateValue;
 	if(newValue<oldValue) {
 		active = ActiveNeighFlagType(tActive,isInterior);
