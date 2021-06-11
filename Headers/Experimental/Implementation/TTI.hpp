@@ -170,28 +170,6 @@ HopfLaxUpdate(FullIndexCRef updated, OffsetCRef acceptedOffset, ScalarType value
 	const auto props = norm.Props();
 	auto selling = norm.Selling(props.tMin);
 	static const int SymDim = SymmetricMatrixType::InternalDimension;
-
-	/*
-	static bool speak = true;
-	if(speak){
-		std::cout ExportVarArrow(props.optimDirection) << std::endl;
-		speak=false;
-	}*/
-	
-	/*
-	// Test if the provided offset is within the stencil
-	int acceptedPos = -1;
-	using DVec = DiscreteVectorType;
-	const DVec offsetp = DVec::CastCoordinates(acceptedOffset);
-	const DVec offsetm = -offsetp;
-	
-	for(int i=0; i<SymDim; ++i){
-		const DVec & e = selling.offsets[i];
-		if(e==offsetp || e==offsetm){
-			acceptedPos = i;
-			break;
-		}
-	}*/
 	
 	// Prepare the array for holding the neighbor values
 	NeighborValuesType values;
@@ -201,27 +179,16 @@ HopfLaxUpdate(FullIndexCRef updated, OffsetCRef acceptedOffset, ScalarType value
 	// Find the minimizer on each interval
 	ScalarType t0 = props.tMin;
 	const ScalarType objSign = -props.optimDirection; // Turns maximization into min.
-	
-//	if(updated.linear==304){std::cout << "Hi there" << std::endl;}
-	
+		
 	ScalarType updateValue = inf;
 	ScalarType tActive = inf; bool isInterior=false;
 	while(true){ // Enumerates all optimization intervals
 		ScalarType t1 = t0;
 		const auto nextStep = selling.NextStep(t1);
 		t1=std::min(t1,props.tMax);
-		
-/*		if(updated.linear==304){
-			std::cout
-			ExportVarArrow(t0)
-			ExportVarArrow(t1)
-			<< std::endl;
-		}*/
-		
+				
 		// Minimize over interval [t0,t1]
 		do{
-//			if(updated.linear==304){std::cout ExportVarArrow(acceptedPos) << std::endl;}
-//			if(acceptedPos==-1) break;
 			// Fill the missing neighbor values
 			for(int r=0; r<SymDim; ++r){
 				if(values[r]==-inf){
@@ -243,25 +210,7 @@ HopfLaxUpdate(FullIndexCRef updated, OffsetCRef acceptedOffset, ScalarType value
 			// Get the update value, and derivative at t0 endpoint
 			const Diff1 val0 =
 			objSign*norm.UpdateValue(Diff1(t0,0), values, selling);
-			// Get the update value, and derivative at t0 endpoint
-			
-			/*
-			if(updated.linear==304){
-				const Diff1 val1 =
-				objSign*norm.UpdateValue(Diff1(t1,0), values, selling);
-
-				std::cout
-				ExportVarArrow(val0)
-				ExportVarArrow(val1)
-				ExportVarArrow(updateValue)
-				ExportVarArrow(tActive)
-				ExportVarArrow(t0)
-				ExportVarArrow(t1)
-				<< std::endl;
-			}*/
-
-
-			if(val0.v[0]>=0){ // Minimum over [t0,t1] attained at t0
+			if(val0.v[0]>=0 && val0.s<inf){ // Minimum over [t0,t1] attained at t0
 				if(val0<updateValue){
 					updateValue = val0.s;
 					tActive=t0; isInterior=false;
@@ -271,7 +220,7 @@ HopfLaxUpdate(FullIndexCRef updated, OffsetCRef acceptedOffset, ScalarType value
 			
 			const Diff1 val1 =
 			objSign*norm.UpdateValue(Diff1(t1,0), values, selling);
-			if(val1.v[0]<=0){ // Minimum over [t0,t1] attained at t1
+			if(val1.v[0]<=0 && val1.s<inf){ // Minimum over [t0,t1] attained at t1
 				if(val1<updateValue){
 					updateValue=val1.s;
 					tActive=t1; isInterior=false;
@@ -316,11 +265,7 @@ HopfLaxUpdate(FullIndexCRef updated, OffsetCRef acceptedOffset, ScalarType value
 		const auto [i,j] = nextStep;
 		const int r = ReductionType::LinearizeIndices(i,j);
 		values[r] = -inf;
-		/*
-		if(acceptedPos==r){acceptedPos=-1;}
-		const DVec & e = selling.offsets[r];
-		if(acceptedPos==-1 && (e==offsetp || e==offsetm)){acceptedPos=r;}*/
-		
+
 		// Update the values
 		if constexpr(Dimension==3){
 			const auto [k,l] = ReductionType::ComplementIndices(i,j);
@@ -328,29 +273,7 @@ HopfLaxUpdate(FullIndexCRef updated, OffsetCRef acceptedOffset, ScalarType value
 					  values[ReductionType::LinearizeIndices(i,l)]);
 		}
 	}
-	
-/*
-	// DEBUG
-	nmix = 30;
-	const ScalarType otherValue = HopfLaxUpdate_nmix(updated,acceptedOffset,value,active);
-	nmix = 0;
-	const ScalarType diff = otherValue*objSign - updateValue; // Should be nonneg
-	
-	if(diff<-1e-9){
-		std::cout
-		ExportVarArrow(updated)
-		ExportVarArrow(diff)
-		ExportVarArrow(isInterior)
-		ExportVarArrow(otherValue)
-		ExportVarArrow(updateValue)
-		ExportVarArrow(tActive)
-		ExportVarArrow(active.tActive())
-		ExportVarArrow(updateValue)
-		<< std::endl;
-		
-	}
-	assert(diff>=-1e-9);
-*/
+
 	const ScalarType newValue = objSign*updateValue;
 	if(newValue<oldValue) {
 		active = ActiveNeighFlagType(tActive,isInterior);
