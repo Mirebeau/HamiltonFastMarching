@@ -93,7 +93,8 @@ HopfLaxUpdate_nmix(FullIndexCRef updated, OffsetCRef acceptedOffset, ScalarType 
 	Sym::RankOneTensor(A.Row(0)) + Sym::RankOneTensor(A.Row(1));
 	const Sym D1 = Sym::RankOneTensor(A.Row(Dimension-1));
 	
-	ScalarType tOpt, solOpt = mix_is_min ? inf : -inf;
+	ScalarType tOpt,
+	solOpt = mix_is_min ? inf : -inf;
 	
 	for(int imix = 0; imix<nmix; ++imix){
 		const ScalarType t =
@@ -149,7 +150,8 @@ HopfLaxUpdate_nmix(FullIndexCRef updated, OffsetCRef acceptedOffset, ScalarType 
 	}
 	
 	const ScalarType newValue = solOpt;
-	if(newValue<oldValue) {
+	// newValue==-inf may arise if none of the neighbors are accepted, and mix is max
+	if(newValue<oldValue && newValue!=-inf) {
 		active = ActiveNeighFlagType(tOpt,true);
 		return newValue;
 	} else {
@@ -356,7 +358,8 @@ _HopfLaxRecompute(IndexCRef index, ActiveNeighFlagType active,
 	std::sort(indices.begin(),indices.end(),
 			  [&values](int i,int j){return values[i]<values[j];});
 	const ScalarType valMin=values[indices[0]];
-
+	assert(valMin<inf);
+	
 	// Compute the update value
 	ScalarType a(0.), b(0.), c(-norm.Multiplier(t)), sol(inf);
 	int r=0;

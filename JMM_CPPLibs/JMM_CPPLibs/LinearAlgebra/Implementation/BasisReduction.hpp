@@ -65,8 +65,9 @@ BasisReduction<TS,TD,VD>::ReducedBasis(const SymmetricMatrixType & m, BasisType 
 template<typename TS, typename TD, size_t VD> void
 BasisReduction<TS,TD,VD>::ObtuseSuperbase(const SymmetricMatrixType & m, SuperbaseType & sb) {
     static_assert(VD<=3,"Sorry, dimensions >=4 are not supported");
-    if(m.Determinant()<=0 || m.Trace()<=0)
-        ExceptionMacro("ObtuseSuperbase error : input must be positive definite");
+	const bool invalid = m.Determinant()<=0 || m.Trace()<=0;
+	assert(!invalid); // Detects (some, not all) non positive definite matrices.
+    if(invalid) ExceptionMacro("ObtuseSuperbase error : input must be positive definite");
     if(Dimension==1) return;
     bool reduced=true;
     for(int countIt=0; reduced && countIt<maxIt; ++countIt){
