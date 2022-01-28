@@ -227,15 +227,19 @@ HopfLaxUpdate(FullIndexCRef updated, OffsetCRef acceptedOffset, ScalarType value
 				}
 				break;
 			}
-
+			
+			// There is a degenerate case where the weights associated to all
+			// the accepted points vanish (usually a single one). We bypass it here.
+			if(std::isinf(val0.s) && std::isinf(val1.s)){continue;}
 			
 			// Now, root finding in the interval [t0,t1]
 			ScalarType x0=t0,x1=t1, // Lower and upper bounds for the subinterval
 			x=(val1.v[0]*t0-val0.v[0]*t1)/(val1.v[0]-val0.v[0]),xOld=inf; // Candidate point
-//			assert(x0<x && x<x1); // Mathematically obvious, and may fail at machine precision
+			assert(std::isfinite(x));
 			while(std::abs(xOld-x)>100*std::numeric_limits<ScalarType>::epsilon()){
 				xOld=x;
-				assert(x0<=x && x<=x1);
+				// Mathematically guaranteed, but may fail at machine precision
+				assert(x0-1e-9<=x && x<=x1+1e-9); // assert(x0<=x && x<=x1);
 				const Diff2 val =
 				objSign*norm.UpdateValue(Diff2(x,0), values,selling);
 				// Update the sub-interval
@@ -249,6 +253,7 @@ HopfLaxUpdate(FullIndexCRef updated, OffsetCRef acceptedOffset, ScalarType value
 				// Otherwise do binary subdivision
 				x=(x0+x1)/2.;
 			}
+			assert(std::isfinite(x));
 			const ScalarType val = objSign*norm.UpdateValue(x, values,selling);
 			if(val<updateValue){
 				updateValue=val;

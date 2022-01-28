@@ -58,6 +58,7 @@ struct TTINorm {
 		PrintSelfMacro(Properties);
 	};
 	Properties Props() const;
+	ScalarType smallest_positive_root(ScalarType, ScalarType) const;
 	
 	using DiscreteType = int;
 	using ReductionType =

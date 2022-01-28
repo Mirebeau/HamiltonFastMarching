@@ -242,6 +242,7 @@ NextStep(ScalarType & t) const -> std::pair<int,int> {
 //			std::cout ExportVarArrow((1.-tMin)*s0+tMin*s1) << std::endl;
 			assert((1.-tMin)*s0+tMin*s1 >= -1e-11); //Expect obtuse superbase initially
 			if(s1>=s0) continue; // Continue if vectors become more obtuse
+			if(0>=s0) continue;  // Only useful in degenerate cases
 			const ScalarType tRoot = s0/(s0-s1);
 			assert(tRoot>=tMin-1000*eps); //Expect obtuse superbase initially
 			if(tRoot>=t) continue;

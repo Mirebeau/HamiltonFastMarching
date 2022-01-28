@@ -44,6 +44,21 @@ T TTINorm<TS,VD>::Level(const Vector<T,Dimension> & p0) const {
 }
 
 template<typename TS, int VD> auto
+TTINorm<TS,VD>::smallest_positive_root(ScalarType l, ScalarType q) const -> ScalarType {
+	// Returns smallest positive s such that 0.5*q*s^2 + l*s -1 = 0
+	// Note that for physical TTI coefficients, both roots are positive, see the paper.
+	if(q==0){assert(l>0); return 1/l;}
+	const ScalarType delta = l*l + 2.*q;
+	assert(delta>=0);
+	using std::sqrt;
+	const ScalarType sdelta = sqrt(delta);
+	const ScalarType rm = (- l - sdelta)/q, rp = (- l + sdelta)/q;
+	const ScalarType rmin=std::min(rm,rp), rmax=std::max(rm,rp);
+	assert(rmax>0);
+	return rmin>0 ? rmin : rmax;
+}
+									   
+template<typename TS, int VD> auto
 TTINorm<TS,VD>::Props() const -> Properties {
 	using std::sqrt;
 	Properties result;
@@ -53,27 +68,10 @@ TTINorm<TS,VD>::Props() const -> Properties {
 		return l[1]/l.Sum();
 	};
 	
-	auto solve = [](ScalarType l,ScalarType q) -> ScalarType {
-		// Returns smallest positive s such that 0.5*q*s^2 + l*s -1 = 0
-		if(q==0){assert(l>0); return 1/l;}
-		const ScalarType delta = l*l + 2.*q;
-		assert(delta>=0);
-		const ScalarType sdelta = sqrt(delta);
-		const ScalarType rm = (- l - sdelta)/q, rp = (- l + sdelta)/q;
-		const ScalarType rmin=std::min(rm,rp), rmax=std::max(rm,rp);
-		assert(rmax>0);
-/*		std::cout
-		ExportVarArrow(l)
-		ExportVarArrow(q)
-		ExportVarArrow(rm)
-		ExportVarArrow(rp)
-		<< std::endl;*/
-		return rmin>0 ? rmin : rmax;
-	};
 	// Solve along axis 0
 	// equation
-	const ScalarType root0 = solve(linear[0],quadratic(0,0));
-	const ScalarType root1 = solve(linear[1],quadratic(1,1));
+	const ScalarType root0 = smallest_positive_root(linear[0],quadratic(0,0));
+	const ScalarType root1 = smallest_positive_root(linear[1],quadratic(1,1));
 	
 	result.tMin = slope({linear[0]+ quadratic(0,0)*root0,linear[1]+quadratic(1,0)*root0});
 	result.tMax = slope({linear[0]+ quadratic(0,1)*root1,linear[1]+quadratic(1,1)*root1});
@@ -125,17 +123,26 @@ UpdateValue(const T & t, const NeighborValuesType & val,
 		const ScalarType v = val[i] - valMin;
 		if(v>=sol) break;
 		
-		const ScalarType w =
-		path.weights0[i]+RemoveAD(t)*(path.weights1[i]-path.weights0[i]),
+		const ScalarType
+		w_ = path.weights0[i]+RemoveAD(t)*(path.weights1[i]-path.weights0[i]),
+		w = max(ScalarType(0), w_),
 		wv=w*v, wvv=wv*v;
+		
+		// Mathematically, this weight is guaranteed to be non-negative.
+		// However, this can fail due to roundoff errors, hence the max(0,...)
+		assert(w_>=-1e-10);
+		
 		a+=w;
 		b+=wv;
 		c+=wvv;
 		
 		if(a <= RemoveAD(mult)*1e-10){continue;}
 		const ScalarType delta = b*b-a*c;
-		assert(delta>=0.);
-		sol = (b+sqrt(delta))/a;
+		// Mathematically, one has the guarantee that delta>=0.
+		// However, this can fail due to roundoff errors, hence the max(0,...)
+		assert(delta>=-1e-10);
+		const ScalarType sdelta = sqrt(max(ScalarType(0),delta));
+		sol = (b+sdelta)/a;
 	}
 	
 	// Recompute the update, if the required type is not the scalar type
@@ -189,7 +196,7 @@ UpdateValue(const T & t, const NeighborValuesType & val,
 template<typename TS, int VD> template<typename T> T TTINorm<TS,VD>::
 Multiplier(const T & t) const {
 	// Returns beta such that diag(1-t,t)/beta is a tangent ellipse.
-	// TODO : Optimization opportunity. Probably more efficient to bypass AD here.
+	// Document : EnvelopeSeismicEqn.tex
 	using Sym2 = QuadraticType;
 	using Vec2 = LinearType;
 	using DVec2 = Vector<T,2>;
@@ -238,7 +245,22 @@ Multiplier(const T & t) const {
 		const int signNum = num>0 ? 1 : -1;
 		
 		using std::sqrt;
-		const T sdelta = sqrt(vQv*(2*detQ+lQl));
+		const T delta = vQv*(2*detQ+lQl);
+
+		const ScalarType delta0 = RemoveAD(delta);
+		if(delta0<1e-10){
+			// delta is mathematically guaranteed to be non-negative, up to roundoff errors
+			assert(delta0>-1e-10);
+			// delta=0 is a degenerate case, where the conic is a union of two lines,
+			// either parallel or intersecting (outside ot [0,inf[^2 in the latter case).
+			// In that case, both factors vQv and 2*detQ+lQl vanish.
+			const ScalarType root0 = smallest_positive_root(linear[0],quadratic(0,0));
+			const ScalarType beta = root0*RemoveAD(v[0]);
+			assert(std::abs(beta - // other way to compute same multiplier
+				smallest_positive_root(linear[1],quadratic(1,1))*RemoveAD(v[1]))<1e-7);
+			return T(beta);
+		}
+		const T sdelta = sqrt(delta);
 		const T den = signNum * sdelta + lQv;
 		return num/den;
 	}

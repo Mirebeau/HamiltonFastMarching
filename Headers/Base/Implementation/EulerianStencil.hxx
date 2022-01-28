@@ -37,6 +37,8 @@ QuadraticMax<TS,n>::Solve() const -> std::pair<ScalarType, int> {
         const DataType & d = data[i];
         if(d.a==0) continue;
         const ScalarType delta2 = d.b*d.b - d.a*d.c;
+		// Mathematically, one has the guarantee that delta2>=0.
+		// However this can fail due to roundoff errors, hence we consider max(0,delta2)
         const ScalarType delta = sqrt(std::max(0.,delta2));
         const ScalarType res = (d.b+delta)/d.a;
         if(n==0) return {minVal+res,0};
