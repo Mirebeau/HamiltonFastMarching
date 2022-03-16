@@ -43,7 +43,10 @@ class CMakeBuild(build_ext):
 
         if platform.system() == "Windows":
             cmake_args += ['-DCMAKE_LIBRARY_OUTPUT_DIRECTORY_{}={}'.format(cfg.upper(), extdir + '/' + PKG_NAME)]
-            cmake_args += ['-G','Visual Studio 16 2019']
+#            cmake_args += ['-G','Visual Studio 16 2019']
+# Comment to use default cmake generator, which is expected to be a recent visual studio.
+# Purpose : fix CI. See  https://github.com/robotology/yarp/pull/2811  and 
+# https://stackoverflow.com/questions/6430251/what-is-the-default-generator-for-cmake-in-windows
             if sys.maxsize > 2**32:
                 cmake_args += ['-A', 'x64']
             build_args += ['--', '/m']
