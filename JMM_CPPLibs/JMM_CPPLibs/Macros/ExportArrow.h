@@ -142,4 +142,15 @@ std::ostream & operator << (std::ostream & os, _ImageRegion<ImageType,RegionIter
 	return os << "}";
 }
 
+// --------- Print a range of values -------
+
+template <typename ForwardIterator>
+void print_range(std::ostream & f, ForwardIterator first, ForwardIterator last) {
+    f<<"{";
+    if(first!=last) f<<*first++;
+    while(first!=last) f << "," << *first++;
+    f<<"}";
+}
+
+
 #endif
