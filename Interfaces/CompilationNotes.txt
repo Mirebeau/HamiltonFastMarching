@@ -25,7 +25,7 @@ Careful with "\n" and "\r" ends of lines.
 Executable should not be preceded with "./"
 
 
------
+----- <Deprecated> ----
 (Instructions pour compiler le code python via Anaconda)
 
 - Modifier JMM_CPPLibs (si nécessaire)

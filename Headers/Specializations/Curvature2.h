@@ -5,6 +5,11 @@
 #ifndef Curvature2Specializations_h
 #define Curvature2Specializations_h
 
+// This macro activates variants of the models which only allow a specific curvature sign
+#ifndef convex_curvature_macro
+#define convex_curvature_macro 0
+#endif
+
 #include "CommonTraits.h"
 
 // --------------- R2S1 Traits ---------------
@@ -63,7 +68,11 @@ struct StencilReedsShepp2 final
 
 // --------------- 2D ReedsSheppForward model -------------
 struct TraitsReedsSheppForward2 : TraitsR2S1 {
-    typedef EulerianStencil<DifferenceType,1,3> StencilType;
+#if convex_curvature_macro
+    typedef EulerianStencil<DifferenceType,0,4> StencilType;
+#else
+	typedef EulerianStencil<DifferenceType,1,3> StencilType;
+#endif
 };
 
 struct StencilReedsSheppForward2 final
@@ -82,12 +91,14 @@ struct StencilReedsSheppForward2 final
         
         auto &forward = stencil.forward[0];
         reduc(&forward[0],v/param.gridScale);
-//        Voronoi1Vec<ReductionType>(&forward[0],v,eps);
-//        for(auto & diff : forward) {diff.baseWeight/=square(param.gridScale);}
         
-        auto &symmetric = stencil.symmetric[0];
-        symmetric[0].offset = OffsetType{0,0,1};
-        symmetric[0].baseWeight = 1./square(xi*param.dependScale);
+#if convex_curvature_macro
+		auto &angular = stencil.forward[0][3];
+#else
+		auto &angular = stencil.symmetric[0][0];
+#endif
+        angular.offset = OffsetType{0,0,-1};
+        angular.baseWeight = 1./square(xi*param.dependScale);
     }
     virtual const ParamInterface & Param() const override {return param;}
     virtual void Setup(HFMI *that) override {
@@ -119,13 +130,16 @@ struct StencilDubins2 final
         const ScalarType theta = index[2]*param.dependScale;
         const VectorType
         v{cos(theta)/param.gridScale,sin(theta)/param.gridScale,1./(xi*param.dependScale)};
-        
         reduc(&stencil.forward[0][0],v);
-//        Voronoi1Vec<ReductionType>(&stencil.forward[0][0], v, eps);
         
+#if convex_curvature_macro
+		const VectorType v0{cos(theta)/param.gridScale,sin(theta)/param.gridScale,0.};
+        reduc(&stencil.forward[1][0],v0);
+#else
         for(int i=0; i<6; ++i) {
             stencil.forward[1][i]=stencil.forward[0][i];
             stencil.forward[1][i].offset[2]*=-1;}
+#endif
     }
     virtual const ParamInterface & Param() const override {return param;}
     virtual void Setup(HFMI *that) override {
@@ -174,11 +188,13 @@ struct StencilElastica2 final
 
             const int s0=2*l,s1=2*l+1;
             reduc3(&forward[6*s0], v);
-//            Voronoi1Vec<ReductionType>(&forward[6*s0], v, eps);
             for(int i=0; i<6; ++i) {
                 forward[6*s0+i].baseWeight*=fejerWeights[l];
                 forward[6*s1+i] = forward[6*s0+i];
                 forward[6*s1+i].offset[2]*=-1;
+#if convex_curvature_macro
+				forward[6*s1+i].baseWeight=0;
+#endif
             } // for i
         } // for l
         if(nFejer%2==1){
@@ -189,8 +205,14 @@ struct StencilElastica2 final
             reduc2(&forward[6*s], v);
 //            Voronoi1Vec<ReductionType>(&forward[6*s], v, eps);
             for(int i=0; i<3; ++i){
-                forward[6*s+i].baseWeight*=fejerWeights[nFejer/2];}
+                forward[6*s+i].baseWeight*=fejerWeights[nFejer/2];
+#if convex_curvature_macro
+				forward[6*s+i].baseWeight/=2;
+#endif
+				
+			}
         } // if odd
+		
     }
     virtual const ParamInterface & Param() const override {return param;}
     virtual void Setup(HFMI *that) override {

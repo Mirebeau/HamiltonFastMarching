@@ -46,6 +46,10 @@ const std::string ModelNameString=STRING(ModelName);
 #define Curvature2_Elastica2            1
 #define Curvature2_Elastica2_9          1
 
+#define ConvexCurvature2_ConvexReedsSheppForward2  1
+#define ConvexCurvature2_ConvexDubins2             1
+#define ConvexCurvature2_ConvexElastica2           1
+
 #define Curvature3_ReedsShepp3          1
 #define Curvature3_ReedsSheppForward3   1
 
@@ -120,6 +124,12 @@ using StencilElastica2_5 = StencilElastica2<5>;
 #elif PPCAT(PrescribedCurvature2_,ModelName)
 #include "Experimental/PrescribedCurvature2.h"
 using StencilElasticaExt2_5 = StencilElasticaExt2<5>;
+#elif PPCAT(ConvexCurvature2_,ModelName)
+#define convex_curvature_macro 1
+#include "Specializations/Curvature2.h"
+using StencilConvexReedsSheppForward2 = StencilReedsSheppForward2;
+using StencilConvexDubins2 = StencilDubins2;
+using StencilConvexElastica2 = StencilElastica2<5>;
 #elif PPCAT(Differentiable_,ModelName)
 #include "Experimental/Differentiable.h"
 using StencilIsotropicDiff2 = StencilIsotropicDiff<2>;
