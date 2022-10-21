@@ -112,7 +112,7 @@ template<size_t TensorDimension> void RunTG(IO & io){
 		// Do the minimization
 		identity_A(state.a);
 		Voronoi::FirstGuess(state);
-		for(int i=0; i<Voronoi::maxiter; ++i){if(!Voronoi::BetterNeighbor(state)){break;}}
+		for(int i=0; i<Voronoi_maxiter; ++i){if(!Voronoi::BetterNeighbor(state)){break;}}
 
 		// Export the results
 		for(int i=0; i<ndim; ++i){

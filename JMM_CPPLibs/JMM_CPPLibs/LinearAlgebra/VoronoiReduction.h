@@ -34,11 +34,12 @@ typedef double Scalar;
 #define __restrict__
 #include <cmath>
 #include <iostream>
-using std::sqrt; using std::max; using std::min; using std::__clz;
+using std::sqrt; using std::max; using std::min;
 #define IOSTREAM
 #define SIMPLEX_TOL 2e-14
 //#include "Eikonal/HFM_CUDA/CUDA/geometry6.h"
-#include "/Users/mirebeau/Dropbox/Programmes/Github/AdaptiveGridDiscretizations/agd/Eikonal/HFM_CUDA/cuda/Geometry6.h"
+//#include "/Users/mirebeau/Dropbox/Programmes/Github/AdaptiveGridDiscretizations/agd/Eikonal/HFM_CUDA/cuda/Geometry6.h"
+#include "/Users/jean-mariemirebeau/Dropbox/Programmes/Github/AdaptiveGridDiscretizations/agd/Eikonal/HFM_CUDA/cuda/Geometry6.h"
 #endif
 
 #include "Implementation/LinProg/Siedel_Hohmeyer_LinProg.h"
