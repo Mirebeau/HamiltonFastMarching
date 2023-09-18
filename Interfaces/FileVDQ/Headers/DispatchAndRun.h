@@ -107,7 +107,7 @@ template<size_t TensorDimension> void RunTG(IO & io){
 		MatrixType & a = *itChg;
 		// Load the data
 		Voronoi::SimplexStateT state;
-		for(Int i=0; i<symdim; ++i){state.m[i] = m.data.data()[i];}
+		for(int i=0; i<symdim; ++i){state.m[i] = m.data.data()[i];}
 
 		// Do the minimization
 		identity_A(state.a);
