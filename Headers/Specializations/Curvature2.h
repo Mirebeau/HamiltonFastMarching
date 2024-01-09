@@ -205,6 +205,7 @@ struct StencilElastica2 final
             reduc2(&forward[6*s], v);
 //            Voronoi1Vec<ReductionType>(&forward[6*s], v, eps);
             for(int i=0; i<3; ++i){
+                // Multiplicative factor Scalar(sqrt(4/3.)) omitted 
                 forward[6*s+i].baseWeight*=fejerWeights[nFejer/2];
 #if convex_curvature_macro
 				forward[6*s+i].baseWeight/=2;
