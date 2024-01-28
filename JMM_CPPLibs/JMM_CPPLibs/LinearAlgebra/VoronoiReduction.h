@@ -37,9 +37,20 @@ typedef double Scalar;
 using std::sqrt; using std::max; using std::min;
 #define IOSTREAM
 #define SIMPLEX_TOL 2e-14
+
+/* The 6-dimensional Voronoi reduction algorithm is implemented in a different library, see
+https://github.com/Mirebeau/AdaptiveGridDiscretizations
+If you do not need it, then please #undef Voronoi6
+If you need it, the please put the correct include path below
+*/
+#ifdef _MSC_VER 
+#include "C:/Users/jmmir/Documents/GitHub/AdaptiveGridDiscretizations/agd/Eikonal/HFM_CUDA/cuda/Geometry6.h" // My Dell
+#else
+#include "/Users/jean-mariemirebeau/Dropbox/Programmes/GithubM1/AdaptiveGridDiscretizations/agd/Eikonal/HFM_CUDA/cuda/Geometry6.h" // My Macbook M1
 //#include "Eikonal/HFM_CUDA/CUDA/geometry6.h"
 //#include "/Users/mirebeau/Dropbox/Programmes/Github/AdaptiveGridDiscretizations/agd/Eikonal/HFM_CUDA/cuda/Geometry6.h"
-#include "/Users/jean-mariemirebeau/Dropbox/Programmes/GithubM1/AdaptiveGridDiscretizations/agd/Eikonal/HFM_CUDA/cuda/Geometry6.h"
+#endif
+
 #endif
 
 #include "Implementation/LinProg/Siedel_Hohmeyer_LinProg.h"

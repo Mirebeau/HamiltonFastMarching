@@ -45,7 +45,7 @@ template<size_t TensorDimension> void RunTG(IO & io){
 	
 	const auto tensors = io.GetArray<SymmetricMatrixType,GridDimension>("tensors");
 	const auto steps = io.GetString("steps","Both");
-	if(steps!="Both" and steps!="Split")
+	if(steps!="Both" && steps!="Split")
 		ExceptionMacro("Excepted steps to be either 'Both' or 'Split'");
 	ReductionType reduc;
 	
