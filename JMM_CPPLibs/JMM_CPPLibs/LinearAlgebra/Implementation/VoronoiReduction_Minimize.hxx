@@ -81,6 +81,9 @@ SimplexStateType::PrintSelf(std::ostream & os) const {
 template<typename TS, int VD> void VoronoiFirstReduction<TS,VD>::
 Minimize(SimplexStateType & state){
     FirstGuess(state);
+    // Note : this program will run into an infinite loop if the input matrix is not
+    // positive definite. However, we choose not to limit the iteration number, and to let the
+    // user check its inputs.
     while(BetterNeighbor(state)){};
 }
 
@@ -130,8 +133,15 @@ BetterNeighbor(SimplexStateType & state){
             ++k;
         }
         if(bestK==-1) return false;
-        state.objective=bestObj; // Note : roundoff error could be an issue ?
-        SetNeighbor(state,bestK); // neighs[bestK]
+        SetNeighbor(state,bestK);
+        // Note : up to roundoff error, one has obj = bestObj,
+        // and by construction bestObj<state.objective.
+        // However, roundoff errors caused infinite loops here (state.objective was not decreasing),
+        // hence we recompute the objective.
+        // state.objective=bestObj; // Bug : Roundoff error caused infinite loops in some edge cases
+        obj = Scal(state.m, GetVertex(state.vertex));
+        if(state.objective<=obj){return false;} // Improvement was within roundoff error
+        state.objective = obj;
         return true;
     };
     
