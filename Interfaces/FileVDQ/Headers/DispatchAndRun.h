@@ -11,6 +11,7 @@
 #include "JMM_CPPLibs/LinearAlgebra/VoronoiReduction.h"
 
 template<size_t TensorDimension> void RunTG(IO &);
+template<size_t TensorDimension> void RunSmooth(IO & io);
 
 void Run(IO & io){
 	io.arrayOrdering = TraitsIO::ArrayOrdering::RowMajor;
@@ -19,7 +20,21 @@ void Run(IO & io){
 	if(dims.empty()) ExceptionMacro("Error : field tensors is empty");
 	const size_t TensorInternalDimension = dims.back();
 	if(dims.size()!=2) {ExceptionMacro("Error: expected two dimensional array");}
-	switch (TensorInternalDimension) {
+
+#ifdef SmoothDecomp
+    if(io.HasField("smooth") && io.Get<ScalarType>("smooth",0.)){
+        switch (TensorInternalDimension) {
+            case 1: return RunTG<1>(io);
+            case 3: return RunSmooth<2>(io);
+            case 6: return RunSmooth<3>(io);
+            default:
+                ExceptionMacro("Error : first dimension " << TensorInternalDimension <<
+                               " of field tensors is incorrect. Should be the number of independent entries of the symmetric matrices, namely (d+1)/2, where 1<=d<=3 (smooth decomposition)");
+        }
+    }
+#endif
+    
+    switch (TensorInternalDimension) {
 		case 1: return RunTG<1>(io);
 		case 3: return RunTG<2>(io);
 		case 6: return RunTG<3>(io);
@@ -30,9 +45,12 @@ void Run(IO & io){
 #endif
 		default:
 			ExceptionMacro("Error : first dimension " << TensorInternalDimension <<
-						   " of field tensors is incorrect. Should be the number of independent entries of the symmetric matrices, namely (d+1)/2, where 1<=d<=5");
+						   " of field tensors is incorrect. Should be the number of independent entries of the symmetric matrices, namely (d+1)/2, where 1<=d<=6");
 	}
 }
+
+
+
 
 template<size_t TensorDimension> void RunTG(IO & io){
 	const size_t GridDimension = 1;
@@ -63,12 +81,10 @@ template<size_t TensorDimension> void RunTG(IO & io){
 	auto itO = offsets.begin();
 	for(auto itT = tensors.begin(); itT!=tensors.end(); ++itT){
 		const KKTRelationType kkt = reduc.TensorDecomposition(*itT);
-		for(int i=0; i<KKTDimension; ++i){
-			*itW = kkt.weights[i];
-			*itO = VectorType::CastCoordinates(kkt.offsets[i]);
-			++itW;
-			++itO;
-		}
+        for(int i=0; i<KKTDimension; ++i,++itW,++itO){
+            *itW = kkt.weights[i];
+            *itO = VectorType::CastCoordinates(kkt.offsets[i]);
+        }
 	}
 	
 	io.currentSetter = TraitsIO::SetterTag::Compute;
@@ -130,5 +146,61 @@ template<size_t TensorDimension> void RunTG(IO & io){
 	io.SetArray("objective",objective);
 	
 }
+
+#ifdef SmoothDecomp
+namespace smooth_decomp {
+namespace dim2 {
+#include "/Users/jean-mariemirebeau/Dropbox/Programmes/GithubM1/AdaptiveGridDiscretizations/agd/Eikonal/HFM_CUDA/cuda/Geometry2_smooth.h"
+} // dim2
+namespace dim3 {
+#include "/Users/jean-mariemirebeau/Dropbox/Programmes/GithubM1/AdaptiveGridDiscretizations/agd/Eikonal/HFM_CUDA/cuda/Geometry3_smooth.h"
+} // dim3
+} // namespace smooth_decomp
+
+template<size_t TensorDimension> void RunSmooth(IO & io){
+    const size_t GridDimension = 1;
+    typedef IO::ScalarType ScalarType;
+    typedef LinearAlgebra::SymmetricMatrix<ScalarType,TensorDimension> SymmetricMatrixType;
+    typedef typename SymmetricMatrixType::VectorType VectorType;
+    const auto tensors = io.GetArray<SymmetricMatrixType,GridDimension>("tensors");
+    if(io.HasField("steps") && io.GetString("steps")!="Both")
+        ExceptionMacro("Smooth decomposition expects 'Both' steps");
+
+    const int KKTDimension = // Not really KKT relations anymore, but for consistency
+    TensorDimension==2 ? smooth_decomp::dim2::smooth::decompdim :
+    TensorDimension==3 ? smooth_decomp::dim3::smooth::decompdim : -1;
+    const int SymDimension = SymmetricMatrixType::InternalDimension;
+
+    LinearAlgebra::Array<ScalarType, GridDimension+1> weights;
+    LinearAlgebra::Array<VectorType, GridDimension+1> offsets;
+    for(int i=0; i<GridDimension; ++i) weights.dims[i] = tensors.dims[i];
+    weights.dims.back()=KKTDimension;
+    weights.resize(weights.dims.Product());
+    offsets.dims=weights.dims;
+    offsets.resize(weights.size());
+
+    auto itW = weights.begin();
+    auto itO = offsets.begin();
+    for(auto itT = tensors.begin(); itT!=tensors.end(); ++itT){
+        ScalarType m[SymDimension];
+        for(int i=0; i<SymDimension; ++i) m[i] = (*itT).data[i];
+        ScalarType weights[KKTDimension];
+        OffsetT offsets[KKTDimension][TensorDimension];
+        if constexpr(TensorDimension==2){
+            smooth_decomp::dim2::smooth::decomp_m(m,weights,offsets);}
+        if constexpr(TensorDimension==3){
+            smooth_decomp::dim3::smooth::decomp_m(m,weights,offsets);}
+        for(int i=0; i<KKTDimension; ++i,++itW,++itO){
+            *itW = weights[i];
+            for(int j=0; j<TensorDimension;++j) (*itO)[j]=offsets[i][j];
+        }
+    }
+    
+    io.currentSetter = TraitsIO::SetterTag::Compute;
+    io.SetArray("weights", weights);
+    io.SetArray("offsets", offsets);
+}
+#endif
+
 
 #endif /* DispatchAndRun_h */
