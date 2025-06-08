@@ -153,6 +153,7 @@ namespace dim2 {
 #include "/Users/jean-mariemirebeau/Dropbox/Programmes/GithubM1/AdaptiveGridDiscretizations/agd/Eikonal/HFM_CUDA/cuda/Geometry2_smooth.h"
 } // dim2
 namespace dim3 {
+#include "/Users/jean-mariemirebeau/Dropbox/Programmes/GithubM1/AdaptiveGridDiscretizations/agd/Eikonal/HFM_CUDA/cuda/Geometry3_smooth2.h"
 #include "/Users/jean-mariemirebeau/Dropbox/Programmes/GithubM1/AdaptiveGridDiscretizations/agd/Eikonal/HFM_CUDA/cuda/Geometry3_smooth.h"
 } // dim3
 } // namespace smooth_decomp
@@ -179,6 +180,10 @@ template<size_t TensorDimension> void RunSmooth(IO & io){
     offsets.dims=weights.dims;
     offsets.resize(weights.size());
 
+    const ScalarType ismooth = io.Get<ScalarType>("smooth",0.);
+    const ScalarType relax = io.Get<ScalarType>("relax",ismooth==1 ? 0.004 : 0.04);
+    const ScalarType sb0 = io.Get<ScalarType>("sb0",0.);
+
     auto itW = weights.begin();
     auto itO = offsets.begin();
     for(auto itT = tensors.begin(); itT!=tensors.end(); ++itT){
@@ -189,7 +194,8 @@ template<size_t TensorDimension> void RunSmooth(IO & io){
         if constexpr(TensorDimension==2){
             smooth_decomp::dim2::smooth::decomp_m(m,weights,offsets);}
         if constexpr(TensorDimension==3){
-            smooth_decomp::dim3::smooth::decomp_m(m,weights,offsets);}
+            if(ismooth==1){smooth_decomp::dim3::smooth::decomp_m(m,weights,offsets);}
+            else{smooth_decomp::dim3::smooth2::decomp_m(m,weights,offsets,relax,sb0);}}
         for(int i=0; i<KKTDimension; ++i,++itW,++itO){
             *itW = weights[i];
             for(int j=0; j<TensorDimension;++j) (*itO)[j]=offsets[i][j];

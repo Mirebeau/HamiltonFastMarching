@@ -13,6 +13,7 @@ template<typename TScalar, size_t VDimension>
 struct RanderNorm {
     
     using ScalarType = TScalar;
+    using ComponentType = ScalarType;
     static const size_t Dimension = VDimension;
 
     using VectorType = Vector<ScalarType,Dimension>;
@@ -41,5 +42,15 @@ std::ostream & operator << (std::ostream & os, const RanderNorm<TS,VD> & norm){
 }
 	
 } // namespace Linear Algebra
+
+template<typename C, size_t VD>
+struct GetComponent<LinearAlgebra::RanderNorm<C,VD>, C> {
+    typedef LinearAlgebra::RanderNorm<C,VD> T;
+    static constexpr size_t symdim = T::SymmetricMatrixType::InternalDimension;
+    static constexpr size_t size() {return symdim + T::Dimension;}
+    static const C & Get(const T & t, size_t i) {assert(i<size()); return i < symdim ? t.m.data[i] : t.w[i-symdim];}
+    static C & Get(T & t, size_t i) {assert(i<size()); return i < symdim ? t.m.data[i] : t.w[i-symdim];}
+};
+
 
 #endif

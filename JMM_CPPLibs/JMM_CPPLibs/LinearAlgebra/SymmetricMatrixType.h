@@ -139,7 +139,7 @@ protected:
 template<typename C, size_t VD>
 struct GetComponent<LinearAlgebra::SymmetricMatrix<C,VD>, C> {
 	typedef LinearAlgebra::SymmetricMatrix<C,VD> T;
-	static constexpr size_t size() {return T().data.size();}
+	static constexpr size_t size() {return T::InternalDimension;}
 	static const C & Get(const T & t, size_t i) {assert(i<size()); return t.data[i];}
 	static C & Get(T & t, size_t i) {assert(i<size()); return t.data[i];}
 };
