@@ -149,12 +149,21 @@ template<size_t TensorDimension> void RunTG(IO & io){
 
 #ifdef SmoothDecomp
 namespace smooth_decomp {
+#ifdef _MSC_VER // My Dell paths
+namespace dim2 {
+#include "C:/Users/jmmir/Dropbox/Programmes/GithubDell/AdaptiveGridDiscretizations/agd/Eikonal/HFM_CUDA/cuda/Geometry2_smooth.h"
+} // dim2
+namespace dim3 {
+#include "C:/Users/jmmir/Dropbox/Programmes/GithubDell/AdaptiveGridDiscretizations/agd/Eikonal/HFM_CUDA/cuda/Geometry3_smooth.h"
+} // dim3
+#else // My M1 paths
 namespace dim2 {
 #include "/Users/jean-mariemirebeau/Dropbox/Programmes/GithubM1/AdaptiveGridDiscretizations/agd/Eikonal/HFM_CUDA/cuda/Geometry2_smooth.h"
 } // dim2
 namespace dim3 {
 #include "/Users/jean-mariemirebeau/Dropbox/Programmes/GithubM1/AdaptiveGridDiscretizations/agd/Eikonal/HFM_CUDA/cuda/Geometry3_smooth.h"
 } // dim3
+#endif
 } // namespace smooth_decomp
 
 template<size_t TensorDimension> void RunSmooth(IO & io){

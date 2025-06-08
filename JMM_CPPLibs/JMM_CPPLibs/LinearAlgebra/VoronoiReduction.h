@@ -44,7 +44,8 @@ If you do not need it, then please #undef Voronoi6
 If you need it, the please put the correct include path below
 */
 #ifdef _MSC_VER 
-#include "C:/Users/jmmir/Documents/GitHub/AdaptiveGridDiscretizations/agd/Eikonal/HFM_CUDA/cuda/Geometry6.h" // My Dell
+#include "C:/Users/jmmir/Dropbox/Programmes/GithubDell/AdaptiveGridDiscretizations/agd/Eikonal/HFM_CUDA/cuda/Geometry6.h" // My Dell
+//#include "C:/Users/jmmir/Documents/GitHub/AdaptiveGridDiscretizations/agd/Eikonal/HFM_CUDA/cuda/Geometry6.h" // My Dell
 #else
 #include "/Users/jean-mariemirebeau/Dropbox/Programmes/GithubM1/AdaptiveGridDiscretizations/agd/Eikonal/HFM_CUDA/cuda/Geometry6.h" // My Macbook M1
 //#include "Eikonal/HFM_CUDA/CUDA/geometry6.h"
