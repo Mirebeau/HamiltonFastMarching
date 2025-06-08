@@ -130,4 +130,14 @@ std::ostream & operator << (std::ostream & os, const SeismicNorm<TC, VD> & norm)
 
 } // namespace LinearAlgebra
 
+template<typename C, size_t VD>
+struct GetComponent<LinearAlgebra::SeismicNorm<C,VD>, C> {
+    typedef LinearAlgebra::SeismicNorm<C,VD> T;
+    using SubGet = GetComponent<typename T::HookeTensorType,C>;
+    static constexpr size_t size() {return SubGet::size();}
+    static const C & Get(const T & t, size_t i) {assert(i<size()); return SubGet::Get(t.hookeTensor,i);}
+    static C & Get(T & t, size_t i) {assert(i<size()); return SubGet::Get(t.hookeTensor,i);}
+};
+
+
 #endif // SeismicNorm_h 
