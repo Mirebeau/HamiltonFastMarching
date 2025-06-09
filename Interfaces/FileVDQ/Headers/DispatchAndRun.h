@@ -154,6 +154,9 @@ namespace dim2 {
 #include "C:/Users/jmmir/Dropbox/Programmes/GithubDell/AdaptiveGridDiscretizations/agd/Eikonal/HFM_CUDA/cuda/Geometry2_smooth.h"
 } // dim2
 namespace dim3 {
+using std::abs;
+using std::log;
+#include "C:/Users/jmmir/Dropbox/Programmes/GithubDell/AdaptiveGridDiscretizations/agd/Eikonal/HFM_CUDA/cuda/Geometry3_smooth2.h"
 #include "C:/Users/jmmir/Dropbox/Programmes/GithubDell/AdaptiveGridDiscretizations/agd/Eikonal/HFM_CUDA/cuda/Geometry3_smooth.h"
 } // dim3
 #else // My M1 paths
