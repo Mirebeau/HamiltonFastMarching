@@ -127,7 +127,7 @@ FileIO::~FileIO(){
     // Write data file
 	std::fstream fs; // faster than ofstream
 	fs.open(outputPrefix+"_Data.dat",  std::ios::out | std::ios::binary);
-	fs.write((char*) &outputData[0], outputData.size()*sizeof(ScalarType));
+    if(!outputData.empty()) fs.write((char*) &outputData[0], outputData.size()*sizeof(ScalarType));
 	
 }
 #endif /* FileIO_hxx */

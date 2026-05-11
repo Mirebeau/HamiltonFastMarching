@@ -322,7 +322,7 @@ Matrix<TC,VR,VC>::Solve(OutputVectorType b) const -> InputVectorType {
     static_assert(VR==VC,"Matrix must be square");
     const size_t n=VR;
     std::array<int,n> i2j, j2i; i2j.fill(-1); j2i.fill(-1);
-    Matrix m = this;
+    Matrix m = *this;
     for(int j=0; j<n; ++j){
         // Get largest coefficient in column
         ComponentType cMax=0;

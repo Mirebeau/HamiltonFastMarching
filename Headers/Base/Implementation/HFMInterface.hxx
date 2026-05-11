@@ -445,6 +445,8 @@ Run_RunSolver() {
 			Msg() << "(Code executed in Debug mode, explaining slow compute time)\n";
 #endif
 		}
+        io.Set<ScalarType>("nUpdates",pFM->nUpdates);
+        io.SetHelp("nUpdates","Number of elementary updates performed by the FMM");
     }
     return false;
 }

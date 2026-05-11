@@ -80,6 +80,7 @@ struct HamiltonFastMarching {
     std::map<IndexType,ScalarType,typename IndexType::LexicographicCompare> seeds;
     void Run();
 	Array<ScalarType,Dimension> values;
+    size_t nUpdates=0;
 
 	// High order scheme extension.
 	int order = 1;

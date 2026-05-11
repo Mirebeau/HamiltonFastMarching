@@ -147,6 +147,7 @@ void IO_<Base>::Set(KeyCRef key, const T & val) {
 
 template<typename Base> template<typename T>
 void IO_<Base>::SetVector(KeyCRef key, const std::vector<T> & val) {
+    assert(!val.empty());
     Set<T,1>(key,{(DiscreteType)val.size()},&val[0]);
 }
 

@@ -165,7 +165,8 @@ Update(FullIndexCRef updated, OffsetCRef offset, ScalarType acceptedValue){
     const ScalarType updatedValue =
     stencilData.HopfLaxUpdate(updated,offset,acceptedValue,active);
     values[updated.linear] = updatedValue;
-    queue.push({updated.linear,updatedValue});    
+    queue.push({updated.linear,updatedValue});
+    ++nUpdates;
 }
 
 // ----------------- Boundary conditions -------------------
