@@ -36,7 +36,7 @@ jobs:
         run: python -m pip install cibuildwheel
 
       - name: Build wheels
-        run: python -m cibuildwheel --package-dir Interfaces/PythonHFM --output-dir wheelhouse
+        run: python -m cibuildwheel --output-dir wheelhouse Interfaces/PythonHFM 
 
       - uses: actions/upload-artifact@v4
         with:
