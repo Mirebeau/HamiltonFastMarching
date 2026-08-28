@@ -49,19 +49,27 @@ class CMakeBuild(build_ext):
         build_args = ['--config', cfg]
 
         if platform.system() == "Windows":
-            cmake_args += ['-DCMAKE_LIBRARY_OUTPUT_DIRECTORY_{}={}'.format(cfg.upper(), extdir + '/' + PKG_NAME)]
-#            cmake_args += ['-G','Visual Studio 16 2019']
-            cmake_args += ['-G','Visual Studio 17 2022']
-# Both 'Visual Studio 16 2019' and 'Visual Studio 17 2022' compile correctly.
-# Update to latest version to fix continuous integration with github actions.
-# See  https://github.com/robotology/yarp/pull/2811  and 
-# https://stackoverflow.com/questions/6430251/what-is-the-default-generator-for-cmake-in-windows
-            if sys.maxsize > 2**32:
-                cmake_args += ['-A', 'x64']
-            build_args += ['--', '/m']
-        else:
-            cmake_args += ['-DCMAKE_BUILD_TYPE=' + cfg]
-            build_args += ['--', '-j2']
+            cmake_args += [
+                '-DCMAKE_LIBRARY_OUTPUT_DIRECTORY_{}={}'.format(
+                    cfg.upper(), extdir + '/' + PKG_NAME
+                )
+            ]
+#             cmake_args += ['-DCMAKE_LIBRARY_OUTPUT_DIRECTORY_{}={}'.format(cfg.upper(), extdir + '/' + PKG_NAME)]
+# #            cmake_args += ['-G','Visual Studio 16 2019']
+#             cmake_args += ['-G','Visual Studio 17 2022']
+# # Both 'Visual Studio 16 2019' and 'Visual Studio 17 2022' compile correctly.
+# # Update to latest version to fix continuous integration with github actions.
+# # See  https://github.com/robotology/yarp/pull/2811  and 
+# # https://stackoverflow.com/questions/6430251/what-is-the-default-generator-for-cmake-in-windows
+#             if sys.maxsize > 2**32:
+#                 cmake_args += ['-A', 'x64']
+#             build_args += ['--', '/m']
+#        else:
+
+        
+        cmake_args += ['-DCMAKE_BUILD_TYPE=' + cfg]
+        cmake_args += ['-G', 'Ninja']
+        build_args += ['--', '-j2']
 
         env = os.environ.copy()
         env['CXXFLAGS'] = '{} -DVERSION_INFO=\\"{}\\"'.format(env.get('CXXFLAGS', ''),
