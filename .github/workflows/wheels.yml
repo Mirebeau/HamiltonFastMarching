@@ -22,8 +22,9 @@ jobs:
       fail-fast: false
       matrix:
         os:
-          - ubuntu-latest          # manylinux x86_64
-          - macos-14               # Apple Silicon
+#          - ubuntu-latest          # manylinux x86_64
+#          - macos-14               # Apple Silicon
+          - windows-latest
 
     steps:
       - uses: actions/checkout@v5
