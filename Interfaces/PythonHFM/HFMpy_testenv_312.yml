@@ -1,0 +1,10 @@
+# conda env create -f environment.yml
+name: HFMpy_testenv_312
+channels:
+  - conda-forge
+  - plotly
+dependencies:
+  - python=3.12
+  - scipy
+  - cmake
+  - pybind11
