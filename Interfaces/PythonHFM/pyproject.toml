@@ -1,0 +1,38 @@
+[build-system]
+requires = [
+    "setuptools>=64",
+    "wheel",
+    "cmake>=3.18",
+    "ninja",
+    "pybind11>=2.10",
+]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "HFMpy"
+version = "0.2.13"
+description = "Python bindings for HamiltonFastMarching"
+readme = "Readme.md"
+license = { text = "GPL-3.0-or-later" }
+authors = [
+    { name = "Jean-Marie Mirebeau" },
+]
+requires-python = ">=3.10"
+dependencies = ["numpy"]
+
+[tool.setuptools.packages.find]
+include = ["HFMpy*"]
+
+[tool.cibuildwheel]
+build = "cp312-*"
+skip = "*musllinux* *i686* *win32*"
+test-command = "python -c \"import HFMpy.HFM_Isotropic2\""
+# Moins de modèles = première CI raisonnable
+environment = { HFM_CMAKE_ARGS = "-DIncludeExperimentalModels=OFF -DOPTIMIZE_FOR_NATIVE=OFF" }
+
+[tool.cibuildwheel.linux]
+archs = ["x86_64"]
+
+[tool.cibuildwheel.macos]
+archs = ["arm64"]
+environment = { MACOSX_DEPLOYMENT_TARGET = "11.0", HFM_CMAKE_ARGS = "-DIncludeExperimentalModels=OFF -DOPTIMIZE_FOR_NATIVE=OFF" }
