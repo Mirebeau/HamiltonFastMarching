@@ -38,6 +38,13 @@ class CMakeBuild(build_ext):
         cmake_args = ['-DCMAKE_LIBRARY_OUTPUT_DIRECTORY=' + extdir + '/' + PKG_NAME,
                       '-DPYTHON_EXECUTABLE=' + sys.executable]
 
+        try: 
+            import pybind11
+            cmake_args.append("-Dpybind11_DIR=" + pybind11.get_cmake_dir())
+        except ImportError: pass
+        extra = os.environ.get("HFM_CMAKE_ARGS", "").split()
+        cmake_args += extra
+
         cfg = 'Debug' if self.debug else 'Release'
         build_args = ['--config', cfg]
 
