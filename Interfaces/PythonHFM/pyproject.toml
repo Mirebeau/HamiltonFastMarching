@@ -24,7 +24,7 @@ dependencies = ["numpy"]
 include = ["HFMpy*"]
 
 [tool.cibuildwheel]
-build = "cp312-*"
+build = ["cp312-*", "cp313-*", "cp314-*"]
 skip = "*musllinux* *i686* *win32*"
 test-command = "python -c \"import HFMpy.HFM_Isotropic2\""
 # Moins de modèles = première CI raisonnable
