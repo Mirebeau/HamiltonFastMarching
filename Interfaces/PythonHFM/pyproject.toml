@@ -10,7 +10,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "HFMpy"
-version = "0.2.13"
+version = "0.2.13.post1"
 description = "Python bindings for HamiltonFastMarching"
 readme = "Readme.md"
 license = { text = "GPL-3.0-or-later" }
