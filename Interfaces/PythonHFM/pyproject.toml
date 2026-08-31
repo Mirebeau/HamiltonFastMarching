@@ -33,7 +33,7 @@ build = ["cp312-*", "cp313-*", "cp314-*"]
 skip = "*musllinux* *i686* *win32*"
 test-command = "python -c \"import HFMpy.HFM_Isotropic2\""
 # Moins de modèles = première CI raisonnable
-environment = { HFM_CMAKE_ARGS = "-DIncludeExperimentalModels=OFF -DOPTIMIZE_FOR_NATIVE=OFF" }
+environment = { HFM_CMAKE_ARGS = "-DIncludeExperimentalModels=ON -DOPTIMIZE_FOR_NATIVE=OFF" }
 
 [tool.cibuildwheel.linux]
 archs = ["x86_64"]
