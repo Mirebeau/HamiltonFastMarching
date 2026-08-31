@@ -20,6 +20,11 @@ authors = [
 requires-python = ">=3.10"
 dependencies = ["numpy"]
 
+[project.urls]
+Homepage = "https://github.com/Mirebeau/HamiltonFastMarching"
+Source = "https://github.com/Mirebeau/HamiltonFastMarching"
+Issues = "https://github.com/Mirebeau/HamiltonFastMarching/issues"
+
 [tool.setuptools.packages.find]
 include = ["HFMpy*"]
 
