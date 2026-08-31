@@ -33,15 +33,14 @@ This code implements a Fast-Marching solver with adaptive stencils. It computes 
 - second order accuracy (optional), various stopping criteria, propagation of states, forward and backward differentiation.
 - interfaces to  Mathematica(R) and Python(R) using files, Matlab(R) using mex, see ExampleFiles directory.
 
-## Binaries installation for Python usage, using Anaconda
+## Binaries installation for Python usage, using PyPI
 
-Compiled binaries of the HFM library, linked with Python(R), are available for Linux, MacOS(R), Windows(R). If you do not plan to modify the C++ code, that will save you the effort of compilation.
+Compiled binaries of the HFM library, linked with Python(R), are available for Linux, MacOS(R), Windows(R). If you do not plan to modify the C++ code, that will save you the effort of compilation. You will also need the [agd library](https://github.com/Mirebeau/AdaptiveGridDiscretizations).
 
-Please download and install [anaconda](https://www.anaconda.com) or [miniconda](https://conda.io/en/latest/miniconda.html). We recommend creating a dedicated conda environnement, as suggested in the [Python notebooks repository](). If not, then type in a terminal:
-```console
-conda install -c agd-lbr hfm
-```
-The feedstock repository used for creating the conda package is located [here](https://github.com/AGD-LBR/hfm-feedstock).
+``console
+pip install agd
+pip install hfmpy
+''
 
 
 ## Compilation instructions

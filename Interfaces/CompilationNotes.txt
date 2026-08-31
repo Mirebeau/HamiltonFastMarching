@@ -1,5 +1,19 @@
 Please ignore these notes, written by the developper for his own interest.
 
+---- Upload new Python binaries to PyPI ----
+
+- Change version numbers in 
+	- PythonHFM/pyproject.toml
+	- PythonHFM/setup.py
+- Commit, push to master.
+- Wait until Github Actions finishes the compilation.
+- Download the artifacts of Github Actions
+- Gather them in a common directory, e.g. "dist-pypi"
+- (LOCAL) pip install /Users/jean-mariemirebeau/Downloads/hfmpy-0.2.13-cp312-cp312-macosx_11_0_arm64.whl --force-reinstall
+- (TEST)  twine upload --repository testpypi dist-pypi/*
+- (FINAL) twine upload dist-pypi/*
+
+
 ---- Windows compilation notes, using mingw gcc:
 
 Following headers are not included by default:
